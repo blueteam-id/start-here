@@ -1,0 +1,117 @@
+---
+import type { CatalogTrack } from '../data/catalog';
+
+interface Props {
+  track: CatalogTrack;
+}
+
+const { track } = Astro.props;
+const isLive = track.status === 'live';
+const href = `/tracks/${track.slug}/`;
+const Tag = isLive ? 'a' : 'div';
+const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
+---
+
+<Tag
+  class="track-card"
+  href={isLive ? href : undefined}
+  aria-disabled={isLive ? undefined : 'true'}
+>
+  <div class="track-card__top">
+    <div class="track-card__icon">{track.icon}</div>
+    <span class="track-card__pill">FOUNDATION</span>
+  </div>
+  <h3 class="track-card__title">{track.title}</h3>
+  <p class="track-card__summary">{track.summary}</p>
+  <div class="track-card__meta">
+    <span>{hoursLabel}h</span>
+    <span>{track.lessonCount} lessons</span>
+    {track.needsVM && <span class="track-card__vm">Needs a VM</span>}
+  </div>
+  {!isLive && <span class="track-card__status">Coming soon</span>}
+</Tag>
+
+<style>
+  .track-card {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s ease;
+  }
+
+  a.track-card:hover,
+  a.track-card:focus-visible {
+    border-color: var(--blue);
+  }
+
+  div.track-card[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .track-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .track-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background: var(--bg-elev, var(--bg));
+    border: 1px solid var(--border);
+    font-size: 1.25rem;
+  }
+
+  .track-card__pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 999px;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .track-card__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+
+  .track-card__summary {
+    margin: 0 0 0.9rem;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .track-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .track-card__vm {
+    color: var(--yellow);
+  }
+
+  .track-card__status {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+</style>

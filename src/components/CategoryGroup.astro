@@ -1,0 +1,36 @@
+---
+import type { CatalogTrack } from '../data/catalog';
+import TrackCard from './TrackCard.astro';
+
+interface Props {
+  category: string;
+  tracks: CatalogTrack[];
+}
+
+const { category, tracks } = Astro.props;
+---
+
+<section class="category-group">
+  <h2 class="category-group__heading">{category}</h2>
+  <div class="category-group__grid">
+    {tracks.map((track) => <TrackCard track={track} />)}
+  </div>
+</section>
+
+<style>
+  .category-group {
+    margin-bottom: 2.5rem;
+  }
+
+  .category-group__heading {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    color: var(--text);
+  }
+
+  .category-group__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+</style>
