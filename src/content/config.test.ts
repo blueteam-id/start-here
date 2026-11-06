@@ -16,6 +16,7 @@ test('trackSchema accepts a fully-specified track', () => {
     reviewer: 'Wahyu N',
     updatedAt: new Date('2026-11-06'),
     icon: '🖥️',
+    version: '1.0',
   })).not.toThrow();
 });
 

@@ -14,6 +14,7 @@ export const trackSchema = z.object({
   reviewer: z.string(),
   updatedAt: z.date(),
   icon: z.string(),
+  version: z.string(),
 });
 
 export const lessonSchema = z.object({
