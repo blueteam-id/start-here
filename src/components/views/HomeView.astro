@@ -1,0 +1,309 @@
+---
+import { CATALOG_TRACKS } from '../../data/catalog';
+import TrackCard from '../TrackCard.astro';
+import DiscordBand from '../DiscordBand.astro';
+
+const liveTracks = CATALOG_TRACKS.filter((track) => track.status === 'live');
+
+const pillars = [
+  {
+    icon: '💸',
+    title: '100% free',
+    body: 'Every track, every lesson, no paywall and no upsell, ever.',
+  },
+  {
+    icon: '🙅',
+    title: 'No sign-up',
+    body: 'Nothing to register. Just open a track and start reading.',
+  },
+  {
+    icon: '🤝',
+    title: 'Community-run',
+    body: 'Built and maintained by volunteers from the blueteam.id community.',
+  },
+  {
+    icon: '🧩',
+    title: 'Beginner first',
+    body: 'Starts from zero assumptions, no prior IT background required.',
+  },
+];
+---
+
+<div class="home">
+  <section class="hero">
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <span class="hero__badge">100% free, no sign-up, community-run</span>
+        <h1 class="hero__headline">Learn the foundations of blue team security, for free.</h1>
+        <p class="hero__sub">
+          A set of guided tracks covering how computers, operating systems, networks and the web
+          actually work, the groundwork every defender needs before anything else.
+        </p>
+        <div class="hero__ctas">
+          <a class="hero__cta hero__cta--primary" href="/tracks/">Browse tracks</a>
+          <a class="hero__cta hero__cta--secondary" href="/faq/">What's this about?</a>
+        </div>
+      </div>
+      <div class="hero__terminal" aria-hidden="true">
+        <div class="hero__terminal-bar">
+          <span class="hero__terminal-dot"></span>
+          <span class="hero__terminal-dot"></span>
+          <span class="hero__terminal-dot"></span>
+        </div>
+        <pre class="hero__terminal-body"><code>$ whoami
+future-defender
+$ status
+ready to start learning</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="pillars">
+    <div class="pillars__grid">
+      {pillars.map((pillar) => (
+        <div class="pillar">
+          <div class="pillar__icon" aria-hidden="true">{pillar.icon}</div>
+          <h3 class="pillar__title">{pillar.title}</h3>
+          <p class="pillar__body">{pillar.body}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="tracks-teaser">
+    <div class="tracks-teaser__head">
+      <h2 class="tracks-teaser__heading">Start learning</h2>
+      <a class="tracks-teaser__see-all" href="/tracks/">See all tracks</a>
+    </div>
+    <div class="tracks-teaser__grid">
+      {liveTracks.map((track) => (
+        <TrackCard track={track} />
+      ))}
+    </div>
+  </section>
+
+  <section class="home__discord">
+    <DiscordBand
+      heading="Questions, feedback, or want to help build the next track?"
+      body="Join the community Discord, this project is built in the open by volunteers."
+    />
+  </section>
+</div>
+
+<style>
+  .home {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .hero {
+    padding: 3rem 0 1rem;
+  }
+
+  .hero__inner {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .hero__copy {
+    flex: 1 1 24rem;
+    min-width: 0;
+  }
+
+  .hero__badge {
+    display: inline-block;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--green);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.35rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero__headline {
+    margin: 0 0 1rem;
+    font-size: 2.25rem;
+    line-height: 1.15;
+    color: var(--text);
+  }
+
+  .hero__sub {
+    margin: 0 0 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    max-width: 38rem;
+  }
+
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .hero__cta {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .hero__cta--primary {
+    background: var(--blue);
+    color: var(--bg);
+  }
+
+  .hero__cta--primary:hover,
+  .hero__cta--primary:focus-visible {
+    filter: brightness(1.1);
+  }
+
+  .hero__cta--secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .hero__cta--secondary:hover,
+  .hero__cta--secondary:focus-visible {
+    border-color: var(--blue);
+  }
+
+  .hero__terminal {
+    flex: 1 1 18rem;
+    max-width: 22rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .hero__terminal-bar {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero__terminal-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .hero__terminal-body {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--green);
+    white-space: pre-wrap;
+  }
+
+  .pillars__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+
+  .pillar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .pillar__icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .pillar__title {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .pillar__body {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+  }
+
+  .tracks-teaser__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .tracks-teaser__heading {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  .tracks-teaser__see-all {
+    color: var(--blue);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .tracks-teaser__see-all:hover,
+  .tracks-teaser__see-all:focus-visible {
+    text-decoration: underline;
+  }
+
+  .tracks-teaser__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 720px) {
+    .pillars__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .home {
+      padding: 0 1rem 3rem;
+      gap: 2.25rem;
+    }
+
+    .hero {
+      padding: 2rem 0 0.5rem;
+    }
+
+    .hero__headline {
+      font-size: 1.6rem;
+    }
+
+    .hero__sub {
+      font-size: 0.95rem;
+    }
+
+    .pillars__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
