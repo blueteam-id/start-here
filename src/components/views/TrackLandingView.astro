@@ -5,9 +5,18 @@ import AttributionStrip from '../AttributionStrip.astro';
 interface Props {
   track: TrackEntry;
   lessons: LessonEntry[];
+  Content?: any;
 }
 
-const { track, lessons } = Astro.props;
+const { track, lessons, Content } = Astro.props;
+
+// `Content` is normally a real Astro component factory produced by
+// `render(track)` (must be rendered via `<Content />` so Astro wires up its
+// own result/slot context). Tests may exercise this view without passing
+// Content at all, or with a plain stand-in function instead, which
+// `<Content />` can't render -- so fall back to calling it directly and
+// inserting its returned markup for anything that isn't a real factory.
+const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).isAstroComponentFactory === true;
 
 // Sort defensively rather than trusting the caller's array order (the page
 // already sorts, but this view is also exercised directly in tests/future
@@ -37,6 +46,12 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
     </div>
     <AttributionStrip author={track.data.author} reviewer={track.data.reviewer} updatedAt={track.data.updatedAt} />
   </div>
+
+  {Content && (
+    <div class="track-landing__body">
+      {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
+    </div>
+  )}
 
   {firstLesson && (
     <a class="track-landing__start" href={lessonHref(firstLesson)}>
@@ -91,6 +106,12 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
     font-size: 0.85rem;
     color: var(--text-dim);
     margin-bottom: 0.5rem;
+  }
+
+  .track-landing__body {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
   }
 
   .track-landing__start {

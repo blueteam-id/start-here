@@ -12,6 +12,7 @@ import PrerequisitesCallout from '../PrerequisitesCallout.astro';
 import ReflectSection from '../ReflectSection.astro';
 import GoFurtherSection from '../GoFurtherSection.astro';
 import { getProgress } from '../../lib/progress';
+import { DISCORD_INVITE_URL } from '../Header.astro';
 
 interface Props {
   track: TrackEntry;
@@ -78,11 +79,26 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
       <span>{lesson.data.title}</span>
     </nav>
 
+    <div class="lesson-view__title-block">
+      <span class="lesson-view__phase-tag">{lesson.data.phase}</span>
+      <h1 class="lesson-view__title">{lesson.data.title}</h1>
+      <div class="lesson-view__title-meta">
+        {lesson.data.estimatedMinutes != null && <span>{lesson.data.estimatedMinutes} min</span>}
+        {lesson.data.needsVM && <span class="lesson-view__vm-badge">Needs a VM</span>}
+      </div>
+    </div>
+
     {lesson.data.prerequisites && <PrerequisitesCallout text={lesson.data.prerequisites} />}
 
     <article class="lesson-view__content">
       {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
     </article>
+
+    <div class="lesson-view__discord-nudge" role="note">
+      Stuck, or just want to talk it through? Ask in the
+      <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Discord</a>,
+      no need to get stuck here alone.
+    </div>
 
     <ReflectSection questions={reflectQuestions} />
     <GoFurtherSection resources={resources} />
@@ -147,6 +163,67 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
   .lesson-view__content {
     color: var(--text);
     line-height: 1.65;
+  }
+
+  .lesson-view__title-block {
+    margin-bottom: 1.5rem;
+  }
+
+  .lesson-view__phase-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .lesson-view__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .lesson-view__title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .lesson-view__vm-badge {
+    color: var(--yellow);
+  }
+
+  .lesson-view__discord-nudge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 1.75rem 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .lesson-view__discord-nudge a {
+    color: var(--blue);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .lesson-view__discord-nudge a:hover,
+  .lesson-view__discord-nudge a:focus-visible {
+    text-decoration: underline;
   }
 
   .lesson-view__footer {

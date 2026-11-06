@@ -8,6 +8,7 @@ export interface CatalogTrack {
   lessonCount: number;
   icon: string;
   needsVM?: boolean;
+  handsOn?: boolean;
 }
 
 // Fixed display order for the catalog. groupByCategory uses this order.
@@ -29,7 +30,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
       'Hardware, storage, data representation, operating systems, virtualization and cloud, at a glance.',
     estimatedMinutes: 120,
     lessonCount: 5,
-    icon: 'chip',
+    icon: '🖥️',
   },
   {
     slug: 'linux-essentials',
@@ -39,7 +40,8 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     summary: 'Shell navigation, permissions, core commands such as grep and cp, hands-on.',
     estimatedMinutes: 150,
     lessonCount: 6,
-    icon: 'terminal',
+    icon: '🐧',
+    handsOn: true,
   },
   {
     slug: 'windows-foundations',
@@ -50,7 +52,8 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
       'CLI, file system, permissions, PowerShell, Event Viewer, registry basics, hands-on.',
     estimatedMinutes: 150,
     lessonCount: 6,
-    icon: 'window',
+    icon: '🪟',
+    handsOn: true,
   },
   {
     slug: 'networking-fundamentals',
@@ -60,7 +63,8 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     summary: 'Addressing, ports, TCP/UDP, subnetting, how a packet moves, hands-on.',
     estimatedMinutes: 120,
     lessonCount: 5,
-    icon: 'network',
+    icon: '🌐',
+    handsOn: true,
   },
   {
     slug: 'how-the-web-really-works',
@@ -70,7 +74,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     summary: 'Search engines, web servers, HTML, cookies.',
     estimatedMinutes: 90,
     lessonCount: 4,
-    icon: 'globe',
+    icon: '🕸️',
   },
   {
     slug: 'servers-and-services',
@@ -81,8 +85,9 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
       'Web, database, DNS, log and mail servers, basic setup and first hardening steps, hands-on.',
     estimatedMinutes: 180,
     lessonCount: 6,
-    icon: 'server',
+    icon: '🗄️',
     needsVM: true,
+    handsOn: true,
   },
   {
     slug: 'programming-basics-python',
@@ -92,7 +97,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     summary: 'Variables, input, files, and a first TCP socket. Python only.',
     estimatedMinutes: 180,
     lessonCount: 6,
-    icon: 'code',
+    icon: '🐍',
   },
   {
     slug: 'sql-basics',
@@ -102,7 +107,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     summary: 'Statements, joins, basic database administration.',
     estimatedMinutes: 120,
     lessonCount: 5,
-    icon: 'database',
+    icon: '🗃️',
   },
   {
     slug: 'security-concepts',
@@ -113,7 +118,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
       'CIA triad, threat vs. vulnerability vs. risk, crypto basics, ethics and legal boundaries, a first taste of recon and forensics.',
     estimatedMinutes: 120,
     lessonCount: 5,
-    icon: 'shield',
+    icon: '🛡️',
   },
 ];
 

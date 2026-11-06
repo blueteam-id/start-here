@@ -26,6 +26,7 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
   <div class="track-card__meta">
     <span>{hoursLabel}h</span>
     <span>{track.lessonCount} lessons</span>
+    {track.handsOn && <span class="track-card__hands-on">Hands-on</span>}
     {track.needsVM && <span class="track-card__vm">Needs a VM</span>}
   </div>
   {!isLive && <span class="track-card__status">Coming soon</span>}
@@ -101,6 +102,10 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
     gap: 0.75rem;
     font-size: 0.8rem;
     color: var(--text-dim);
+  }
+
+  .track-card__hands-on {
+    color: var(--green);
   }
 
   .track-card__vm {

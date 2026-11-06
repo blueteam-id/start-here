@@ -1,4 +1,5 @@
 ---
+import { render } from 'astro:content';
 import { getLessons, getTracks } from '../../../lib/collections';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import TrackLandingView from '../../../components/views/TrackLandingView.astro';
@@ -23,8 +24,9 @@ export async function getStaticPaths() {
 }
 
 const { track, lessons } = Astro.props;
+const { Content } = await render(track);
 ---
 
 <BaseLayout title={track.data.title} description={track.data.summary}>
-  <TrackLandingView track={track} lessons={lessons} />
+  <TrackLandingView track={track} lessons={lessons} Content={Content} />
 </BaseLayout>
