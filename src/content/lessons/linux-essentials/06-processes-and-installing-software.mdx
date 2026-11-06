@@ -1,0 +1,121 @@
+---
+title: 'Processes and Installing Software'
+track: 'linux-essentials'
+phase: 'Core Concepts'
+order: 6
+estimatedMinutes: 25
+reflectQuestions:
+  - 'Imagine `ps aux` shows a process you do not recognize, using 85% CPU, running as your own user. What questions would you ask about it (what is its command, when did it start, what user owns it, is it making network connections) before deciding whether it is suspicious or just a program you forgot was running?'
+  - 'Why is `kill -9` described as a last resort rather than the normal way to stop a process? What might a program lose the chance to do if you force-kill it instead of sending a plain `kill`?'
+  - 'If you were handed a server to investigate after a suspected break-in, why would checking the list of installed packages, and when they were installed, be one of your first steps?'
+resources:
+  - label: 'ps (Unix) (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Ps_(Unix)'
+  - label: 'APT (software) (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/APT_(software)'
+  - label: 'Homebrew (package manager) (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Homebrew_(package_manager)'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## Every running program is a process
+
+Every program running on your machine right now, your terminal, your browser, whatever is serving this lesson to you, is a **process**: a running instance of a program, with its own chunk of memory, its own CPU time, and a unique number called a **PID** (process ID). Linux is constantly juggling hundreds of these, switching between them so fast it looks like they are all running at once.
+
+Knowing how to list what is running, watch it in real time, and stop something that misbehaves is a basic skill for anyone who operates a Linux system. It is also one of the most direct defensive skills in this entire track: an unfamiliar process quietly burning CPU, or a process making network connections it has no business making, is one of the first signs that a machine has been compromised. Cryptominers show up as a process pinning the CPU at 100% around the clock. Reverse shells show up as an ordinary-looking process name holding open a connection to somewhere it should not be talking to. You cannot notice either one if you do not already have a feel for what "normal" looks like.
+
+## ps aux: a snapshot of every process
+
+```bash
+ps aux
+```
+
+`ps` prints a snapshot of every process on the system at the moment you ran it. The output is a table, and the columns you care about most are:
+
+- **USER**: which user account owns the process. A process you did not start, running as root or as another user, is worth a second look.
+- **PID**: the process ID, a unique number you will need if you ever want to stop that process.
+- **%CPU**: percentage of CPU the process is using. A process quietly sitting at 0.0 is normal; a process stuck near 100% that you do not recognize is not.
+- **%MEM**: percentage of memory the process is using.
+- **COMMAND**: the actual command that started the process, including any arguments. This is usually the fastest way to tell what a process actually is.
+
+You will often see the same information produced with a slightly different flag set:
+
+```bash
+ps -ef
+```
+
+`-ef` is the more traditional Unix-style option set (full-format listing, every process), while `aux` is the BSD-style option set most commonly reached for on Linux. Both show you the same underlying information with slightly different column layouts, so either is fine; pick one and get used to reading it.
+
+## top: watching processes live
+
+`ps` gives you a snapshot; `top` gives you a live, continuously updating view, sorted by default with the most CPU-hungry processes at the top:
+
+```bash
+top
+```
+
+The columns are close to what you just saw in `ps`: PID, user, %CPU, %MEM, and command, just refreshed every couple of seconds so you can watch usage change in real time. This is the tool you reach for when something feels slow and you want to see, right now, what is eating resources. Quit it with:
+
+```
+q
+```
+
+If your system has `htop` installed, it is worth trying as a friendlier alternative: same idea, color output, easier scrolling, and a more readable process tree. It is not installed everywhere by default, which is why `top` (always present) is the one to learn first, with `htop` as a nicer-when-available option.
+
+## kill: stopping a process
+
+Once you have a PID from `ps` or `top`, you can ask that process to stop:
+
+```bash
+kill <pid>
+```
+
+By default, `kill` sends a polite request (technically, the `TERM` signal) asking the process to shut itself down. A well-behaved program will catch that signal, close its open files, save anything it needs to, and exit cleanly.
+
+Sometimes a process ignores that request, or is too stuck to respond. For that case there is a forceful version:
+
+```bash
+kill -9 <pid>
+```
+
+`-9` sends `SIGKILL`, which the operating system enforces immediately with no chance for the process to clean up after itself. Treat this as a last resort, not your default. Reach for a plain `kill` first and give the process a moment to exit on its own; only escalate to `kill -9` if it genuinely will not stop, since skipping cleanup can leave behind partially written files or other mess that a graceful exit would have avoided.
+
+## Installing software: package managers
+
+Software on Linux (and on macOS) is usually installed through a **package manager**: a tool that downloads a program along with whatever it depends on, keeps track of what is installed, and knows how to cleanly remove it later. This is different from downloading an installer file from a website and double-clicking it, and it is worth getting comfortable with, since nearly every Linux server you will ever touch is managed this way.
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# install a package with Homebrew
+brew install <package>
+```
+
+Homebrew is not built into macOS; it is a one-time install from [brew.sh](https://brew.sh) if you do not already have it.
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# install a package on Debian/Ubuntu-family systems (and WSL Ubuntu)
+apt install <package>
+```
+
+Depending on your setup, `apt` may need to run with `sudo` (`sudo apt install <package>`), since installing software system-wide is a privileged operation.
+
+  </Fragment>
+</CodeTabs>
+
+`apt` is the package manager you will meet on Debian, Ubuntu, and anything built on them, including Ubuntu running under WSL on Windows. If you end up on a Red Hat-family distribution instead (Fedora, CentOS, RHEL, Rocky Linux, and similar), the equivalent tools are `dnf` (the modern one) or `yum` (its older predecessor); the commands look similar in spirit (`dnf install <package>`), but this lesson will not walk through a full worked example for them.
+
+Package managers matter to a defender too, not just to someone setting up a new tool. When investigating a server you suspect has been tampered with, checking the list of currently installed packages, and when each one was installed, is a routine, early step. An unexplained package, or a cluster of installs around the time something went wrong, is exactly the kind of lead an incident investigation starts from.
+
+### What to notice
+
+- `ps aux` (or `ps -ef`) gives you a snapshot of every process, with USER, PID, %CPU, %MEM, and COMMAND as the columns worth reading first.
+- `top` shows the same kind of information live, sorted by CPU usage, and `q` quits it; `htop` is a friendlier alternative where it is installed.
+- `kill <pid>` asks a process to exit cleanly; `kill -9 <pid>` forces it immediately and should only be used when a plain `kill` has not worked.
+- Package managers (`brew` on macOS, `apt` on Debian/Ubuntu-family Linux and WSL, `dnf`/`yum` on Red Hat-family Linux) install and track software in a consistent, removable way.
+- An unfamiliar process consuming CPU or talking to the network it should not, and an unexplained installed package, are both early, practical signs worth investigating on any system you are responsible for.
