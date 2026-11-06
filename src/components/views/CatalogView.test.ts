@@ -1,0 +1,12 @@
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { expect, test } from 'vitest';
+import CatalogView from './CatalogView.astro';
+
+test('lists all 9 tracks, with exactly one live link and eight disabled cards', async () => {
+  const container = await AstroContainer.create();
+  const html = await container.renderToString(CatalogView, {});
+  expect((html.match(/aria-disabled="true"/g) ?? []).length).toBe(8);
+  expect(html).toContain('href="/tracks/computing-basics/"');
+  expect(html).toContain('Computing Basics');
+  expect(html).toContain('Security Foundations');
+});
