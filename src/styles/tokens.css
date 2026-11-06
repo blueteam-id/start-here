@@ -1,0 +1,16 @@
+:root {
+  --bg: #0a0f1a;
+  --bg-elev: #101729;
+  --bg-card: #131b2e;
+  --border: #1f2a40;
+  --text: #e9edf5;
+  --text-dim: #8d97ad;
+  --blue: #4f8ef7;
+  --yellow: #f2b705;
+  --green: #38d996;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
