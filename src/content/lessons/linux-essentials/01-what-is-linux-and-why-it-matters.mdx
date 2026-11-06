@@ -1,0 +1,64 @@
+---
+title: 'What Is Linux, and Why It''s Everywhere'
+track: 'linux-essentials'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Think of five internet-connected things you touched today: a website, a streaming app, your phone, maybe a smart TV or router. How many of them were probably running Linux somewhere underneath, even though you never saw a command line? What does that tell you about how much Linux fluency is worth to someone starting a security career?'
+  - '"Linux" strictly refers to just the kernel, yet almost everyone says "I installed Linux" to mean a full distribution with a kernel, tools, and a package manager bundled together. Why does that distinction matter when you are reading a vulnerability advisory or asking for help in a forum?'
+  - 'If you ran the hands-on command below, what did your system report back? If you are on macOS and could not run it the same way, what does that tell you about the relationship between macOS and Linux?'
+resources:
+  - label: 'History of Linux (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/History_of_Linux'
+  - label: 'Linux distribution (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Linux_distribution'
+  - label: 'DistroWatch'
+    url: 'https://distrowatch.com/'
+---
+
+## Where the name "Linux" actually comes from
+
+The story starts before Linux existed at all. In 1969, researchers at Bell Labs built an operating system called Unix: simple, portable, and built around small tools that each did one job well. Unix was influential but became tangled up in commercial licensing as different vendors sold their own locked-down variants, and by the early 1980s there was no operating system that was both Unix-like and genuinely free to study, modify, and share.
+
+Richard Stallman set out to fix that. In 1983 he launched the GNU project (a recursive joke: "GNU's Not Unix") with the goal of building a complete, freely licensed, Unix-compatible operating system from scratch. Over the next several years, GNU produced excellent components: a compiler, a text editor, a shell, core command-line utilities. What it was missing was the one piece sitting at the center of it all: the kernel, the program that talks directly to the hardware and decides which process gets the CPU, which memory, and which files.
+
+That missing piece arrived in 1991, when a Finnish student named Linus Torvalds posted to a newsgroup that he was writing "just a hobby" kernel and did not expect it to become "big and professional" like GNU. He was wrong about that last part. Paired with GNU's existing tools, his kernel completed a full, free operating system. That kernel is what the world calls Linux. The complete, usable system built around it is more precisely a GNU/Linux distribution, though in casual conversation (and for the rest of this track) people just say "Linux" to mean the whole system. Keeping the distinction straight in your head still matters: when you read that a security patch fixes a kernel vulnerability, that is Linux itself; when you read that a package was pulled from a repository, that is almost certainly a GNU or third-party tool shipped alongside it.
+
+## What a "distro" actually is
+
+Since a bare kernel is not something you can log into and use, distributions ("distros" for short) exist to package it into something installable. A distro bundles the Linux kernel, a set of GNU and other user-space tools, a package manager for installing and updating software, and a set of default configuration choices, all maintained by some organization or community that decides what goes in and how often it gets updated. Choosing a distro is really choosing who you trust to make those decisions for you, and how much you want to tinker versus just get to work.
+
+A few major families you will keep running into:
+
+- **Debian family.** Debian itself is built around stability and a strict commitment to free software, with a famously careful release process. Ubuntu is built on top of Debian and trades a little of that caution for a friendlier out-of-the-box experience, which is a big reason it dominates cloud servers and beginner desktops alike.
+- **Red Hat family.** Red Hat Enterprise Linux (RHEL) is a commercially supported distro aimed at businesses that want a vendor on the hook when something breaks. Fedora is the community-driven, faster-moving distro Red Hat uses as a proving ground for features that later land in RHEL. CentOS Stream, Rocky Linux, and AlmaLinux are free, RHEL-compatible options that exist because the original free CentOS project changed direction in 2020.
+- **Arch Linux.** A rolling-release, do-it-yourself distro: nothing is installed for you by default, and you build the system up piece by piece. It rewards people who want to understand and control every layer, at the cost of a steeper learning curve.
+- **Security-focused distros.** Kali Linux (Debian-based) and Parrot OS are built specifically for penetration testing, digital forensics, and security research, and ship pre-loaded with hundreds of tools for exactly that work. You will likely meet one of these later in your training, but the fundamentals in this track transfer directly, since underneath the tooling they are still ordinary Linux systems.
+
+There is no single "best" distro. There is only the distro that fits what you are trying to do, and part of becoming comfortable with Linux is learning to recognize that one family's habits (how it names packages, where it puts configuration files) usually carry over to the rest of that family.
+
+## Where Linux actually runs
+
+If your only exposure to operating systems has been a personal laptop, it is easy to assume Linux is a niche choice. The opposite is true, and the numbers are worth sitting with: Linux runs the majority of the world's public-facing web servers and the cloud infrastructure behind them, and it is the default, overwhelmingly dominant choice of operating system for virtual machines on every major public cloud provider. Android, the most widely used mobile operating system on the planet, is built on a modified Linux kernel. Nearly every system on the TOP500 list of the world's fastest supercomputers runs Linux. And it quietly powers an enormous range of embedded devices you would never think to check: home routers, smart TVs, point-of-sale terminals, industrial control systems.
+
+Put those together and a pattern falls out: almost everywhere that matters for a blue teamer, from the web servers handling customer traffic to the cloud workloads running a company's internal tools to the containers packaging up a microservice, Linux is very likely what is actually running. That is not a trivia fact, it is a career fact. The servers you will monitor, the logs you will read at 2 a.m., the containers whose configuration you will audit, and the systems you will be asked to harden after an incident are overwhelmingly going to be Linux systems. Fluency here is not optional background knowledge you can pick up later; it is one of the core, everyday skills of the job, in the same way a mechanic needs to know their way around an engine before they can diagnose what is wrong with one.
+
+## A quick look under the hood
+
+You do not need to install anything to get your first real look at a Linux system. If you are on native Linux or inside WSL on Windows, open a terminal and run:
+
+```bash
+uname -a
+cat /etc/os-release
+```
+
+The first command reports the kernel version and architecture your system is running. The second reports which distribution you are on and its version, since the distro layers that information on top of the bare kernel. Read the output slowly; you will see pieces of this lesson staring back at you, like a kernel version number or a distro name you just read about above.
+
+If you are on macOS, these particular commands will not give you the same picture, and that is itself a useful fact rather than a gap in your setup: macOS is a genuine Unix-based operating system (it is certified against the same Single UNIX Specification lineage Unix started), but it is not a Linux distribution. It has its own kernel (XNU) and its own tooling, which is exactly why this track asks Linux and native macOS users to follow slightly different paths in later, more hands-on lessons.
+
+### What to notice
+
+- If `uname -a` and `cat /etc/os-release` both worked for you, you now have the two pieces of information (kernel version, distro and version) that most troubleshooting guides and security advisories will ask you for first.
+- The distinction between "the kernel" and "the distro" is not academic. A kernel patch and a distro package update move on different schedules, get reported in different places, and get fixed by different people.
+- Keep an eye out, over the next lessons, for how much of what feels distro-specific (a command, a file location) is really just a convention one family shares, not a rule of Linux itself.
