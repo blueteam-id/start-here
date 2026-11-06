@@ -3,10 +3,10 @@
 // callout + the lesson's rendered MDX body + optional Reflect/Go further
 // sections + a mark-complete footer with a next-lesson link. The lesson
 // body itself is always fully server-rendered (via the `Content` component
-// the caller passes in from `lesson.render()`); the mark-complete button is
+// the caller passes in from `render(lesson)`); the mark-complete button is
 // a vanilla-JS progressive enhancement on top of that static markup (see
 // the <script> below), reading/writing progress through src/lib/progress.ts.
-import type { CollectionEntry } from 'astro:content';
+import type { LessonEntry, TrackEntry } from '../../lib/collections';
 import LessonSidebar from '../LessonSidebar.astro';
 import PrerequisitesCallout from '../PrerequisitesCallout.astro';
 import ReflectSection from '../ReflectSection.astro';
@@ -14,9 +14,9 @@ import GoFurtherSection from '../GoFurtherSection.astro';
 import { getProgress } from '../../lib/progress';
 
 interface Props {
-  track: CollectionEntry<'tracks'>;
-  lessons: CollectionEntry<'lessons'>[];
-  lesson: CollectionEntry<'lessons'>;
+  track: TrackEntry;
+  lessons: LessonEntry[];
+  lesson: LessonEntry;
   Content: any;
   reflectQuestions?: string[];
   resources?: Array<{ label: string; url: string }>;
@@ -26,7 +26,7 @@ const { track, lessons, lesson, Content, reflectQuestions = [], resources = [] }
 
 // The collection slug is "<trackSlug>/<lessonSlug>"; strip the track prefix
 // to get the short slug used for routing and for progress keys.
-function shortSlug(entry: CollectionEntry<'lessons'>): string {
+function shortSlug(entry: LessonEntry): string {
   return entry.slug.split('/').slice(1).join('/');
 }
 
@@ -53,7 +53,7 @@ const trackHref = `/tracks/${track.slug}/`;
 const nextHref = nextLesson ? `/tracks/${track.slug}/${shortSlug(nextLesson)}/` : undefined;
 
 // `Content` is normally a real Astro component factory produced by
-// `lesson.render()` (and must be rendered via `<Content />` so Astro wires
+// `render(lesson)` (and must be rendered via `<Content />` so Astro wires
 // up its own result/slot context). Tests exercise this component directly
 // with a plain stand-in function instead, which `<Content />` can't render
 // (Astro treats a bare function as a UI-framework component and throws

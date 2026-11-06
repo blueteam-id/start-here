@@ -14,7 +14,7 @@ resources:
     url: 'https://en.wikipedia.org/wiki/Virtualization'
   - label: 'Hypervisor (Wikipedia)'
     url: 'https://en.wikipedia.org/wiki/Hypervisor'
-  - label: 'NIST SP 800-145: The NIST Definition of Cloud Computing (free PDF)'
+  - label: 'NIST SP 800-145: The NIST Definition of Cloud Computing (free, PDF linked from the page)'
     url: 'https://csrc.nist.gov/pubs/sp/800/145/final'
   - label: 'Hyper-V on Windows (Microsoft Learn)'
     url: 'https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/'
@@ -75,7 +75,7 @@ sysctl kern.hv_support
   <Fragment slot="linux">
 
 ```bash
-# a number greater than 0 means VT-x (vmx) or AMD-V (svm) is available
+# Intel/AMD only: a number greater than 0 means VT-x (vmx) or AMD-V (svm) is available
 grep -Ec '(vmx|svm)' /proc/cpuinfo
 
 # lscpu also reports it on a "Virtualization:" line on many systems
@@ -86,19 +86,23 @@ lscpu | grep -i virtualization
   <Fragment slot="windows">
 
 ```powershell
-# True means virtualization is switched on in the firmware (BIOS/UEFI)
-(Get-CimInstance Win32_Processor).VirtualizationFirmwareEnabled
-
-# True means a hypervisor is already running (for example Hyper-V or WSL 2)
+# True means a hypervisor is already running (for example Hyper-V, WSL 2,
+# or Windows security features), so virtualization is enabled and in use
 (Get-CimInstance Win32_ComputerSystem).HypervisorPresent
+
+# True means virtualization is switched on in the firmware (BIOS/UEFI).
+# Only meaningful when the line above printed False.
+(Get-CimInstance Win32_Processor).VirtualizationFirmwareEnabled
 ```
 
   </Fragment>
 </CodeTabs>
 
-On Windows you can also open Task Manager, go to **Performance**, select **CPU**, and look for **Virtualization: Enabled** in the bottom right.
+On Windows, check `HypervisorPresent` first. Many Windows 11 machines already run a hypervisor in the background (for Hyper-V, WSL 2, or built-in security features), and in that case `VirtualizationFirmwareEnabled` often reports `False` even though virtualization is enabled and working. If `HypervisorPresent` is `True`, you are fine and can ignore the firmware line. You can also open Task Manager, go to **Performance**, select **CPU**, and look for **Virtualization: Enabled** in the bottom right.
 
-If the answer is "no" or `False` on a reasonably modern PC, the feature is very likely present but switched off in the firmware settings. The exact steps differ per manufacturer, so this is a great question to bring to the Discord with your laptop model.
+On Linux, the `vmx`/`svm` check only applies to Intel and AMD processors. On an ARM (aarch64) machine it prints 0 even when virtualization is supported. There, check whether `/dev/kvm` exists with `ls -l /dev/kvm` instead.
+
+If the answer is still "no" or `False` on a reasonably modern PC, the feature is very likely present but switched off in the firmware settings. The exact steps differ per manufacturer, so this is a great question to bring to the Discord with your laptop model.
 
 ### 2. Are you already inside a VM?
 

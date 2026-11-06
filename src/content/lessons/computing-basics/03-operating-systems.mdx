@@ -93,8 +93,8 @@ Notice that on macOS and Linux, the **OS version** (for example macOS 26, or Ubu
   <Fragment slot="macos">
 
 ```bash
-# how many processes are running
-ps -e | wc -l
+# how many processes are running (tail skips the header line)
+ps -e | tail -n +2 | wc -l
 
 # the 10 processes using the most memory (RSS is in kilobytes)
 ps -axo pid,user,rss,comm -m | head -n 11
