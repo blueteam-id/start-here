@@ -1,0 +1,126 @@
+---
+title: 'Virtualization and Cloud'
+track: 'computing-basics'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lessons 1 and 3, so you know your CPU architecture and what a kernel does.'
+reflectQuestions:
+  - 'Using your spec sheet, how much RAM and how many CPU cores could you give a lab virtual machine while still leaving enough for your own OS and browser? Write down a number and the reasoning behind it.'
+  - 'A virtual machine has its own kernel, separate from your computer''s kernel. Why does that make a VM a safer place to run something untrusted than your normal desktop?'
+  - 'When a company says "our data is in the cloud", what physical things actually exist, and who is responsible for keeping them secure?'
+resources:
+  - label: 'Virtualization (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Virtualization'
+  - label: 'Hypervisor (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Hypervisor'
+  - label: 'NIST SP 800-145: The NIST Definition of Cloud Computing (free PDF)'
+    url: 'https://csrc.nist.gov/pubs/sp/800/145/final'
+  - label: 'Hyper-V on Windows (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## A computer inside a computer
+
+A **virtual machine (VM)** is a complete pretend computer, with its own virtual CPU, RAM, disk, and network card, that runs as software on your real computer. Inside it you install a normal operating system, called the **guest**, which mostly has no idea it is not running on real hardware. Your real machine is the **host**.
+
+The software that creates and runs VMs is a **hypervisor**. There are two broad kinds:
+
+- **Type 1 (bare metal)** hypervisors run directly on the hardware, with no normal OS underneath. Data centers use these: VMware ESXi, Microsoft Hyper-V, Xen, and Linux KVM.
+- **Type 2 (hosted)** hypervisors run as an application on your everyday OS. VirtualBox, VMware Workstation and Fusion, Parallels, and UTM are examples. This is what you will most likely use for labs.
+
+Modern CPUs include special instructions that make virtualization fast: **Intel VT-x**, **AMD-V** (also called SVM), and the equivalent virtualization support built into ARM chips such as Apple Silicon. Without them, VMs are either very slow or will not start at all. On many PCs this support is switched off in the firmware (BIOS/UEFI) by default, which is the single most common reason a first VM fails.
+
+## Why this matters for the rest of the program
+
+Later tracks, starting with Servers & Services, ask you to run servers, break things, and look at suspicious files. You do not want to do that on the computer you use for banking and messages. A VM gives you:
+
+- **Isolation.** The guest has its own kernel (lesson 3). What happens in the VM mostly stays in the VM.
+- **Snapshots.** You can save the VM's exact state, break everything, and roll back in seconds.
+- **Freedom to experiment.** You can run Linux on a Windows laptop, or several machines talking to each other on a private virtual network.
+
+One limit to know now: a VM's virtual CPU uses the **same architecture** as the host (lesson 1). An Apple Silicon Mac (arm64) runs arm64 guests at full speed, but an x86_64 guest has to be emulated and will be much slower. When labs offer a download, pick the image that matches your architecture.
+
+### Containers, briefly
+
+You will also hear about **containers** (for example Docker). A container is lighter than a VM: it packages an application and its files, but **shares the host's kernel** instead of bringing its own. That makes containers fast to start and small, but the isolation is weaker than a full VM. You do not need containers for this track, just know they are a different thing.
+
+## What "the cloud" actually is
+
+Underneath the marketing, **the cloud is other people's computers**, rented by the minute. Companies like Amazon (AWS), Microsoft (Azure), and Google (Google Cloud) run enormous **data centers** full of physical servers. Those servers run type 1 hypervisors, and when you "launch an instance", you are asking their hypervisor to start a VM for you on one of their machines.
+
+The usual way to describe what you are renting:
+
+- **IaaS (Infrastructure as a Service):** you rent raw VMs, disks, and networks, and manage the OS yourself. Example: a virtual server.
+- **PaaS (Platform as a Service):** the provider manages the OS and runtime, you bring your application. Example: a managed database.
+- **SaaS (Software as a Service):** you just use the finished application in a browser. Example: web email.
+
+This leads to an idea called **shared responsibility**: the provider secures the buildings, hardware, and hypervisors, and you are responsible for what you put on top, such as your OS updates, your passwords, and who you give access to. Many real-world breaches are not the cloud provider being hacked, but a customer leaving something misconfigured.
+
+## Hands-on: can your machine run VMs?
+
+### 1. Does your CPU support hardware virtualization?
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# 1 means the Hypervisor framework is supported on this Mac
+sysctl kern.hv_support
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# a number greater than 0 means VT-x (vmx) or AMD-V (svm) is available
+grep -Ec '(vmx|svm)' /proc/cpuinfo
+
+# lscpu also reports it on a "Virtualization:" line on many systems
+lscpu | grep -i virtualization
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# True means virtualization is switched on in the firmware (BIOS/UEFI)
+(Get-CimInstance Win32_Processor).VirtualizationFirmwareEnabled
+
+# True means a hypervisor is already running (for example Hyper-V or WSL 2)
+(Get-CimInstance Win32_ComputerSystem).HypervisorPresent
+```
+
+  </Fragment>
+</CodeTabs>
+
+On Windows you can also open Task Manager, go to **Performance**, select **CPU**, and look for **Virtualization: Enabled** in the bottom right.
+
+If the answer is "no" or `False` on a reasonably modern PC, the feature is very likely present but switched off in the firmware settings. The exact steps differ per manufacturer, so this is a great question to bring to the Discord with your laptop model.
+
+### 2. Are you already inside a VM?
+
+This is a fun one, and it matters if you are following along on a work laptop or a cloud machine.
+
+<CodeTabs>
+  <Fragment slot="linux">
+
+```bash
+# prints "none" on real hardware, or the hypervisor name (kvm, vmware, oracle...) in a VM
+systemd-detect-virt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# a VM usually reports its hypervisor vendor here (for example "VMware" or "Microsoft Corporation" with model "Virtual Machine")
+Get-CimInstance Win32_ComputerSystem | Select-Object Manufacturer, Model
+```
+
+  </Fragment>
+</CodeTabs>
+
+Finally, add to your spec sheet: virtualization supported (yes or no), and a first guess at how much RAM and how many cores you could spare for a lab VM. A common starting point is half your cores and no more than half your RAM.

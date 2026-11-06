@@ -1,0 +1,166 @@
+---
+title: 'Operating Systems'
+track: 'computing-basics'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 30
+reflectQuestions:
+  - 'Your machine is running far more processes than you have CPU cores. How can they all appear to run "at the same time"?'
+  - 'Pick one process from your list that you did not recognize. Without looking it up yet, what clues (its name, its user, its memory use) tell you something about what it might be? Then look it up and check your guess.'
+  - 'Why is it a security benefit that ordinary programs cannot talk to the hardware directly and must ask the kernel instead?'
+resources:
+  - label: 'Operating Systems: Three Easy Pieces, by Remzi and Andrea Arpaci-Dusseau (free online book)'
+    url: 'https://pages.cs.wisc.edu/~remzi/OSTEP/'
+  - label: 'Operating system (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Operating_system'
+  - label: 'ps(1) manual page (man7.org)'
+    url: 'https://man7.org/linux/man-pages/man1/ps.1.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## Why you have an operating system at all
+
+Imagine every program on your computer had to manage the hardware itself: decide when it gets the CPU, find a free piece of RAM without overwriting another program, know how to talk to your specific SSD model, and politely not read your password manager's memory. Nothing would work, and nothing would be safe.
+
+The **operating system (OS)** exists to solve exactly that. It sits between programs and hardware and does four big jobs:
+
+1. **Process management.** It starts and stops programs, and shares the CPU between them.
+2. **Memory management.** It gives each program its own region of memory and stops programs from touching each other's.
+3. **Storage and devices.** It provides the file system from lesson 2, and drivers that talk to disks, network cards, keyboards, and screens.
+4. **Security and access control.** It knows who is logged in and enforces who may read, change, or run what.
+
+macOS, Windows, and Linux all do these four jobs. They just do them differently, which is why the Linux and Windows tracks later in this program exist.
+
+## The kernel and user space
+
+The core of the OS is the **kernel**. It is the one piece of software that runs with full control of the hardware, in what is called **kernel mode**. Everything else, your browser, your terminal, even most of the OS's own tools, runs in **user mode** with restricted privileges.
+
+When a user-mode program needs something only the kernel can do, like reading a file or sending a network packet, it makes a **system call**: a formal request to the kernel. The kernel checks whether the request is allowed, does the work, and hands back the result.
+
+This boundary is one of the most important ideas in security. A bug in a normal program usually only affects that program. A bug in the kernel can affect the whole machine, which is why kernel vulnerabilities are taken so seriously.
+
+The kernels you will meet: **Linux** (used by Linux distributions and Android), **XNU** (macOS and iOS), and the **Windows NT** kernel (every modern Windows).
+
+## Processes and scheduling
+
+A **program** is a file on disk. A **process** is a program that is currently running, with its own memory, its own state, and a unique number called a **process ID (PID)**. Open the same app twice and you may get two processes from one program.
+
+Your computer is almost certainly running hundreds of processes right now, but only has a handful of cores. The kernel's **scheduler** handles this by giving each process a tiny slice of CPU time, then switching to another, many times per second. It happens so fast that everything appears to run at once.
+
+## Hands-on: look at your own OS
+
+### 1. Which OS and kernel are you running?
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# macOS product name and version
+sw_vers
+
+# kernel name, kernel version, and architecture
+uname -srm
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# distribution name and version
+cat /etc/os-release
+
+# kernel name, kernel version, and architecture
+uname -srm
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-CimInstance Win32_OperatingSystem |
+  Select-Object Caption, Version, BuildNumber, OSArchitecture
+```
+
+  </Fragment>
+</CodeTabs>
+
+Notice that on macOS and Linux, the **OS version** (for example macOS 26, or Ubuntu 24.04) and the **kernel version** (for example Darwin 25, or Linux 6.8) are different numbers. The OS is the whole package. The kernel is one part of it.
+
+### 2. What is running right now?
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# how many processes are running
+ps -e | wc -l
+
+# the 10 processes using the most memory (RSS is in kilobytes)
+ps -axo pid,user,rss,comm -m | head -n 11
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# how many processes are running
+ps -e --no-headers | wc -l
+
+# the 10 processes using the most memory (RSS is in kilobytes)
+ps -eo pid,user,rss,comm --sort=-rss | head -n 11
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# how many processes are running
+(Get-Process).Count
+
+# the 10 processes using the most memory
+Get-Process |
+  Sort-Object WorkingSet64 -Descending |
+  Select-Object -First 10 Id, ProcessName, @{Name='MemoryMB'; Expression={[math]::Round($_.WorkingSet64 / 1MB)}}
+```
+
+  </Fragment>
+</CodeTabs>
+
+### 3. Watch the scheduler at work
+
+Run the live view for your OS for 30 seconds and watch the numbers change. Then quit it.
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# press q to quit
+top -o cpu
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# press q to quit
+top
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# opens Task Manager, look at the Processes and Performance tabs
+taskmgr
+```
+
+  </Fragment>
+</CodeTabs>
+
+Add to your spec sheet: OS name and version, kernel version, and roughly how many processes were running.
+
+### What to notice
+
+- Some processes belong to your user, others to `root` (macOS, Linux) or `SYSTEM` (Windows). Those are the OS's own background services running with higher privileges. Who a process runs as is one of the first things an analyst checks when something looks suspicious.
+- The process using the most memory is very often your web browser. Each tab can be its own process, which is a deliberate design choice so that one misbehaving tab cannot crash or read the others.

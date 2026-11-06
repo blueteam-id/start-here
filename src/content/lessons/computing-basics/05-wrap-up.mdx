@@ -1,0 +1,79 @@
+---
+title: 'Wrap-up'
+track: 'computing-basics'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 15
+reflectQuestions:
+  - 'Which of the five lessons changed how you think about your own computer the most, and why?'
+  - 'Write down one question this track raised that it did not answer. That question is a good first post in the Discord.'
+  - 'Explain to a friend, in three or four sentences and without jargon, what happens between pressing the power button and seeing your desktop. Which parts of this track did you need?'
+resources:
+  - label: 'The Missing Semester of Your CS Education (free MIT course on the shell and tools)'
+    url: 'https://missing.csail.mit.edu/'
+  - label: 'Crash Course Computer Science (free video series, YouTube)'
+    url: 'https://www.youtube.com/playlist?list=PL8dPuuaLjXtNlUrzyH5r6jN9ulIgZBpdo'
+  - label: 'Operating Systems: Three Easy Pieces (free online book)'
+    url: 'https://pages.cs.wisc.edu/~remzi/OSTEP/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## What you now know
+
+In four short lessons you went from the case to the cloud:
+
+1. **What is a computer.** A CPU executing instructions, RAM as fast short-term memory, storage as slow long-term memory, and I/O connecting it all to the world. Your CPU has cores, and an architecture (x86_64 or arm64) that decides which programs it can run.
+2. **Storage and data.** Everything is bytes. Encodings like UTF-8 give bytes meaning, file systems turn a disk into files and folders, and RAM forgets everything when the power goes off.
+3. **Operating systems.** The kernel controls the hardware, programs run in user mode and ask the kernel for help through system calls, and the scheduler shares a few cores among hundreds of processes.
+4. **Virtualization and cloud.** A hypervisor runs whole computers as software, hardware support makes that fast, and the cloud is rented VMs in someone else's data center, with security responsibility shared between you and the provider.
+
+These ideas are the floor that everything else in this program stands on. When the Linux track asks you to inspect processes, when the networking track talks about a server, or when a lab tells you to start a VM, you will know what is actually happening underneath.
+
+## Hands-on: your one-page system profile
+
+Over the last four lessons you collected a small spec sheet by hand. Each OS can also print most of it in one go. Run the command for yours and compare it with your notes.
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# hardware overview (CPU, cores, memory) and software overview (macOS version, kernel)
+system_profiler SPHardwareDataType SPSoftwareDataType
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# OS, kernel, architecture, and whether this is a VM, on one screen
+hostnamectl
+
+# then the CPU, memory, and disk summaries from earlier lessons
+lscpu | head -n 20
+free -h
+df -h /
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# OS, version, architecture, processor, total memory, and Hyper-V requirements
+systeminfo
+```
+
+  </Fragment>
+</CodeTabs>
+
+Check that each line of your spec sheet matches: CPU model and cores, architecture, RAM, disk size and free space, OS and kernel version, and whether virtualization is available. If anything disagrees, figure out why. Often it is the GB versus GiB difference from lesson 2, or logical processors being counted instead of physical cores. Being able to explain a mismatch is exactly the kind of thinking the rest of the program builds on.
+
+Keep the spec sheet. You will want it the first time a lab asks how much RAM to give a VM.
+
+## Where to go from here
+
+This track deliberately stopped at foundation depth. Every lesson touched a topic that people spend whole careers on: CPU design, file system internals, kernel development, hypervisor security. Stopping here is the point, so you have the map before you explore any single area.
+
+If something in this track made you curious, or if a command did not behave the way the lesson said it would, **bring it to the community Discord** using the Join Discord button at the top of the page. That is where the deeper discussions happen, where people share what worked on their own hardware, and where nobody minds a beginner question. Your spec sheet and the one question you wrote down in the reflection below are both great ways to start a conversation there.
+
+When you are ready, the next tracks in the program build directly on this one: **Linux Essentials** and **Windows Foundations** take the operating system ideas from lesson 3 and make them hands-on, and **Networking Fundamentals** picks up where "the cloud" left off. They are being written now, and the Discord is the first place you will hear when they go live.

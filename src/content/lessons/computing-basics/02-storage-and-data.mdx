@@ -1,0 +1,145 @@
+---
+title: 'Storage and Data'
+track: 'computing-basics'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 30
+prerequisites: 'Lesson 1 (What Is a Computer), so you know the difference between memory (RAM) and storage.'
+reflectQuestions:
+  - 'Your two-letter file was exactly 2 bytes on disk, but the disk itself reports space in much larger blocks. Why might a 2-byte file still use up more than 2 bytes of real disk space?'
+  - 'Your disk tool probably reported a size slightly smaller than the number printed on the box. Using what you learned about GB versus GiB, explain at least part of the gap.'
+  - 'If a file is "just bytes", what tells a program whether a given file is a photo, a document, or a program? Is the file name extension enough?'
+resources:
+  - label: 'Byte (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Byte'
+  - label: 'File system (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/File_system'
+  - label: 'Ben Eater (free videos building a computer from scratch, YouTube)'
+    url: 'https://www.youtube.com/@BenEater'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## Everything is numbers
+
+At the lowest level, a computer only stores one kind of thing: **bits**. A bit is a single 0 or 1, physically a tiny charge, a magnetic region, or a voltage level. On its own a bit is not very useful, so bits are grouped:
+
+- **8 bits make a byte.** One byte can hold 256 different values (2 to the power of 8), from 0 to 255.
+- **Bytes are grouped into larger units.** A kilobyte, megabyte, gigabyte, and terabyte are each roughly a thousand times bigger than the last.
+
+Everything you see on a computer, text, images, music, programs, is ultimately a long sequence of bytes. What makes those bytes "a photo" or "a document" is an agreed-upon **encoding**: a rule for what each byte means.
+
+For text, the most common rule is **ASCII** and its modern superset **UTF-8**. In both, the letter `h` is stored as the number 104, and `i` is 105. Written in **hexadecimal** (base 16, which programmers use because one byte fits neatly into two hex digits), those are `68` and `69`. You will check this yourself in a moment.
+
+### A small but real trap: GB versus GiB
+
+Storage vendors use powers of 10: 1 GB is 1,000,000,000 bytes. Operating systems often count in powers of 2: 1 GiB (gibibyte) is 1,073,741,824 bytes. A "500 GB" disk is about 465 GiB, and some tools label that "465 GB", which is why new disks look smaller than advertised. Nothing is missing, it is the same number of bytes counted two ways.
+
+## Memory versus storage, again
+
+You met this split in lesson 1, and it is worth repeating because it shows up everywhere in security work:
+
+| | Memory (RAM) | Storage (SSD, hard disk) |
+| --- | --- | --- |
+| Speed | Very fast | Much slower |
+| Survives power off | No | Yes |
+| Typical size | 8 to 64 GB | 256 GB to several TB |
+| What lives there | Running programs and their data | Files, installed programs, the OS |
+
+This matters later: evidence that only exists in RAM (for example, what a malicious process was doing) disappears when a machine is switched off, while evidence on disk usually stays. That is one reason incident responders are careful about pulling the plug.
+
+## Files and file systems
+
+A disk on its own is just a huge row of numbered blocks. A **file system** is the structure the operating system writes onto a disk so that those blocks become named files inside folders, with sizes, timestamps, and permissions. Common ones you will meet:
+
+- **APFS** on modern macOS
+- **ext4** (and also XFS, Btrfs) on Linux
+- **NTFS** on Windows
+- **FAT32 / exFAT** on USB sticks and SD cards, because almost every OS can read them
+
+A disk is often split into **partitions** (separate regions), and each partition is formatted with a file system and **mounted** somewhere: a drive letter like `C:` on Windows, or a folder path like `/` on macOS and Linux.
+
+## Hands-on: see your data and your disks
+
+### 1. Look at the actual bytes of a file
+
+Create a tiny file containing just the two letters `hi`, check its size, and look at the raw bytes.
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+printf 'hi' > hello.txt
+ls -l hello.txt          # the size column should say 2
+od -An -tx1 hello.txt    # prints the bytes in hex: 68 69
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+printf 'hi' > hello.txt
+ls -l hello.txt          # the size column should say 2
+od -An -tx1 hello.txt    # prints the bytes in hex: 68 69
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Content -Path hello.txt -Value 'hi' -NoNewline
+(Get-Item hello.txt).Length   # should print 2
+Format-Hex hello.txt          # shows the bytes in hex: 68 69
+```
+
+  </Fragment>
+</CodeTabs>
+
+You should see exactly two bytes, `68` and `69`, which are `h` and `i`. Now try changing the text to `Hi` (capital H) and run it again: the first byte becomes `48`. Upper and lower case letters are simply different numbers.
+
+When you are done, delete the file (`rm hello.txt` on macOS and Linux, `Remove-Item hello.txt` on Windows).
+
+### 2. See your disks and how full they are
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# free and used space on the main volume, human-readable
+df -h /
+
+# every disk and partition the system knows about
+diskutil list
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# free and used space on every mounted file system
+df -h
+
+# block devices (disks and partitions) as a tree, with file system types
+lsblk -f
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# each volume, its file system, size, and free space
+Get-Volume
+
+# the physical disks behind them, and whether they are SSD or HDD
+Get-PhysicalDisk | Select-Object FriendlyName, MediaType, Size
+```
+
+  </Fragment>
+</CodeTabs>
+
+Add to your spec sheet from lesson 1: total disk size, free space, and the file system type of your main drive (APFS, ext4, NTFS, or something else).
+
+### What to notice
+
+- On macOS and Linux, `df -h` lists several entries you did not create (things like `devfs`, `tmpfs`, or extra APFS volumes). These are file systems the OS uses for itself. You do not need to understand all of them yet, but notice that "the disk" is really several layers.
+- On Linux, `lsblk` shows names like `sda`, `nvme0n1`, and partitions such as `nvme0n1p1`. Learning to read those names pays off in the Linux track.

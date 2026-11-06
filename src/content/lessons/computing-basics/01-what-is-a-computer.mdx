@@ -1,0 +1,156 @@
+---
+title: 'What Is a Computer'
+track: 'computing-basics'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Your CPU reported a number of physical cores and a (possibly larger) number of logical processors. In your own words, why might those two numbers differ?'
+  - 'Your machine reported an architecture such as x86_64 or arm64. Why would a program built for one architecture not simply run on the other?'
+  - 'Think of something you did on your computer today, like opening a web page. Which of the four parts (CPU, memory, storage, input/output) were involved, and in what order?'
+resources:
+  - label: 'Crash Course Computer Science (free video series, YouTube)'
+    url: 'https://www.youtube.com/playlist?list=PL8dPuuaLjXtNlUrzyH5r6jN9ulIgZBpdo'
+  - label: 'Central processing unit (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Central_processing_unit'
+  - label: 'Instruction set architecture (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Instruction_set_architecture'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+
+## What this track covers
+
+Almost everything you will do later in this program, whether that is reading logs, hardening a server, or analyzing a suspicious file, assumes you have a rough picture of what a computer is doing underneath. This track gives you that picture in five short lessons:
+
+1. **What is a computer** (this lesson): the core parts and how they fit together.
+2. **Storage and data**: how information is actually represented and kept.
+3. **Operating systems**: the software that manages all of the hardware for you.
+4. **Virtualization and cloud**: running computers inside computers, and what "the cloud" really is.
+5. **Wrap-up**: putting it together, and where to go next.
+
+The goal is not to make you a hardware engineer. The goal is that when someone says "that process is eating all the RAM" or "spin up a VM for the lab", you know what they mean.
+
+## The big picture
+
+Strip away the case, the screen, and the brand name, and nearly every computer, from a phone to a server in a data center, is built from the same four ideas:
+
+- **The CPU (processor)** executes instructions. It is very fast and very simple: add these two numbers, compare these values, jump to a different instruction, copy data from here to there. Everything a computer does is built from billions of those small steps per second.
+- **Memory (RAM)** is the CPU's short-term workspace. Programs and the data they are working on get loaded into RAM because the CPU can reach it quickly. RAM is volatile: when power goes off, its contents are gone.
+- **Storage (SSD or hard disk)** is long-term memory. It is much slower than RAM but keeps data when the power is off. Your files, your installed programs, and the operating system itself live here until they are needed.
+- **Input and output (I/O)** is everything that connects the machine to the world: keyboard, screen, network card, USB, speakers.
+
+When you open an application, roughly this happens: the program is read from **storage** into **memory**, the **CPU** starts executing its instructions, and the results reach you through **output** like your screen. Sitting in the middle of all of this is the **operating system**, which decides who gets the CPU, who gets which part of memory, and who is allowed to touch which files. That is lesson 3.
+
+### Cores, threads, and architecture
+
+Two more terms you will see constantly:
+
+- **Cores.** A modern CPU is really several processors on one chip. Each **core** can work on its own stream of instructions at the same time as the others. Many CPUs also run two hardware threads per core (Intel calls this Hyper-Threading, the general term is simultaneous multithreading), so the operating system may report more **logical processors** than physical cores.
+- **Architecture.** The **instruction set architecture** is the "language" a CPU understands. The two you will meet most are **x86_64** (also written amd64 or x64, used by most Intel and AMD PCs and servers) and **arm64** (also written aarch64, used by phones, Apple Silicon Macs, and a growing number of servers). A program compiled for one does not run natively on the other. This matters later, when you choose which virtual machine images to download for labs.
+
+## Hands-on: inspect your own CPU and memory
+
+Open a terminal (macOS: the Terminal app; Linux: any terminal; Windows: PowerShell, not the old Command Prompt) and run the commands for your operating system. You are only reading information, nothing here changes your system.
+
+**1. What CPU do you have, and how many cores?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# CPU model name
+sysctl -n machdep.cpu.brand_string
+
+# physical cores, then logical processors
+sysctl -n hw.physicalcpu
+sysctl -n hw.logicalcpu
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# full CPU summary: model, cores, threads per core, architecture
+lscpu
+
+# just the number of logical processors available
+nproc
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-CimInstance Win32_Processor |
+  Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
+```
+
+  </Fragment>
+</CodeTabs>
+
+**2. What architecture is it?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+uname -m
+# arm64 means Apple Silicon, x86_64 means Intel
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+uname -m
+# x86_64 or aarch64 are the most common answers
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+$env:PROCESSOR_ARCHITECTURE
+# AMD64 means x86_64, ARM64 means an ARM processor
+```
+
+  </Fragment>
+</CodeTabs>
+
+**3. How much RAM is installed?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# total RAM in bytes, divide by 1073741824 for GiB
+sysctl -n hw.memsize
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# -h prints human-readable sizes
+free -h
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# total RAM in GB
+(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB
+```
+
+  </Fragment>
+</CodeTabs>
+
+Write the three answers down somewhere: CPU model, cores and logical processors, architecture, and total RAM. You will add to this little "spec sheet" in the next lessons, and you will use it in lesson 4 to judge how big a virtual machine your computer can comfortably run.
+
+### What to notice
+
+- If your logical processor count is double your core count, your CPU runs two hardware threads per core.
+- On Linux, `lscpu` also shows "Thread(s) per core" and "Model name", which answer the same questions in one place.
+- If any command fails, read the error carefully before searching for it. Being able to tell "command not found" from "permission denied" is a skill you will use every day.
