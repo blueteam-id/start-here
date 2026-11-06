@@ -1,0 +1,69 @@
+---
+import { DISCORD_INVITE_URL } from './Header.astro';
+
+interface Props {
+  heading: string;
+  body: string;
+}
+
+const { heading, body } = Astro.props;
+---
+
+<section class="discord-band">
+  <div class="discord-band__inner">
+    <div class="discord-band__copy">
+      <h2 class="discord-band__heading">{heading}</h2>
+      <p class="discord-band__body">{body}</p>
+    </div>
+    <a class="discord-band__cta" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
+      Join Discord
+    </a>
+  </div>
+</section>
+
+<style>
+  .discord-band {
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--bg-card);
+  }
+
+  .discord-band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  .discord-band__heading {
+    margin: 0 0 0.35rem;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .discord-band__body {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    max-width: 40rem;
+  }
+
+  .discord-band__cta {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .discord-band__cta:hover,
+  .discord-band__cta:focus-visible {
+    filter: brightness(1.1);
+  }
+</style>

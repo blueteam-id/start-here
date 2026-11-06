@@ -1,0 +1,98 @@
+---
+// Placeholder Discord invite. The real community invite link has not been
+// shared with this project yet; the project owner must replace this with
+// the actual invite URL before launch.
+export const DISCORD_INVITE_URL = 'https://discord.gg/REPLACE_ME';
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="/">
+      <span class="site-header__mark" aria-hidden="true">🛡️</span>
+      <span class="site-header__wordmark">foundation.blueteam.id</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Main">
+      <a href="/tracks/">Tracks</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/contributing/">Contributing</a>
+      <a href="https://blueteam.id" target="_blank" rel="noopener noreferrer">
+        blueteam.id
+      </a>
+    </nav>
+
+    <a class="site-header__cta" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
+      Join Discord
+    </a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1rem 1.25rem;
+  }
+
+  .site-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .site-header__mark {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .site-header__wordmark {
+    font-size: 1rem;
+  }
+
+  .site-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-right: auto;
+  }
+
+  .site-header__nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .site-header__nav a:hover,
+  .site-header__nav a:focus-visible {
+    color: var(--text);
+  }
+
+  .site-header__cta {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .site-header__cta:hover,
+  .site-header__cta:focus-visible {
+    filter: brightness(1.1);
+  }
+</style>
