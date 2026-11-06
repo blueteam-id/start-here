@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TrackLandingView from '../../../components/views/TrackLandingView.astro';
+
+export async function getStaticPaths() {
+  const tracks = await getCollection('tracks');
+
+  return Promise.all(
+    tracks.map(async (track) => {
+      const allLessons = await getCollection('lessons');
+      const lessons = allLessons
+        .filter((lesson) => lesson.data.track === track.slug)
+        .sort((a, b) => a.data.order - b.data.order);
+
+      return {
+        params: { track: track.slug },
+        props: { track, lessons },
+      };
+    }),
+  );
+}
+
+const { track, lessons } = Astro.props;
+---
+
+<BaseLayout title={track.data.title} description={track.data.summary}>
+  <TrackLandingView track={track} lessons={lessons} />
+</BaseLayout>

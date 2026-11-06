@@ -1,0 +1,155 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import AttributionStrip from '../AttributionStrip.astro';
+
+interface Props {
+  track: CollectionEntry<'tracks'>;
+  lessons: CollectionEntry<'lessons'>[];
+}
+
+const { track, lessons } = Astro.props;
+
+const orderedLessons = [...lessons].sort((a, b) => a.data.order - b.data.order);
+
+function lessonSlugWithoutTrackPrefix(lesson: CollectionEntry<'lessons'>) {
+  return lesson.slug.slice(track.slug.length + 1);
+}
+
+function lessonHref(lesson: CollectionEntry<'lessons'>) {
+  return `/tracks/${track.slug}/${lessonSlugWithoutTrackPrefix(lesson)}/`;
+}
+
+const firstLesson = orderedLessons[0];
+const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
+---
+
+<div class="track-landing">
+  <div class="track-landing__intro">
+    <span class="track-landing__icon">{track.data.icon}</span>
+    <h1 class="track-landing__title">{track.data.title}</h1>
+    <p class="track-landing__summary">{track.data.summary}</p>
+    <div class="track-landing__meta">
+      <span>{hoursLabel}h total</span>
+      <span>{track.data.lessonCount} lessons</span>
+    </div>
+    <AttributionStrip author={track.data.author} reviewer={track.data.reviewer} updatedAt={track.data.updatedAt} />
+  </div>
+
+  {firstLesson && (
+    <a class="track-landing__start" href={lessonHref(firstLesson)}>
+      Start track
+    </a>
+  )}
+
+  <ol class="track-landing__lessons">
+    {orderedLessons.map((lesson) => (
+      <li class="track-landing__lesson">
+        <a href={lessonHref(lesson)}>
+          <span class="track-landing__lesson-title">{lesson.data.title}</span>
+          <span class="track-landing__lesson-phase">{lesson.data.phase}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .track-landing {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .track-landing__intro {
+    margin-bottom: 1.5rem;
+  }
+
+  .track-landing__icon {
+    font-size: 1.75rem;
+  }
+
+  .track-landing__title {
+    margin: 0.5rem 0;
+    font-size: 1.75rem;
+    color: var(--text);
+  }
+
+  .track-landing__summary {
+    margin: 0 0 0.75rem;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .track-landing__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .track-landing__start {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--bg);
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .track-landing__start:hover,
+  .track-landing__start:focus-visible {
+    opacity: 0.9;
+  }
+
+  .track-landing__lessons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .track-landing__lesson a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .track-landing__lesson a:hover,
+  .track-landing__lesson a:focus-visible {
+    border-color: var(--blue);
+  }
+
+  .track-landing__lesson-title {
+    font-size: 0.95rem;
+  }
+
+  .track-landing__lesson-phase {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 480px) {
+    .track-landing {
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .track-landing__title {
+      font-size: 1.4rem;
+    }
+  }
+</style>

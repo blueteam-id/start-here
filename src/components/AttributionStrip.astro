@@ -1,0 +1,27 @@
+---
+interface Props {
+  author: string;
+  reviewer: string;
+  updatedAt: Date;
+}
+
+const { author, reviewer, updatedAt } = Astro.props;
+
+const formattedDate = updatedAt.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<p class="attribution-strip">
+  Written by {author}, reviewed by {reviewer}, with AI help. Last updated {formattedDate}.
+</p>
+
+<style>
+  .attribution-strip {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+</style>
