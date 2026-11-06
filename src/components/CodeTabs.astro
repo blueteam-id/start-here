@@ -1,0 +1,90 @@
+---
+// Reusable OS-tabbed code block. Lesson authors supply one or more of the
+// named slots (macos, linux, windows) with the per-OS command; only slots
+// that were actually supplied get a tab and a panel. The first supplied
+// panel is rendered visible (no `hidden`) so the content works even if the
+// client script never runs; the rest start `hidden` and are revealed on
+// tab click by codeTabs.client.ts.
+
+const OS_TABS = [
+  { id: 'macos', label: 'macOS' },
+  { id: 'linux', label: 'Linux' },
+  { id: 'windows', label: 'Windows' },
+] as const;
+
+const supplied = OS_TABS.filter((os) => Astro.slots.has(os.id));
+---
+
+<div class="code-tabs" data-code-tabs>
+  <div class="code-tabs__tablist" role="tablist">
+    {supplied.map((os, index) => (
+      <button
+        type="button"
+        class="code-tabs__tab"
+        role="tab"
+        data-tab={os.id}
+        aria-selected={index === 0 ? 'true' : 'false'}
+      >
+        {os.label}
+      </button>
+    ))}
+  </div>
+  {supplied.map((os, index) => (
+    <div class="code-tabs__panel" role="tabpanel" data-panel={os.id} hidden={index !== 0}>
+      <slot name={os.id} />
+    </div>
+  ))}
+</div>
+
+<script>
+  import { wireCodeTabs } from '../scripts/codeTabs.client';
+
+  document.querySelectorAll('[data-code-tabs]').forEach((root) => {
+    wireCodeTabs(root as HTMLElement);
+  });
+</script>
+
+<style>
+  .code-tabs {
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .code-tabs__tablist {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    padding: 0.35rem 0.35rem 0;
+  }
+
+  .code-tabs__tab {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 0.35rem 0.35rem 0 0;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+  }
+
+  .code-tabs__tab:hover,
+  .code-tabs__tab:focus-visible {
+    color: var(--text);
+  }
+
+  .code-tabs__tab[aria-selected='true'] {
+    background: var(--bg-card);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .code-tabs__panel {
+    background: var(--bg-card);
+    padding: 1rem;
+  }
+</style>
