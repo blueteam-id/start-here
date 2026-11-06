@@ -9,6 +9,9 @@ interface Props {
 
 const { track, lessons } = Astro.props;
 
+// Sort defensively rather than trusting the caller's array order (the page
+// already sorts, but this view is also exercised directly in tests/future
+// callers with unsorted fixtures).
 const orderedLessons = [...lessons].sort((a, b) => a.data.order - b.data.order);
 
 function lessonSlugWithoutTrackPrefix(lesson: CollectionEntry<'lessons'>) {

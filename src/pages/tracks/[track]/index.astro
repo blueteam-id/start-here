@@ -5,20 +5,21 @@ import TrackLandingView from '../../../components/views/TrackLandingView.astro';
 
 export async function getStaticPaths() {
   const tracks = await getCollection('tracks');
+  // Fetch the lessons collection once and filter per track below, rather
+  // than re-fetching it inside the map (which would re-parse the full
+  // collection once per track).
+  const allLessons = await getCollection('lessons');
 
-  return Promise.all(
-    tracks.map(async (track) => {
-      const allLessons = await getCollection('lessons');
-      const lessons = allLessons
-        .filter((lesson) => lesson.data.track === track.slug)
-        .sort((a, b) => a.data.order - b.data.order);
+  return tracks.map((track) => {
+    const lessons = allLessons
+      .filter((lesson) => lesson.data.track === track.slug)
+      .sort((a, b) => a.data.order - b.data.order);
 
-      return {
-        params: { track: track.slug },
-        props: { track, lessons },
-      };
-    }),
-  );
+    return {
+      params: { track: track.slug },
+      props: { track, lessons },
+    };
+  });
 }
 
 const { track, lessons } = Astro.props;
