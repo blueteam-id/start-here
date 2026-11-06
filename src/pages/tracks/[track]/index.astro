@@ -4,11 +4,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import TrackLandingView from '../../../components/views/TrackLandingView.astro';
 
 export async function getStaticPaths() {
-  const tracks = await getCollection('tracks');
+  // Entries no longer carry a `slug` property in this Astro version; the
+  // glob loader's `id` is the slugified path, so expose it as `slug` for the
+  // views (which were written against the `slug` shape).
+  const tracks = (await getCollection('tracks')).map((entry) => ({ ...entry, slug: entry.id }));
   // Fetch the lessons collection once and filter per track below, rather
   // than re-fetching it inside the map (which would re-parse the full
   // collection once per track).
-  const allLessons = await getCollection('lessons');
+  const allLessons = (await getCollection('lessons')).map((entry) => ({ ...entry, slug: entry.id }));
 
   return tracks.map((track) => {
     const lessons = allLessons

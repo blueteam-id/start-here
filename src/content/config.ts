@@ -1,5 +1,6 @@
 // src/content/config.ts
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 export const trackSchema = z.object({
   title: z.string(),
@@ -27,13 +28,19 @@ export const lessonSchema = z.object({
   resources: z.array(z.object({ label: z.string(), url: z.string() })).default([]),
 });
 
+// Explicit glob loaders (rather than the legacy `type: 'content'` shorthand).
+// Under this Astro version's legacy backwards-compat mode, `type: 'content'`
+// produces entry ids that keep the file extension and `/index` segment
+// (e.g. `computing-basics/index.md`) and no `slug` property at all. The
+// default glob loader id is the slugified path instead (`computing-basics`,
+// `computing-basics/01-what-is-a-computer`), which is what the routes use.
 const tracks = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/tracks' }),
   schema: trackSchema,
 });
 
 const lessons = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lessons' }),
   schema: lessonSchema,
 });
 

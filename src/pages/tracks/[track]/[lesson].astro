@@ -1,15 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import LessonView from '../../../components/views/LessonView.astro';
 
 export async function getStaticPaths() {
-  const tracks = await getCollection('tracks');
+  // Entries no longer carry a `slug` property in this Astro version; the
+  // glob loader's `id` is the slugified path, so expose it as `slug` for the
+  // views (which were written against the `slug` shape).
+  const tracks = (await getCollection('tracks')).map((entry) => ({ ...entry, slug: entry.id }));
   // Fetch the lessons collection once and filter per track below, rather
   // than re-fetching it inside the map (which would re-parse the full
   // collection once per track). See [track]/index.astro for the same
   // pattern.
-  const allLessons = await getCollection('lessons');
+  const allLessons = (await getCollection('lessons')).map((entry) => ({ ...entry, slug: entry.id }));
 
   const paths: Array<{
     params: { track: string; lesson: string };
@@ -41,7 +44,8 @@ export async function getStaticPaths() {
 }
 
 const { track, lessons, lesson } = Astro.props;
-const { Content } = await lesson.render();
+// `entry.render()` was removed; `render(entry)` is the current API.
+const { Content } = await render(lesson);
 ---
 
 <BaseLayout title={lesson.data.title} description={track.data.summary}>
