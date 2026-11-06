@@ -15,12 +15,13 @@ interface SidebarLesson {
 
 interface Props {
   trackTitle: string;
+  trackSlug: string;
   lessons: SidebarLesson[];
   currentSlug: string;
   progress: Record<string, boolean>;
 }
 
-const { trackTitle, lessons, currentSlug, progress } = Astro.props;
+const { trackTitle, trackSlug, lessons, currentSlug, progress } = Astro.props;
 
 const percent = getPercentComplete(progress, lessons.length);
 
@@ -39,11 +40,18 @@ for (const lesson of lessons) {
 <aside class="lesson-sidebar" data-lesson-sidebar aria-label={`${trackTitle} lessons`}>
   <h2 class="lesson-sidebar__title">{trackTitle}</h2>
 
-  <div class="lesson-sidebar__progress" role="progressbar" aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100">
+  <div
+    class="lesson-sidebar__progress"
+    role="progressbar"
+    data-progress-bar
+    aria-valuenow={percent}
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
     <div class="lesson-sidebar__progress-track">
-      <div class="lesson-sidebar__progress-fill" style={`width: ${percent}%`}></div>
+      <div class="lesson-sidebar__progress-fill" data-progress-fill style={`width: ${percent}%`}></div>
     </div>
-    <span class="lesson-sidebar__progress-label">{percent}% complete</span>
+    <span class="lesson-sidebar__progress-label" data-progress-label>{percent}% complete</span>
   </div>
 
   {phaseGroups.map((group) => (
@@ -57,10 +65,15 @@ for (const lesson of lessons) {
             <li
               class:list={['lesson-sidebar__lesson', { 'lesson-sidebar__lesson--current': isCurrent }]}
               data-lesson-row={lesson.slug}
-              aria-current={isCurrent ? 'true' : undefined}
             >
-              <span class="lesson-sidebar__checkmark" aria-hidden="true">{isComplete ? '✓' : ''}</span>
-              <span class="lesson-sidebar__lesson-title">{lesson.title}</span>
+              <a
+                class="lesson-sidebar__lesson-link"
+                href={`/tracks/${trackSlug}/${lesson.slug}/`}
+                aria-current={isCurrent ? 'page' : undefined}
+              >
+                <span class="lesson-sidebar__checkmark" data-lesson-checkmark aria-hidden="true">{isComplete ? '✓' : ''}</span>
+                <span class="lesson-sidebar__lesson-title">{lesson.title}</span>
+              </a>
             </li>
           );
         })}
@@ -128,7 +141,7 @@ for (const lesson of lessons) {
     gap: 0.35rem;
   }
 
-  .lesson-sidebar__lesson {
+  .lesson-sidebar__lesson-link {
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -136,9 +149,15 @@ for (const lesson of lessons) {
     padding: 0.4rem 0.5rem;
     font-size: 0.85rem;
     color: var(--text-dim);
+    text-decoration: none;
   }
 
-  .lesson-sidebar__lesson--current {
+  .lesson-sidebar__lesson-link:hover,
+  .lesson-sidebar__lesson-link:focus-visible {
+    color: var(--text);
+  }
+
+  .lesson-sidebar__lesson--current .lesson-sidebar__lesson-link {
     background: var(--bg-elev);
     color: var(--text);
     font-weight: 600;

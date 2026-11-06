@@ -41,7 +41,10 @@ const sidebarLessons = orderedLessons.map((entry) => ({
 
 // Progress is read at render time via the real progress module. During the
 // static build this always comes back empty (no localStorage on the
-// server); the mark-complete script re-syncs it client-side on load.
+// server, and this is a fully static site with no server output) --
+// wireMarkComplete re-reads real progress client-side on load and updates
+// the sidebar's checkmarks and progress bar to match (see the <script>
+// below and src/scripts/markComplete.client.ts).
 const progress = getProgress(track.slug);
 
 const currentIndex = orderedLessons.findIndex((entry) => entry.slug === lesson.slug);
@@ -62,6 +65,7 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
 <div class="lesson-view" data-lesson-view data-track-slug={track.slug} data-lesson-slug={currentSlug}>
   <LessonSidebar
     trackTitle={track.data.title}
+    trackSlug={track.slug}
     lessons={sidebarLessons}
     currentSlug={currentSlug}
     progress={progress}
