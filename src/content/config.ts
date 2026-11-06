@@ -23,6 +23,8 @@ export const lessonSchema = z.object({
   prerequisites: z.string().optional(),
   needsVM: z.boolean().default(false),
   estimatedMinutes: z.number(),
+  reflectQuestions: z.array(z.string()).default([]),
+  resources: z.array(z.object({ label: z.string(), url: z.string() })).default([]),
 });
 
 const tracks = defineCollection({

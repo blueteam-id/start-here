@@ -1,0 +1,158 @@
+---
+// Per-track lesson navigation sidebar shown on every lesson page: a
+// progress bar plus the phase-grouped lesson list, with a checkmark for
+// completed lessons and the current lesson highlighted. Progress is a
+// plain prop so this component stays a pure function of its inputs; the
+// caller (LessonView) is the one that reads real progress via
+// src/lib/progress.ts.
+import { getPercentComplete } from '../lib/progress';
+
+interface SidebarLesson {
+  slug: string;
+  title: string;
+  phase: string;
+}
+
+interface Props {
+  trackTitle: string;
+  lessons: SidebarLesson[];
+  currentSlug: string;
+  progress: Record<string, boolean>;
+}
+
+const { trackTitle, lessons, currentSlug, progress } = Astro.props;
+
+const percent = getPercentComplete(progress, lessons.length);
+
+// Group lessons by phase, preserving the order each phase first appears in.
+const phaseGroups: Array<{ phase: string; lessons: SidebarLesson[] }> = [];
+for (const lesson of lessons) {
+  let group = phaseGroups.find((g) => g.phase === lesson.phase);
+  if (!group) {
+    group = { phase: lesson.phase, lessons: [] };
+    phaseGroups.push(group);
+  }
+  group.lessons.push(lesson);
+}
+---
+
+<aside class="lesson-sidebar" data-lesson-sidebar aria-label={`${trackTitle} lessons`}>
+  <h2 class="lesson-sidebar__title">{trackTitle}</h2>
+
+  <div class="lesson-sidebar__progress" role="progressbar" aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100">
+    <div class="lesson-sidebar__progress-track">
+      <div class="lesson-sidebar__progress-fill" style={`width: ${percent}%`}></div>
+    </div>
+    <span class="lesson-sidebar__progress-label">{percent}% complete</span>
+  </div>
+
+  {phaseGroups.map((group) => (
+    <div class="lesson-sidebar__phase">
+      <h3 class="lesson-sidebar__phase-title">{group.phase}</h3>
+      <ul class="lesson-sidebar__lessons">
+        {group.lessons.map((lesson) => {
+          const isCurrent = lesson.slug === currentSlug;
+          const isComplete = progress[lesson.slug] === true;
+          return (
+            <li
+              class:list={['lesson-sidebar__lesson', { 'lesson-sidebar__lesson--current': isCurrent }]}
+              data-lesson-row={lesson.slug}
+              aria-current={isCurrent ? 'true' : undefined}
+            >
+              <span class="lesson-sidebar__checkmark" aria-hidden="true">{isComplete ? '✓' : ''}</span>
+              <span class="lesson-sidebar__lesson-title">{lesson.title}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  ))}
+</aside>
+
+<style>
+  .lesson-sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+  }
+
+  .lesson-sidebar__title {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .lesson-sidebar__progress {
+    margin-bottom: 1.25rem;
+  }
+
+  .lesson-sidebar__progress-track {
+    background: var(--bg-elev);
+    border-radius: 999px;
+    height: 0.4rem;
+    overflow: hidden;
+  }
+
+  .lesson-sidebar__progress-fill {
+    background: var(--blue);
+    height: 100%;
+  }
+
+  .lesson-sidebar__progress-label {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .lesson-sidebar__phase {
+    margin-bottom: 1rem;
+  }
+
+  .lesson-sidebar__phase-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .lesson-sidebar__lessons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .lesson-sidebar__lesson {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .lesson-sidebar__lesson--current {
+    background: var(--bg-elev);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .lesson-sidebar__checkmark {
+    color: var(--blue);
+    width: 1em;
+  }
+
+  @media (max-width: 640px) {
+    .lesson-sidebar {
+      max-height: 16rem;
+      overflow-y: auto;
+    }
+  }
+</style>

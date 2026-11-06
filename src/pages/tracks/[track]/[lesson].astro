@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import LessonView from '../../../components/views/LessonView.astro';
+
+export async function getStaticPaths() {
+  const tracks = await getCollection('tracks');
+  // Fetch the lessons collection once and filter per track below, rather
+  // than re-fetching it inside the map (which would re-parse the full
+  // collection once per track). See [track]/index.astro for the same
+  // pattern.
+  const allLessons = await getCollection('lessons');
+
+  const paths: Array<{
+    params: { track: string; lesson: string };
+    props: {
+      track: (typeof tracks)[number];
+      lessons: typeof allLessons;
+      lesson: (typeof allLessons)[number];
+    };
+  }> = [];
+
+  for (const track of tracks) {
+    const lessons = allLessons
+      .filter((entry) => entry.data.track === track.slug)
+      .sort((a, b) => a.data.order - b.data.order);
+
+    for (const lesson of lessons) {
+      // Collection slug is "<trackSlug>/<lessonSlug>"; the route param is
+      // just the lesson part, matching the `/tracks/<trackSlug>/<lessonSlug>/`
+      // URL shape the track landing page already links to.
+      const lessonSlug = lesson.slug.split('/').slice(1).join('/');
+      paths.push({
+        params: { track: track.slug, lesson: lessonSlug },
+        props: { track, lessons, lesson },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { track, lessons, lesson } = Astro.props;
+const { Content } = await lesson.render();
+---
+
+<BaseLayout title={lesson.data.title} description={track.data.summary}>
+  <LessonView
+    track={track}
+    lessons={lessons}
+    lesson={lesson}
+    Content={Content}
+    reflectQuestions={lesson.data.reflectQuestions}
+    resources={lesson.data.resources}
+  />
+</BaseLayout>

@@ -1,0 +1,201 @@
+---
+// Full lesson page content: sidebar + breadcrumb + optional prerequisites
+// callout + the lesson's rendered MDX body + optional Reflect/Go further
+// sections + a mark-complete footer with a next-lesson link. The lesson
+// body itself is always fully server-rendered (via the `Content` component
+// the caller passes in from `lesson.render()`); the mark-complete button is
+// a vanilla-JS progressive enhancement on top of that static markup (see
+// the <script> below), reading/writing progress through src/lib/progress.ts.
+import type { CollectionEntry } from 'astro:content';
+import LessonSidebar from '../LessonSidebar.astro';
+import PrerequisitesCallout from '../PrerequisitesCallout.astro';
+import ReflectSection from '../ReflectSection.astro';
+import GoFurtherSection from '../GoFurtherSection.astro';
+import { getProgress } from '../../lib/progress';
+
+interface Props {
+  track: CollectionEntry<'tracks'>;
+  lessons: CollectionEntry<'lessons'>[];
+  lesson: CollectionEntry<'lessons'>;
+  Content: any;
+  reflectQuestions?: string[];
+  resources?: Array<{ label: string; url: string }>;
+}
+
+const { track, lessons, lesson, Content, reflectQuestions = [], resources = [] } = Astro.props;
+
+// The collection slug is "<trackSlug>/<lessonSlug>"; strip the track prefix
+// to get the short slug used for routing and for progress keys.
+function shortSlug(entry: CollectionEntry<'lessons'>): string {
+  return entry.slug.split('/').slice(1).join('/');
+}
+
+const orderedLessons = [...lessons].sort((a, b) => a.data.order - b.data.order);
+const currentSlug = shortSlug(lesson);
+
+const sidebarLessons = orderedLessons.map((entry) => ({
+  slug: shortSlug(entry),
+  title: entry.data.title,
+  phase: entry.data.phase,
+}));
+
+// Progress is read at render time via the real progress module. During the
+// static build this always comes back empty (no localStorage on the
+// server); the mark-complete script re-syncs it client-side on load.
+const progress = getProgress(track.slug);
+
+const currentIndex = orderedLessons.findIndex((entry) => entry.slug === lesson.slug);
+const nextLesson = currentIndex >= 0 ? orderedLessons[currentIndex + 1] : undefined;
+const trackHref = `/tracks/${track.slug}/`;
+const nextHref = nextLesson ? `/tracks/${track.slug}/${shortSlug(nextLesson)}/` : undefined;
+
+// `Content` is normally a real Astro component factory produced by
+// `lesson.render()` (and must be rendered via `<Content />` so Astro wires
+// up its own result/slot context). Tests exercise this component directly
+// with a plain stand-in function instead, which `<Content />` can't render
+// (Astro treats a bare function as a UI-framework component and throws
+// without a renderer installed) -- so fall back to calling it directly and
+// inserting its returned markup for anything that isn't a real factory.
+const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).isAstroComponentFactory === true;
+---
+
+<div class="lesson-view" data-lesson-view data-track-slug={track.slug} data-lesson-slug={currentSlug}>
+  <LessonSidebar
+    trackTitle={track.data.title}
+    lessons={sidebarLessons}
+    currentSlug={currentSlug}
+    progress={progress}
+  />
+
+  <div class="lesson-view__main">
+    <nav class="lesson-view__breadcrumb" aria-label="Breadcrumb">
+      <a href={trackHref}>{track.data.title}</a>
+      <span aria-hidden="true">/</span>
+      <span>{lesson.data.title}</span>
+    </nav>
+
+    {lesson.data.prerequisites && <PrerequisitesCallout text={lesson.data.prerequisites} />}
+
+    <article class="lesson-view__content">
+      {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
+    </article>
+
+    <ReflectSection questions={reflectQuestions} />
+    <GoFurtherSection resources={resources} />
+
+    <footer class="lesson-view__footer">
+      <button type="button" class="lesson-view__mark-complete" data-mark-complete aria-pressed="false">
+        Mark complete
+      </button>
+      {nextHref && (
+        <a class="lesson-view__next" href={nextHref}>Next lesson</a>
+      )}
+    </footer>
+  </div>
+</div>
+
+<script>
+  import { wireMarkComplete } from '../../scripts/markComplete.client';
+
+  document.querySelectorAll<HTMLElement>('[data-lesson-view]').forEach((root) => {
+    const trackSlug = root.getAttribute('data-track-slug');
+    const lessonSlug = root.getAttribute('data-lesson-slug');
+    if (trackSlug && lessonSlug) {
+      wireMarkComplete(root, trackSlug, lessonSlug);
+    }
+  });
+</script>
+
+<style>
+  .lesson-view {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    display: grid;
+    grid-template-columns: 16rem 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .lesson-view__main {
+    min-width: 0;
+  }
+
+  .lesson-view__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+  }
+
+  .lesson-view__breadcrumb a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .lesson-view__breadcrumb a:hover,
+  .lesson-view__breadcrumb a:focus-visible {
+    color: var(--text);
+  }
+
+  .lesson-view__content {
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  .lesson-view__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .lesson-view__mark-complete {
+    appearance: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+  }
+
+  .lesson-view__mark-complete[aria-pressed='true'] {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: var(--bg);
+  }
+
+  .lesson-view__mark-complete:hover,
+  .lesson-view__mark-complete:focus-visible {
+    opacity: 0.9;
+  }
+
+  .lesson-view__next {
+    color: var(--blue);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .lesson-view__next:hover,
+  .lesson-view__next:focus-visible {
+    opacity: 0.9;
+  }
+
+  @media (max-width: 640px) {
+    .lesson-view {
+      grid-template-columns: 1fr;
+      padding: 1.5rem 1rem 3rem;
+      gap: 1.25rem;
+    }
+  }
+</style>

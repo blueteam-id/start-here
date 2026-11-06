@@ -1,0 +1,45 @@
+---
+// Renders a "Reflect on your own" prompt list when the lesson has any
+// reflect questions. Renders nothing (not an empty shell) when there are
+// none, so lessons without this frontmatter field show no empty section.
+interface Props {
+  questions: string[];
+}
+
+const { questions } = Astro.props;
+---
+
+{questions.length > 0 && (
+  <section class="reflect-section" aria-label="Reflect on your own" data-reflect-section>
+    <h2 class="reflect-section__heading">Reflect on your own</h2>
+    <ul class="reflect-section__list">
+      {questions.map((question) => (
+        <li>{question}</li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .reflect-section {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin: 2rem 0;
+  }
+
+  .reflect-section__heading {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .reflect-section__list {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+</style>

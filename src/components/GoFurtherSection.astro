@@ -1,0 +1,49 @@
+---
+// Renders a "Go further" list of extra resources when the lesson has any.
+// Renders nothing when there are none.
+interface Props {
+  resources: Array<{ label: string; url: string }>;
+}
+
+const { resources } = Astro.props;
+---
+
+{resources.length > 0 && (
+  <section class="go-further" aria-label="Go further" data-go-further>
+    <h2 class="go-further__heading">Go further</h2>
+    <ul class="go-further__list">
+      {resources.map((resource) => (
+        <li>
+          <a href={resource.url} target="_blank" rel="noopener noreferrer">{resource.label}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .go-further {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin: 2rem 0;
+  }
+
+  .go-further__heading {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .go-further__list {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .go-further__list a {
+    color: var(--blue);
+  }
+</style>
