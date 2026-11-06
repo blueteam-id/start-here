@@ -107,7 +107,7 @@ git commit -m "Scaffold Astro project with base layout and design tokens"
 import { expect, test } from 'vitest';
 import { getProgress, setLessonComplete, getPercentComplete } from './progress';
 
-function fakeStore(): ProgressStoreTestDouble {
+function fakeStore(): ProgressStore {
   const data = new Map<string, string>();
   return {
     getItem: (k: string) => data.get(k) ?? null,
@@ -602,7 +602,7 @@ test('the tracks teaser only links to live tracks, never a coming-soon one', asy
 test('renders exactly four pillar cards', async () => {
   const container = await AstroContainer.create();
   const html = await container.renderToString(HomeView, {});
-  expect((html.match(/class="pillar/g) ?? []).length).toBe(4);
+  expect((html.match(/class="pillar(?=["\s])/g) ?? []).length).toBe(4);
 });
 ```
 
@@ -703,7 +703,7 @@ git commit -m "Add track landing page with attribution and lesson list"
 
 **Interfaces:**
 - Consumes: `getProgress` (Task 2), the `lessons` collection (Task 3), `CodeTabs` (Task 7).
-- Produces: `LessonSidebar.astro` prop `{ trackTitle: string; lessons: Array<{ slug: string; title: string; phase: string }>; currentSlug: string; progress: Record<string, boolean> }`, rendering the progress bar and phase-grouped lesson list with checkmarks for completed and a highlighted current row. `PrerequisitesCallout.astro` prop `{ text: string }`. `ReflectSection.astro` prop `{ questions: string[] }`. `GoFurtherSection.astro` prop `{ resources: Array<{ label: string; url: string }> }`. `LessonView.astro` prop `{ track; lessons; lesson; Content; reflectQuestions: string[]; resources: Array<{ label: string; url: string }> }` (`Content` is Astro's rendered-MDX component for the current lesson's body) assembling sidebar + breadcrumb + prerequisites (only when `lesson.data.prerequisites` is set) + `<Content />` + Reflect + Go further + mark-complete footer with next-lesson link. `markComplete.client.ts` exports `wireMarkComplete(root: HTMLElement, trackSlug: string, lessonSlug: string): void` toggling the button's label/state and calling `setLessonComplete`.
+- Produces: `LessonSidebar.astro` prop `{ trackTitle: string; lessons: Array<{ slug: string; title: string; phase: string }>; currentSlug: string; progress: Record<string, boolean> }`, rendering the progress bar and phase-grouped lesson list with checkmarks for completed and a highlighted current row. `PrerequisitesCallout.astro` prop `{ text: string }`. `ReflectSection.astro` prop `{ questions: string[] }`. `GoFurtherSection.astro` prop `{ resources: Array<{ label: string; url: string }> }`. `LessonView.astro` prop `{ track; lessons; lesson; Content; reflectQuestions?: string[]; resources?: Array<{ label: string; url: string }> }` (`Content` is Astro's rendered-MDX component for the current lesson's body); `reflectQuestions` and `resources` default to `[]` when omitted, so a Reflect/Go-further section with nothing to show renders nothing rather than throwing. Assembles sidebar + breadcrumb + prerequisites (only when `lesson.data.prerequisites` is set) + `<Content />` + Reflect + Go further + mark-complete footer with next-lesson link. `markComplete.client.ts` exports `wireMarkComplete(root: HTMLElement, trackSlug: string, lessonSlug: string): void` toggling the button's label/state and calling `setLessonComplete`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -752,7 +752,7 @@ Run: `npm test -- LessonView` — Expected: FAIL (module not found).
 
 - [ ] **Step 3: Implement the sidebar/callout/reflect/go-further components, `LessonView.astro`, `[lesson].astro`, and `markComplete.client.ts`**
 
-`[lesson].astro` implements `getStaticPaths()` over the `lessons` collection; for each entry, split its collection `slug` (`"<trackSlug>/<lessonSlug>"`) to produce route params `{ track: trackSlug, lesson: lessonSlug }`, matching the `/tracks/<trackSlug>/<lessonSlug>/` URL shape Task 10 already links to. Render the lesson body via `await lesson.render()` to get `Content`, and read `reflectQuestions`/`resources` from dedicated frontmatter fields added to `lessonSchema` in Task 3 (extend it there now, since this task is the first to need them: `reflectQuestions: z.array(z.string())`, `resources: z.array(z.object({ label: z.string(), url: z.string() }))`).
+`[lesson].astro` implements `getStaticPaths()` over the `lessons` collection; for each entry, split its collection `slug` (`"<trackSlug>/<lessonSlug>"`) to produce route params `{ track: trackSlug, lesson: lessonSlug }`, matching the `/tracks/<trackSlug>/<lessonSlug>/` URL shape Task 10 already links to. Render the lesson body via `await lesson.render()` to get `Content`, and read `reflectQuestions`/`resources` from dedicated frontmatter fields added to `lessonSchema` in Task 3 (extend it there now, since this task is the first to need them: `reflectQuestions: z.array(z.string()).default([])`, `resources: z.array(z.object({ label: z.string(), url: z.string() })).default([])` — defaulted, not strictly required, so Task 3's existing passing test fixtures that predate these two fields keep parsing without being touched).
 
 - [ ] **Step 4: Run test to verify it passes**
 
