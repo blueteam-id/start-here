@@ -1,0 +1,112 @@
+---
+import { DISCORD_INVITE_URL } from '../Header.astro';
+
+// Both values below are deliberately unresolved placeholders (note the
+// "REPLACE_ME" segment in each) until the project owner fills in the real
+// repo URL and contact address.
+export const CONTRIBUTION_REPO_URL = 'https://github.com/REPLACE_ME/foundation-blueteam';
+export const CONTRIBUTION_EMAIL = 'contribute@REPLACE_ME.blueteam.id';
+---
+
+<div class="contributing">
+  <h1 class="contributing__heading">Contributing</h1>
+  <p class="contributing__intro">
+    This site only works if it stays a community effort: from community to community, not
+    from us to you. If you have something to add, fix, or question, we want to hear from you.
+  </p>
+
+  <h2 class="contributing__subheading">What kinds of contributions are welcome</h2>
+  <ul class="contributing__list">
+    <li>Proposing or drafting a new short course or track.</li>
+    <li>
+      Technical review of existing content: catching something inaccurate, outdated, or
+      misleading.
+    </li>
+    <li>
+      Small fixes: typos, broken commands, outdated screenshots, or wording that is unclear.
+    </li>
+  </ul>
+
+  <h2 class="contributing__subheading">How to contribute</h2>
+  <p>We have a few ways to get involved, in order of preference:</p>
+  <ol class="contributing__list">
+    <li>
+      Open a pull request or issue on
+      <a href={CONTRIBUTION_REPO_URL} target="_blank" rel="noopener noreferrer">
+        our GitHub repo
+      </a>
+      once it is public. This is the fastest way for us to review and merge a change.
+    </li>
+    <li>
+      Not comfortable with GitHub? Email your contribution to
+      <a href={`mailto:${CONTRIBUTION_EMAIL}`}>{CONTRIBUTION_EMAIL}</a> instead, and we will
+      take it from there.
+    </li>
+    <li>
+      Not sure where something belongs or how to start? Just ask in the
+      <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Discord</a>.
+      Someone will be happy to point you in the right direction.
+    </li>
+  </ol>
+
+  <h2 class="contributing__subheading">Keep it foundation level</h2>
+  <p>
+    One thing to keep in mind before you jump in: this project is meant to stay
+    foundation-level, free, and plain. We are not trying to upsell anything, and no lesson
+    should ever end up reading like a sales pitch. If a contribution starts to feel like
+    marketing rather than teaching, it probably needs a rewrite before it fits here. Thanks
+    for helping us keep that spirit intact.
+  </p>
+</div>
+
+<style>
+  .contributing {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    color: var(--text);
+  }
+
+  .contributing__heading {
+    margin: 0 0 1rem;
+    font-size: 1.75rem;
+  }
+
+  .contributing__subheading {
+    margin: 2rem 0 0.75rem;
+    font-size: 1.15rem;
+  }
+
+  .contributing__intro,
+  .contributing p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .contributing__list {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+
+  .contributing__list li {
+    margin-bottom: 0.5rem;
+  }
+
+  .contributing a {
+    color: var(--blue);
+  }
+
+  @media (max-width: 480px) {
+    .contributing {
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .contributing__heading {
+      font-size: 1.4rem;
+    }
+  }
+</style>
