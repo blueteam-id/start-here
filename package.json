@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "audit": "node scripts/audit-dist.mjs",
+    "verify": "npm run build && npm run audit",
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run"
