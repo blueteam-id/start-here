@@ -117,7 +117,7 @@ Permission numbers like these are not just a Linux quirk worth memorizing; they 
 
 Every file on a real Linux system has an owner (a user) and a group. `ls -l` shows both, right between the permission string and the file size, for example `you you` in the listing above: owner `you`, group `you`.
 
-Changing a file's owner or group is done with `chown`, typically like `chown newuser:newgroup file`. You will not run that command in this lesson, and here is why: changing ownership of a file you do not already own requires `sudo`, root-level privilege, because handing a file to a different owner is exactly the kind of system-wide change that an ordinary user should not be able to do unsupervised. That is deliberately out of scope for this safe, no-sudo track. It becomes directly relevant once you are managing a real server with multiple users, and you will pick it up again then.
+Changing a file's owner or group is done with `chown`, typically like `chown newuser:newgroup file`. You will not run that command in this lesson, and here is why: on Linux, `chown` to another user always requires `sudo`, root-level privilege, full stop, even for a file you already own yourself. An ordinary user cannot give a file away, there is no "it's mine so I can hand it off" exception; only root can reassign ownership. (A non-root user can change a file's *group*, with `chgrp`, but only to a group they themselves already belong to.) That is deliberately out of scope for this safe, no-sudo track. It becomes directly relevant once you are managing a real server with multiple users, and you will pick it up again then.
 
 This is also the deeper reason permissions matter beyond Linux trivia: "least privilege", giving a user or a file only the access it genuinely needs and nothing more, is a core security principle, and a misconfigured config file or credentials file left readable or writable by everyone is one of the most common findings auditors and attackers alike go looking for first. Every permission bit left open beyond what is required is a door that did not need to be left unlocked.
 
@@ -125,5 +125,5 @@ This is also the deeper reason permissions matter beyond Linux trivia: "least pr
 
 - The permission string from `ls -l` breaks into type, owner, group, and other, and each triplet of `rwx` has a numeric equivalent built from 4, 2, and 1.
 - `chmod` can change permissions symbolically (`u+x`, targeted and additive) or numerically (`755`, setting the whole string at once).
-- `chown` changes ownership, needs `sudo` on files you do not own, and is conceptual here, a tool you will reach for later on real servers.
+- `chown` changes ownership and always needs `sudo`/root, with no exception for files you already own yourself; it is conceptual here, a tool you will reach for later on real servers.
 - Permission misconfigurations are a routine, real-world finding in security assessments, which is exactly why least privilege matters.

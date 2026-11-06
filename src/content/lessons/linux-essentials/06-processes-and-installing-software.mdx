@@ -25,6 +25,14 @@ Every program running on your machine right now, your terminal, your browser, wh
 
 Knowing how to list what is running, watch it in real time, and stop something that misbehaves is a basic skill for anyone who operates a Linux system. It is also one of the most direct defensive skills in this entire track: an unfamiliar process quietly burning CPU, or a process making network connections it has no business making, is one of the first signs that a machine has been compromised. Cryptominers show up as a process pinning the CPU at 100% around the clock. Reverse shells show up as an ordinary-looking process name holding open a connection to somewhere it should not be talking to. You cannot notice either one if you do not already have a feel for what "normal" looks like.
 
+## Back to the practice folder
+
+```bash
+cd ~/linux-essentials
+```
+
+Nothing in this lesson creates files outside this folder, but the safe `kill` exercise later on starts a process from right here, so it is worth being in the habit of landing in `~/linux-essentials` before any hands-on lesson, this one included.
+
 ## ps aux: a snapshot of every process
 
 ```bash
@@ -81,9 +89,35 @@ kill -9 <pid>
 
 `-9` sends `SIGKILL`, which the operating system enforces immediately with no chance for the process to clean up after itself. Treat this as a last resort, not your default. Reach for a plain `kill` first and give the process a moment to exit on its own; only escalate to `kill -9` if it genuinely will not stop, since skipping cleanup can leave behind partially written files or other mess that a graceful exit would have avoided.
 
+### Try it safely: kill a process you started yourself
+
+Picking a random PID out of your real `ps aux` or `top` output and killing it is a bad way to practice this, since you have no way of knowing you are not stopping something you actually need, your shell, your editor, your browser. Instead, create a harmless process of your own to practice on:
+
+```bash
+sleep 300 &
+```
+
+The trailing `&` runs `sleep 300` (which simply does nothing for five minutes) in the background and hands your prompt straight back. The shell prints a job number and a PID, and you can also fetch that PID at any time from the special variable `$!`, which always holds the PID of the most recently backgrounded command:
+
+```bash
+echo $!
+```
+
+Confirm it is really running, then stop it, then confirm it is gone:
+
+```bash
+ps aux | grep sleep
+kill $!
+ps aux | grep sleep
+```
+
+The first `ps` shows the `sleep` process sitting there; after `kill`, the second `ps` should show nothing but the `grep sleep` command matching its own name, which is harmless and expected. That is the whole workflow, list, identify, stop, confirm, practiced end to end on a process that only you created and that nothing else depends on.
+
 ## Installing software: package managers
 
 Software on Linux (and on macOS) is usually installed through a **package manager**: a tool that downloads a program along with whatever it depends on, keeps track of what is installed, and knows how to cleanly remove it later. This is different from downloading an installer file from a website and double-clicking it, and it is worth getting comfortable with, since nearly every Linux server you will ever touch is managed this way.
+
+The rest of this section is for reference, so you recognize these commands when you meet them later, rather than something to run right now: both `apt install` and Homebrew's own installer need elevated privileges (`sudo` on Linux, an admin password on macOS), which puts them out of scope for this no-sudo, hands-on track.
 
 <CodeTabs>
   <Fragment slot="macos">
@@ -93,7 +127,7 @@ Software on Linux (and on macOS) is usually installed through a **package manage
 brew install <package>
 ```
 
-Homebrew is not built into macOS; it is a one-time install from [brew.sh](https://brew.sh) if you do not already have it.
+Homebrew is not built into macOS; it is a one-time install from [brew.sh](https://brew.sh) if you do not already have it, and that installer will ask for your admin password.
 
   </Fragment>
   <Fragment slot="linux">
@@ -103,7 +137,7 @@ Homebrew is not built into macOS; it is a one-time install from [brew.sh](https:
 apt install <package>
 ```
 
-Depending on your setup, `apt` may need to run with `sudo` (`sudo apt install <package>`), since installing software system-wide is a privileged operation.
+`apt install` always needs to run with `sudo` (`sudo apt install <package>`), since installing software system-wide is a privileged operation that an ordinary user cannot do alone.
 
   </Fragment>
 </CodeTabs>

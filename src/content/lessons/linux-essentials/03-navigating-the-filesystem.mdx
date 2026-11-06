@@ -44,6 +44,8 @@ pwd
 
 cd ..
 pwd
+
+cd ~/linux-essentials
 ```
 
 `.` always means "this same directory," so `cd .` is a no-op, you stay put. `..` always means "the parent of this directory," one level up. You will see both symbols again in a moment when you look at hidden entries with `ls -a`, because every directory on a Linux system quietly contains a `.` and a `..` entry pointing at itself and its parent.
@@ -55,10 +57,12 @@ Reading a path carefully matters more than it sounds like it should. `rm notes` 
 Run this inside your practice folder:
 
 ```bash
+touch .hidden-config
+ls
 ls -a
 ```
 
-Lesson 2 mentioned that `ls -a` reveals entries whose name starts with a dot, and that plain `ls` hides them. That convention exists for an ordinary reason: most dotfiles are configuration and state, things like `.bashrc` or `.gitconfig`, that you rarely need to see while just browsing for your actual work, so the tools quietly keep them out of the way by default.
+Plain `ls` shows your `project` folder from a moment ago, but not `.hidden-config`; `ls -a` shows all of it, `project`, `.hidden-config`, and the ever-present `.` and `..` entries. Lesson 2 mentioned that `ls -a` reveals entries whose name starts with a dot, and that plain `ls` hides them. That convention exists for an ordinary reason: most dotfiles are configuration and state, things like `.bashrc` or `.gitconfig`, that you rarely need to see while just browsing for your actual work, so the tools quietly keep them out of the way by default.
 
 That same convention is exactly why dotfiles matter to a defender. A folder that is quiet by default is a folder people stop looking at closely. Malware authors and intruders know this, and it shows up in real incidents: a payload dropped as `.cache`, a cron job pointed at a script tucked inside `.config/systemd/.hidden/`, a backdoor named to look like a routine dotfile rather than anything suspicious. None of this is exotic or hard to pull off; it works precisely because the default view of a directory does not show it. The practical habit worth building right now, while it is still low stakes, is this: when you are actually investigating a system rather than just browsing it, `ls -a` is not optional. An unfamiliar dotfile, or a dotfile sitting somewhere it has no reason to be, is worth a second look every time.
 
@@ -136,11 +140,11 @@ ls
 That removed all three `.log` files in one command, and left the two `.txt` files untouched, because `*.log` only matches names ending in `.log`. The `?` wildcard is narrower: it matches exactly one character, no more and no less:
 
 ```bash
-touch notes.txt note1.txt note2.txt noteA.txt
+touch notes.txt note1.txt note2.txt noteA.txt note10.txt
 ls note?.txt
 ```
 
-`note?.txt` matches `note1.txt`, `note2.txt`, and `noteA.txt`, but not `notes.txt`, because `s` is one character while the pattern needs exactly one character sitting right after `note`.
+`note?.txt` matches `notes.txt`, `note1.txt`, `note2.txt`, and `noteA.txt`, each of which has exactly one character after `note`, but not `note10.txt`, because `?` matches exactly one character and `10` is two.
 
 Wildcards are a genuine productivity gain, and also a genuine risk multiplier. `rm *.log` is fine when you have just confirmed, with a plain `ls *.log`, exactly which files that pattern matches. `rm *` typed in the wrong directory, in a hurry, matches everything in that directory with no distinction at all. The habit worth carrying forward is small but important: run the same pattern with `ls` first to see what it actually selects, before you ever run it with `rm`, `mv`, or anything else that changes or deletes files.
 

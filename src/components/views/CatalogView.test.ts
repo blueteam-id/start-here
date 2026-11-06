@@ -7,6 +7,7 @@ test('lists all 9 tracks, with exactly two live links and seven disabled cards',
   const html = await container.renderToString(CatalogView, {});
   expect((html.match(/aria-disabled="true"/g) ?? []).length).toBe(7);
   expect(html).toContain('href="/tracks/computing-basics/"');
+  expect(html).toContain('href="/tracks/linux-essentials/"');
   expect(html).toContain('Computing Basics');
   expect(html).toContain('Security Foundations');
 });

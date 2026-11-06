@@ -24,17 +24,17 @@ If you are on macOS or native Linux, you already have one: open Terminal (macOS)
 
 If you are on Windows, install the Windows Subsystem for Linux (WSL), which gives you a real Linux environment running alongside Windows rather than an imitation of one. Open PowerShell as Administrator (right-click it, "Run as administrator") and run:
 
-```bash
+```powershell
 wsl --install
 ```
 
-Follow the prompts, restart if asked, and you will end up with a Ubuntu terminal you can open like any other application. Full details and troubleshooting live at the official guide: `https://learn.microsoft.com/windows/wsl/install`.
+Follow the prompts, restart if asked, and you will end up with a Ubuntu terminal you can open like any other application. Full details and troubleshooting live at [Microsoft's WSL install docs](https://learn.microsoft.com/windows/wsl/install).
 
-This is the only time this track will stop to explain the Windows path. From here on, whenever a lesson says "open your terminal" or "in your terminal," it means bash running on macOS Terminal, native Linux, or WSL. All three give you the same shell and, for everything in this track, the same commands.
+This is the only time this track will stop to explain the Windows path. From here on, whenever a lesson says "open your terminal" or "in your terminal," it means macOS Terminal, native Linux, or WSL. One detail worth knowing upfront: macOS has defaulted to **zsh** rather than bash since macOS Catalina (2019), while native Linux and WSL default to bash. Every command taught in this track works identically in either shell, so this will not trip you up hands-on, but it does change one thing you are about to learn: the prompt symbol.
 
 ## What a shell actually is
 
-A **shell** is a program whose entire job is to sit between you and the operating system: it reads the line of text you type, figures out what you mean, and asks the kernel to do it. When people say "the command line" or "the terminal," they usually mean this same thing: a shell, waiting for input, inside a terminal window. The shell you will use throughout this track is called **bash**, the most common default on Linux and the one WSL gives you.
+A **shell** is a program whose entire job is to sit between you and the operating system: it reads the line of text you type, figures out what you mean, and asks the kernel to do it. When people say "the command line" or "the terminal," they usually mean this same thing: a shell, waiting for input, inside a terminal window. The shell you will use throughout this track is called **bash**, the most common default on Linux and the one WSL gives you. If you are on macOS, your default shell is zsh instead; everything below reads the same way, with one small difference in the prompt symbol noted below.
 
 The line where you type is called the **prompt**, and it is worth learning to read instead of skimming past. A typical prompt looks something like this:
 
@@ -47,7 +47,7 @@ Break it into pieces:
 - `alex` is the **username** you are logged in as.
 - `webserver01` is the **hostname**, the name of the machine you are on. This matters a lot once you are routinely connected to several servers at once; it is easy to run a command on the wrong one if you stop checking this.
 - `~/linux-essentials` is your **current directory** (more on that word in a moment), with `~` as shorthand for your home directory.
-- The final symbol is the one habit worth building immediately: a `$` means you are an ordinary user, and a `#` means you are logged in as **root**, the Linux superuser who can do absolutely anything on the system, including destroy it. Some distros also color the root prompt red for the same reason. Get used to glancing at that one character before you hit enter on anything.
+- The final symbol is the one habit worth building immediately: in bash, a `$` means you are an ordinary user, and a `#` means you are logged in as **root**, the Linux superuser who can do absolutely anything on the system, including destroy it. In zsh, macOS's default shell, the ordinary-user symbol is `%` instead of `$`, but it means exactly the same thing, and `#` still means root in both shells. Some distros also color the root prompt red for the same reason. Get used to glancing at that one character before you hit enter on anything.
 
 ## Creating your practice space
 
