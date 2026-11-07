@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# start.blueteam.id
 
-```sh
-npm create astro@latest -- --template minimal
+Free, community-run foundations in blue team / cybersecurity basics: how
+computers, operating systems, networks and the web actually work, the
+groundwork every defender needs before anything else.
+
+No sign-up, no paid tiers, no gimmicks — built by
+[blueteam.id](https://blueteam.id) volunteers, human-made with AI help.
+
+## Tech stack
+
+- [Astro](https://docs.astro.build) (static site generation)
+- Content collections (MDX lessons, Markdown track indexes) validated with
+  [Zod](https://zod.dev) schemas
+- [Vitest](https://vitest.dev) + the Astro Container API for component/page
+  tests
+
+## Project structure
+
+```
+src/
+├── content/
+│   ├── tracks/<slug>/index.md       # one per track
+│   └── lessons/<slug>/NN-title.mdx  # one per lesson
+├── data/catalog.ts                  # the public track catalog
+├── components/                      # Astro components, colocated tests
+├── layouts/                         # shared page layout
+└── pages/                           # routes
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Commands
 
-## 🚀 Project Structure
+| Command          | Action                                        |
+| :---------------- | :--------------------------------------------- |
+| `npm install`      | Install dependencies                           |
+| `npm run dev`       | Start the dev server at `localhost:4321`       |
+| `npm test`          | Run the test suite                             |
+| `npm run build`     | Build the static site to `./dist/`             |
+| `npm run audit`     | Audit the built HTML for structural issues     |
+| `npm run verify`    | `build` + `audit`                              |
+| `npm run preview`   | Preview the production build locally           |
 
-Inside of your Astro project, you'll see the following folders and files:
+## Contributing
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+See [CONTRIBUTING.md](CONTRIBUTING.md) — new tracks and lessons, technical
+review, small fixes, and bug reports are all welcome.
