@@ -5,7 +5,7 @@ import TrackLandingView from './TrackLandingView.astro';
 const fixtureTrack = { slug: 'computing-basics', data: {
   title: 'How a Computer Actually Works', category: 'Computing Basics', order: 1, status: 'live',
   summary: 'Hardware, storage, OS, virtualization, at a glance.', estimatedMinutes: 180, lessonCount: 2,
-  author: 'Wahyu N', reviewer: 'Wahyu N', updatedAt: new Date('2026-11-06'), icon: '🖥️',
+  author: 'Wahyu N', reviewer: 'Wahyu N', updatedAt: new Date('2026-11-06'), icon: '🖥️', version: '1.0',
 } } as any;
 
 const fixtureLessons = [
@@ -22,4 +22,12 @@ test('shows the attribution strip and an ordered lesson list with a start link t
   expect(firstIndex).toBeGreaterThan(-1);
   expect(firstIndex).toBeLessThan(secondIndex);
   expect(html).toContain('href="/tracks/computing-basics/01-what-is-a-computer/"');
+});
+
+test('shows the version badge and a link to release notes on GitHub', async () => {
+  const container = await AstroContainer.create();
+  const html = await container.renderToString(TrackLandingView, { props: { track: fixtureTrack, lessons: fixtureLessons } });
+  expect(html).toContain('v1.0');
+  expect(html).toContain('/releases');
+  expect(html.toLowerCase()).toContain('release notes');
 });

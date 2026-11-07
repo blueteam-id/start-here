@@ -1,15 +1,14 @@
 ---
-// Placeholder Discord invite. The real community invite link has not been
-// shared with this project yet; the project owner must replace this with
-// the actual invite URL before launch.
-export const DISCORD_INVITE_URL = 'https://discord.gg/REPLACE_ME';
+import { SITE_HOSTNAME, DISCORD_INVITE_URL } from '../lib/site';
+
+export { DISCORD_INVITE_URL };
 ---
 
 <header class="site-header">
   <div class="site-header__inner">
     <a class="site-header__brand" href="/">
       <span class="site-header__mark" aria-hidden="true">🛡️</span>
-      <span class="site-header__wordmark">foundation.blueteam.id</span>
+      <span class="site-header__wordmark">{SITE_HOSTNAME}</span>
     </a>
 
     <nav class="site-header__nav" aria-label="Main">

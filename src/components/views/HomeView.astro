@@ -44,18 +44,14 @@ const pillars = [
           <a class="hero__cta hero__cta--secondary" href="/contributing/">What's this about?</a>
         </div>
       </div>
-      <div class="hero__terminal" aria-hidden="true">
-        <div class="hero__terminal-bar">
-          <span class="hero__terminal-dot"></span>
-          <span class="hero__terminal-dot"></span>
-          <span class="hero__terminal-dot"></span>
-          <span class="hero__terminal-label">auth.log</span>
+      <div class="hero__visual" aria-hidden="true">
+        <div class="hero__radar">
+          <div class="hero__radar-rings"></div>
+          <div class="hero__radar-sweep"></div>
+          <span class="hero__radar-blip hero__radar-blip--1"></span>
+          <span class="hero__radar-blip hero__radar-blip--2"></span>
+          <span class="hero__radar-blip hero__radar-blip--3"></span>
         </div>
-        <pre class="hero__terminal-body"><code>sshd: Accepted password for alex from 10.0.0.14 port 51223 ssh2
-sshd: Failed password for root from 185.23.44.9 port 51501 ssh2
-sshd: Failed password for root from 185.23.44.9 port 51502 ssh2
-<span class="hero__terminal-flag">sshd: Failed password for root from 185.23.44.9 port 51503 ssh2  &lt;- flagged</span>
-# lesson 3: spotting brute-force patterns</code></pre>
       </div>
     </div>
   </section>
@@ -183,49 +179,125 @@ sshd: Failed password for root from 185.23.44.9 port 51502 ssh2
     border-color: var(--blue);
   }
 
-  .hero__terminal {
+  .hero__visual {
     flex: 1 1 18rem;
     max-width: 22rem;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     overflow: hidden;
   }
 
-  .hero__terminal-bar {
-    display: flex;
-    gap: 0.4rem;
-    padding: 0.6rem 0.75rem;
-    background: var(--bg-elev);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .hero__terminal-dot {
-    width: 0.6rem;
-    height: 0.6rem;
+  .hero__radar {
+    position: relative;
+    width: 78%;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
-    background: var(--border);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    overflow: hidden;
   }
 
-  .hero__terminal-label {
-    margin-left: 0.4rem;
-    font-size: 0.75rem;
-    color: var(--text-dim);
+  .hero__radar-rings {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image: repeating-radial-gradient(
+      circle,
+      var(--border) 0,
+      var(--border) 1px,
+      transparent 1px,
+      transparent 18%
+    );
+    opacity: 0.8;
   }
 
-  .hero__terminal-body {
-    margin: 0;
-    padding: 1rem 1.1rem;
-    font-size: 0.8rem;
-    line-height: 1.6;
-    color: var(--green);
-    white-space: pre-wrap;
-    word-break: break-word;
+  .hero__radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, var(--green) 10deg, transparent 70deg, transparent 360deg);
+    opacity: 0.6;
+    animation: radar-spin 4.5s linear infinite;
   }
 
-  .hero__terminal-flag {
-    color: var(--yellow);
-    font-weight: 700;
+  .hero__radar-blip {
+    position: absolute;
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .hero__radar-blip::before,
+  .hero__radar-blip::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .hero__radar-blip::before {
+    background: var(--green);
+  }
+
+  .hero__radar-blip::after {
+    border: 1px solid var(--green);
+    animation: radar-ping 2.6s ease-out infinite;
+  }
+
+  .hero__radar-blip--1 {
+    top: 20%;
+    left: 60%;
+  }
+
+  .hero__radar-blip--2 {
+    top: 58%;
+    left: 24%;
+  }
+
+  .hero__radar-blip--2::before {
+    background: var(--yellow);
+  }
+
+  .hero__radar-blip--2::after {
+    border-color: var(--yellow);
+    animation-delay: 0.9s;
+  }
+
+  .hero__radar-blip--3 {
+    top: 70%;
+    left: 66%;
+  }
+
+  .hero__radar-blip--3::after {
+    animation-delay: 1.8s;
+  }
+
+  @keyframes radar-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes radar-ping {
+    0% {
+      transform: scale(1);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(4.5);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__radar-sweep,
+    .hero__radar-blip::after {
+      animation: none;
+    }
   }
 
   .pillars__grid {

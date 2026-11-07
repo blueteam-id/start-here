@@ -1,11 +1,8 @@
 ---
 import { DISCORD_INVITE_URL } from '../Header.astro';
+import { CONTRIBUTION_REPO_URL, CONTRIBUTION_EMAIL } from '../../lib/site';
 
-// Both values below are deliberately unresolved placeholders (note the
-// "REPLACE_ME" segment in each) until the project owner fills in the real
-// repo URL and contact address.
-export const CONTRIBUTION_REPO_URL = 'https://github.com/REPLACE_ME/foundation-blueteam';
-export const CONTRIBUTION_EMAIL = 'contribute@REPLACE_ME.blueteam.id';
+export { CONTRIBUTION_REPO_URL, CONTRIBUTION_EMAIL };
 ---
 
 <div class="contributing">
@@ -31,19 +28,17 @@ export const CONTRIBUTION_EMAIL = 'contribute@REPLACE_ME.blueteam.id';
   <p>We have a few ways to get involved, in order of preference:</p>
   <ol class="contributing__list">
     <li>
-      Open a pull request or issue on
-      <a href={CONTRIBUTION_REPO_URL} target="_blank" rel="noopener noreferrer">
-        our GitHub repo
-      </a>
-      once it is public. This is the fastest way for us to review and merge a change.
+      Open a pull request or issue on our{' '}
+      <a href={CONTRIBUTION_REPO_URL} target="_blank" rel="noopener noreferrer">GitHub repo</a>,
+      the fastest way for us to review and merge a change.
     </li>
     <li>
-      Not comfortable with GitHub? Email your contribution to
+      Not comfortable with GitHub? Email your contribution to{' '}
       <a href={`mailto:${CONTRIBUTION_EMAIL}`}>{CONTRIBUTION_EMAIL}</a> instead, and we will
       take it from there.
     </li>
     <li>
-      Not sure where something belongs or how to start? Just ask in the
+      Not sure where something belongs or how to start? Just ask in the{' '}
       <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Discord</a>.
       Someone will be happy to point you in the right direction.
     </li>

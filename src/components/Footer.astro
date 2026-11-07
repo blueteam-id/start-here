@@ -1,0 +1,178 @@
+---
+import { SITE_HOSTNAME, DISCORD_INVITE_URL, SOCIAL_LINKS } from '../lib/site';
+
+// Minimal outline icons (Feather Icons, MIT licensed) inlined so the
+// footer needs no icon font or extra request. Rendered with set:html
+// below; the markup is fixed and defined here, never user input.
+const SOCIAL_ICONS: Record<string, string> = {
+  LinkedIn:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>',
+  Instagram:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>',
+  YouTube:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>',
+};
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <a class="site-footer__wordmark" href="/">
+        <span aria-hidden="true">🛡️</span> {SITE_HOSTNAME}
+      </a>
+      <p class="site-footer__tagline">
+        Free blue team security foundations, built by the community.
+      </p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer">
+      <a href="/tracks/">Tracks</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/contributing/">Contributing</a>
+      <a href="https://blueteam.id" target="_blank" rel="noopener noreferrer">blueteam.id</a>
+    </nav>
+
+    <div class="site-footer__community">
+      <a class="site-footer__discord" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
+        Join the Discord
+      </a>
+      <div class="site-footer__socials" aria-label="blueteam.id on social media">
+        {SOCIAL_LINKS.map((social) => (
+          <a
+            class="site-footer__social"
+            href={social.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`blueteam.id on ${social.label}`}
+            set:html={SOCIAL_ICONS[social.label]}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="site-footer__bottom">
+    <p>Made with love, our contribution back to the cybersecurity community. Keep the spirit of sharing alive.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg-elev);
+    margin-top: 3rem;
+  }
+
+  .site-footer__inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .site-footer__wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+  }
+
+  .site-footer__tagline {
+    margin: 0.6rem 0 0;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    max-width: 22rem;
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .site-footer__links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .site-footer__links a:hover,
+  .site-footer__links a:focus-visible {
+    color: var(--text);
+  }
+
+  .site-footer__community {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .site-footer__discord {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .site-footer__discord:hover,
+  .site-footer__discord:focus-visible {
+    filter: brightness(1.1);
+  }
+
+  .site-footer__socials {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .site-footer__social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .site-footer__social:hover,
+  .site-footer__social:focus-visible {
+    color: var(--text);
+    border-color: var(--blue);
+  }
+
+  .site-footer__bottom {
+    border-top: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+  }
+
+  .site-footer__bottom p {
+    max-width: 72rem;
+    margin: 0 auto;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 720px) {
+    .site-footer__inner {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    .site-footer__community {
+      align-items: flex-start;
+    }
+  }
+</style>

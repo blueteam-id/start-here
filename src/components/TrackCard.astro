@@ -10,6 +10,7 @@ const isLive = track.status === 'live';
 const href = `/tracks/${track.slug}/`;
 const Tag = isLive ? 'a' : 'div';
 const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
+const pillLabel = isLive ? 'FOUNDATION' : 'Coming soon';
 ---
 
 <Tag
@@ -19,7 +20,9 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
 >
   <div class="track-card__top">
     <div class="track-card__icon">{track.icon}</div>
-    <span class="track-card__pill">FOUNDATION</span>
+    <span class:list={['track-card__pill', { 'track-card__pill--coming-soon': !isLive }]}>
+      {pillLabel}
+    </span>
   </div>
   <h3 class="track-card__title">{track.title}</h3>
   <p class="track-card__summary">{track.summary}</p>
@@ -29,7 +32,6 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
     {track.handsOn && <span class="track-card__hands-on">Hands-on</span>}
     {track.needsVM && <span class="track-card__vm">Needs a VM</span>}
   </div>
-  {!isLive && <span class="track-card__status">Coming soon</span>}
 </Tag>
 
 <style>
@@ -50,8 +52,14 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
   }
 
   div.track-card[aria-disabled='true'] {
-    opacity: 0.6;
     cursor: default;
+  }
+
+  div.track-card[aria-disabled='true'] .track-card__icon,
+  div.track-card[aria-disabled='true'] .track-card__title,
+  div.track-card[aria-disabled='true'] .track-card__summary,
+  div.track-card[aria-disabled='true'] .track-card__meta {
+    opacity: 0.55;
   }
 
   .track-card__top {
@@ -77,10 +85,18 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--blue);
     border: 1px solid var(--blue);
     border-radius: 999px;
     padding: 0.2rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .track-card__pill--coming-soon {
+    color: var(--yellow);
+    border-color: var(--yellow);
+    background: var(--bg-elev, var(--bg));
   }
 
   .track-card__title {
@@ -110,13 +126,5 @@ const hoursLabel = Math.round((track.estimatedMinutes / 60) * 10) / 10;
 
   .track-card__vm {
     color: var(--yellow);
-  }
-
-  .track-card__status {
-    display: inline-block;
-    margin-top: 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-dim);
   }
 </style>

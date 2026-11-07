@@ -1,9 +1,46 @@
 ---
+const faqs = [
+  {
+    question: 'Is there a certificate available?',
+    answer: 'No. This is foundation-level, self-paced content, not a certified course.',
+  },
+  {
+    question: 'Is Indonesian language available?',
+    answer: 'Gak ada 😃',
+  },
+  {
+    question: 'Why English only?',
+    answer:
+      'Think global. These courses set the foundations and prepare you for something bigger in the future. Do not let the language stop you from reaching the best potential inside you.',
+  },
+  {
+    question: 'Is it fully free?',
+    answer: 'Yes, absolutely, no gimmick at all.',
+  },
+  {
+    question: "What's the difference with blueteam.id?",
+    answer:
+      'That page offers a more interactive LMS experience: pre-recorded classes with a real human teacher, and a certificate of completion.',
+  },
+  {
+    question: 'Is there going to be overlap between the two?',
+    answer: 'We hope not. Let us know if you find one.',
+  },
+];
 ---
 
 <div class="faq">
   <h1 class="faq__heading">FAQ</h1>
-  <p class="faq__placeholder">FAQ content coming soon, ask in Discord in the meantime.</p>
+  <p class="faq__intro">Short answers. For anything longer, ask in the Discord.</p>
+
+  <div class="faq__list">
+    {faqs.map((item) => (
+      <details class="faq__item">
+        <summary class="faq__question">{item.question}</summary>
+        <p class="faq__answer">{item.answer}</p>
+      </details>
+    ))}
+  </div>
 </div>
 
 <style>
@@ -14,15 +51,62 @@
   }
 
   .faq__heading {
-    margin: 0 0 1rem;
+    margin: 0 0 0.5rem;
     font-size: 1.75rem;
     color: var(--text);
   }
 
-  .faq__placeholder {
-    margin: 0;
+  .faq__intro {
+    margin: 0 0 1.5rem;
     color: var(--text-dim);
     font-size: 0.95rem;
+  }
+
+  .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .faq__item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.2rem 1rem;
+  }
+
+  .faq__question {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.85rem 1.5rem 0.85rem 0;
+    font-weight: 600;
+    color: var(--text);
+    position: relative;
+  }
+
+  .faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__question::after {
+    content: '+';
+    position: absolute;
+    right: 0;
+    top: 0.75rem;
+    color: var(--blue);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .faq__item[open] .faq__question::after {
+    content: '\2212';
+  }
+
+  .faq__answer {
+    margin: 0 0 1rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 480px) {

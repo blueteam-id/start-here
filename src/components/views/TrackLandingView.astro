@@ -1,6 +1,7 @@
 ---
 import type { LessonEntry, TrackEntry } from '../../lib/collections';
 import AttributionStrip from '../AttributionStrip.astro';
+import { CONTRIBUTION_REPO_URL } from '../../lib/site';
 
 interface Props {
   track: TrackEntry;
@@ -38,13 +39,26 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
 <div class="track-landing">
   <div class="track-landing__intro">
     <span class="track-landing__icon">{track.data.icon}</span>
-    <h1 class="track-landing__title">{track.data.title}</h1>
-    <p class="track-landing__summary">{track.data.summary}</p>
-    <div class="track-landing__meta">
-      <span>{hoursLabel}h total</span>
-      <span>{track.data.lessonCount} lessons</span>
+    <div class="track-landing__title-row">
+      <h1 class="track-landing__title">{track.data.title}</h1>
+      <span class="track-landing__version">v{track.data.version}</span>
     </div>
-    <AttributionStrip author={track.data.author} reviewer={track.data.reviewer} updatedAt={track.data.updatedAt} />
+    <p class="track-landing__summary">{track.data.summary}</p>
+    <div class="track-landing__info-card">
+      <div class="track-landing__meta">
+        <span>{hoursLabel}h total</span>
+        <span>{track.data.lessonCount} lessons</span>
+      </div>
+      <AttributionStrip author={track.data.author} reviewer={track.data.reviewer} updatedAt={track.data.updatedAt} />
+      <a
+        class="track-landing__release-notes"
+        href={`${CONTRIBUTION_REPO_URL}/releases`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Release notes on GitHub
+      </a>
+    </div>
   </div>
 
   {Content && (
@@ -86,17 +100,46 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
     font-size: 1.75rem;
   }
 
-  .track-landing__title {
+  .track-landing__title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     margin: 0.5rem 0;
+  }
+
+  .track-landing__title {
+    margin: 0;
     font-size: 1.75rem;
     color: var(--text);
   }
 
+  .track-landing__version {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+
   .track-landing__summary {
-    margin: 0 0 0.75rem;
+    margin: 0 0 1rem;
     color: var(--text-dim);
     font-size: 0.95rem;
     line-height: 1.5;
+  }
+
+  .track-landing__info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
   }
 
   .track-landing__meta {
@@ -105,13 +148,25 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
     gap: 0.75rem;
     font-size: 0.85rem;
     color: var(--text-dim);
-    margin-bottom: 0.5rem;
+  }
+
+  .track-landing__release-notes {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+  }
+
+  .track-landing__release-notes:hover,
+  .track-landing__release-notes:focus-visible {
+    text-decoration: underline;
   }
 
   .track-landing__body {
     color: var(--text);
     line-height: 1.6;
-    margin-bottom: 1.75rem;
+    margin: 1.75rem 0;
   }
 
   .track-landing__start {

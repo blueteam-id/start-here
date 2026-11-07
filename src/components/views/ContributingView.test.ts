@@ -2,9 +2,9 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { expect, test } from 'vitest';
 import ContributingView, { CONTRIBUTION_REPO_URL, CONTRIBUTION_EMAIL } from './ContributingView.astro';
 
-test('placeholder contribution contacts are marked, not real-looking', () => {
-  expect(CONTRIBUTION_REPO_URL).toContain('REPLACE_ME');
-  expect(CONTRIBUTION_EMAIL).toContain('REPLACE_ME');
+test('contribution contacts point at the real repo and inbox', () => {
+  expect(CONTRIBUTION_REPO_URL).toBe('https://github.com/blueteam-id/start-here');
+  expect(CONTRIBUTION_EMAIL).toBe('info@blueteam.id');
 });
 
 test('mentions GitHub, email, and Discord as contribution paths', async () => {
