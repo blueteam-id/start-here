@@ -10,13 +10,16 @@ import CategoryGroup from '../CategoryGroup.astro';
 
 const groups = groupByCategory(CATALOG_TRACKS);
 const categories = groups.map((group) => group.category);
+const trackCount = CATALOG_TRACKS.length;
+const categoryCount = categories.length;
 ---
 
 <div class="catalog" data-catalog>
   <div class="catalog__intro">
     <h1 class="catalog__heading">All Tracks</h1>
     <p class="catalog__subheading">
-      Nine tracks, five categories. Start with Computing Basics; the rest are coming soon.
+      {trackCount} tracks, {categoryCount} categories. Start with Computing Basics; the rest are
+      coming soon.
     </p>
   </div>
 

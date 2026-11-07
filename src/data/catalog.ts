@@ -15,9 +15,11 @@ export interface CatalogTrack {
 export const CATALOG_CATEGORIES = [
   'Computing Basics',
   'OS & Linux/Windows',
+  'Dev Tools & Collaboration',
   'Networking & Web',
   'Programming & Data',
   'Security Foundations',
+  'AI Fundamentals',
 ] as const;
 
 export const CATALOG_TRACKS: CatalogTrack[] = [
@@ -53,6 +55,30 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     estimatedMinutes: 150,
     lessonCount: 6,
     icon: '🪟',
+    handsOn: true,
+  },
+  {
+    slug: 'git-fundamentals',
+    title: 'Git Fundamentals',
+    category: 'Dev Tools & Collaboration',
+    status: 'coming-soon',
+    summary:
+      'Commits, branches, merges, and history, how to undo a mistake without losing work.',
+    estimatedMinutes: 120,
+    lessonCount: 5,
+    icon: '🌿',
+    handsOn: true,
+  },
+  {
+    slug: 'github-gitlab-fundamentals',
+    title: 'GitHub/GitLab Fundamentals',
+    category: 'Dev Tools & Collaboration',
+    status: 'coming-soon',
+    summary:
+      'Remotes, pull/merge requests, issues, and CI basics, collaborating on code at scale.',
+    estimatedMinutes: 120,
+    lessonCount: 5,
+    icon: '🐙',
     handsOn: true,
   },
   {
@@ -119,6 +145,27 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     estimatedMinutes: 120,
     lessonCount: 5,
     icon: '🛡️',
+  },
+  {
+    slug: 'ai-fundamentals',
+    title: 'AI Fundamentals',
+    category: 'AI Fundamentals',
+    status: 'coming-soon',
+    summary: 'What AI and machine learning actually are, key terms, capabilities and limits.',
+    estimatedMinutes: 120,
+    lessonCount: 5,
+    icon: '🤖',
+  },
+  {
+    slug: 'how-llms-actually-work',
+    title: 'How LLMs Actually Work',
+    category: 'AI Fundamentals',
+    status: 'coming-soon',
+    summary:
+      'Tokens, embeddings, and transformers, plus the security angle: prompt injection, jailbreaks, and data leakage.',
+    estimatedMinutes: 120,
+    lessonCount: 5,
+    icon: '🧠',
   },
 ];
 
