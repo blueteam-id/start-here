@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://start.blueteam.id/sitemap-index.xml
