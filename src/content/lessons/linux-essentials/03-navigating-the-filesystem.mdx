@@ -1,0 +1,155 @@
+---
+title: 'Navigating the Filesystem'
+track: 'linux-essentials'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 20
+prerequisites: 'Lesson 2 (Getting Oriented in the Shell), so you have your practice folder and know pwd/ls/cd.'
+reflectQuestions:
+  - 'A ransomware playbook you read mentions that investigators found a malicious script sitting in a file named `.config-sync`, a dotfile, tucked a few directories deeper than anyone normally looks. Why would an attacker deliberately choose a hidden, oddly placed name like that instead of something obvious?'
+  - 'You just practiced `rm -r` on a folder you made yourself, inside a sandbox, and it still felt a little nerve-wracking because there is no undo. How should that feeling change, if at all, the moment you are running the same command on a real production server during an incident?'
+  - 'Wildcards like `*.log` let you act on many files in one command. What is one way that same convenience could work against you if you typed the pattern a little too broadly?'
+resources:
+  - label: 'Filesystem Hierarchy Standard (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard'
+  - label: 'The Linux Command Line (free book, William Shotts)'
+    url: 'https://linuxcommand.org/tlcl.php'
+---
+
+## Getting back to your practice folder
+
+Every exercise in this lesson happens inside the sandbox you created in Lesson 2. Open your terminal and go there now:
+
+```bash
+cd ~/linux-essentials
+```
+
+Everything below assumes you are sitting inside this folder. If a command ever looks like it did something unexpected, your first move should always be `pwd` to confirm where you actually are.
+
+## Absolute vs relative paths, properly this time
+
+Lesson 2 introduced the difference between absolute and relative paths in passing. It is worth sitting with for a moment, because misreading a path is one of the most common ways people run a command against the wrong file entirely.
+
+An **absolute path** starts from the very top of the filesystem, the root directory written as a single `/`, and spells out every folder in between. It always means the same location, no matter where your shell currently happens to be sitting. `/home/alex/linux-essentials` is an absolute path. A **relative path** has no leading `/` and instead means "starting from wherever I am right now." `notes`, `../notes`, and `./notes` are all relative.
+
+Two special relative names come up constantly:
+
+```bash
+mkdir -p project/subfolder
+cd project/subfolder
+pwd
+
+cd .
+pwd
+
+cd ..
+pwd
+
+cd ~/linux-essentials
+```
+
+`.` always means "this same directory," so `cd .` is a no-op, you stay put. `..` always means "the parent of this directory," one level up. You will see both symbols again in a moment when you look at hidden entries with `ls -a`, because every directory on a Linux system quietly contains a `.` and a `..` entry pointing at itself and its parent.
+
+Reading a path carefully matters more than it sounds like it should. `rm notes` and `rm ../notes` are one character apart and can delete two completely different things depending on where you are standing when you run them. When in doubt, run `pwd` first, or just use the absolute path and remove the ambiguity entirely.
+
+## Hidden files: what dotfiles are, and why defenders care
+
+Run this inside your practice folder:
+
+```bash
+touch .hidden-config
+ls
+ls -a
+```
+
+Plain `ls` shows your `project` folder from a moment ago, but not `.hidden-config`; `ls -a` shows all of it, `project`, `.hidden-config`, and the ever-present `.` and `..` entries. Lesson 2 mentioned that `ls -a` reveals entries whose name starts with a dot, and that plain `ls` hides them. That convention exists for an ordinary reason: most dotfiles are configuration and state, things like `.bashrc` or `.gitconfig`, that you rarely need to see while just browsing for your actual work, so the tools quietly keep them out of the way by default.
+
+That same convention is exactly why dotfiles matter to a defender. A folder that is quiet by default is a folder people stop looking at closely. Malware authors and intruders know this, and it shows up in real incidents: a payload dropped as `.cache`, a cron job pointed at a script tucked inside `.config/systemd/.hidden/`, a backdoor named to look like a routine dotfile rather than anything suspicious. None of this is exotic or hard to pull off; it works precisely because the default view of a directory does not show it. The practical habit worth building right now, while it is still low stakes, is this: when you are actually investigating a system rather than just browsing it, `ls -a` is not optional. An unfamiliar dotfile, or a dotfile sitting somewhere it has no reason to be, is worth a second look every time.
+
+## Building structure: mkdir and touch
+
+Two commands create things. `mkdir` makes directories, and you already used it with `-p` in Lesson 2 to create parent folders as needed:
+
+```bash
+mkdir -p reports/2024
+ls -la reports
+```
+
+`touch` creates an empty file if it does not already exist, or just updates its modification time if it does:
+
+```bash
+touch reports/summary.txt
+ls -la reports
+```
+
+Between the two, you can build out any directory structure you need to practice with, entirely inside `~/linux-essentials`, without touching anything real.
+
+## Copying, moving, and removing
+
+`cp` copies a file, leaving the original in place:
+
+```bash
+cp reports/summary.txt reports/summary-backup.txt
+ls -la reports
+```
+
+`mv` moves or renames a file; unlike `cp`, the original location stops existing once the move completes:
+
+```bash
+mv reports/summary-backup.txt reports/2024/summary-backup.txt
+ls -la reports/2024
+```
+
+`rm` removes a file outright:
+
+```bash
+rm reports/2024/summary-backup.txt
+ls -la reports/2024
+```
+
+Sit with that last one for a second, because it is the most important sentence in this lesson: **`rm` has no undo.** There is no recycle bin, no trash folder, no confirmation prompt waiting to save you by default. The file is simply gone. That is precisely why every single example in this lesson happens inside `~/linux-essentials`: you can run `rm` here as many times as you like, get it wrong, and lose nothing that matters. The same command run one folder in the wrong direction, on a real system, against a real file, is unrecoverable. Never run a deletion you have not first double-checked with `pwd` and `ls` unless you are completely certain of both the path and the target.
+
+To remove a whole directory, plain `rm` will refuse and tell you it is a directory. Add `-r` (recursive) to remove the directory and everything inside it:
+
+```bash
+mkdir scratch
+touch scratch/throwaway.txt
+rm -r scratch
+ls -la
+```
+
+`-r` is what makes `rm` dangerous at scale: one command, one flag, and an entire tree of files disappears with no second chance. Treat it with the same caution you would treat any irreversible action on a real system, even while you are safely practicing it here.
+
+## Wildcards: acting on many files at once
+
+Real work rarely involves exactly one file at a time. Wildcards let a single command match a whole pattern of names. Create a few files to try this on:
+
+```bash
+touch app.log error.log access.log notes.txt readme.txt
+ls
+```
+
+The `*` wildcard matches any sequence of characters, including none at all:
+
+```bash
+ls *.log
+rm *.log
+ls
+```
+
+That removed all three `.log` files in one command, and left the two `.txt` files untouched, because `*.log` only matches names ending in `.log`. The `?` wildcard is narrower: it matches exactly one character, no more and no less:
+
+```bash
+touch notes.txt note1.txt note2.txt noteA.txt note10.txt
+ls note?.txt
+```
+
+`note?.txt` matches `notes.txt`, `note1.txt`, `note2.txt`, and `noteA.txt`, each of which has exactly one character after `note`, but not `note10.txt`, because `?` matches exactly one character and `10` is two.
+
+Wildcards are a genuine productivity gain, and also a genuine risk multiplier. `rm *.log` is fine when you have just confirmed, with a plain `ls *.log`, exactly which files that pattern matches. `rm *` typed in the wrong directory, in a hurry, matches everything in that directory with no distinction at all. The habit worth carrying forward is small but important: run the same pattern with `ls` first to see what it actually selects, before you ever run it with `rm`, `mv`, or anything else that changes or deletes files.
+
+### What to notice
+
+- `.` and `..` are not quirks of `ls -a`, they are real entries that exist in every directory and make relative navigation with `cd ..` possible in the first place.
+- Hidden files are a convention for reducing visual clutter, not a security boundary, which is exactly why attackers lean on them to stay unnoticed.
+- `rm` and `rm -r` are the two commands in this lesson most worth being a little afraid of. That caution is appropriate, and it should scale up, not down, once you leave the practice folder.

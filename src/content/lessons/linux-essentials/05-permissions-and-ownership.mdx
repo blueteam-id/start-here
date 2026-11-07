@@ -1,0 +1,129 @@
+---
+title: 'Permissions and Ownership'
+track: 'linux-essentials'
+phase: 'Core Concepts'
+order: 5
+estimatedMinutes: 25
+prerequisites: 'Lesson 3 (Navigating the Filesystem), to have files you own to practice on.'
+reflectQuestions:
+  - 'A real pentest report flags a configuration file as "world-writable and owned by root." In your own words, what does that phrase mean bit by bit, and why is it dangerous even though the attacker does not own the file?'
+  - 'You create a file with `touch notes.txt`. Without running anything, what do you expect `ls -l notes.txt` to show for the permission bits, and why does that default make sense for a file you just created?'
+  - 'Why is "least privilege", giving a file or user only the access it actually needs, treated as a security principle rather than just a Linux habit?'
+resources:
+  - label: 'File-system permissions (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/File-system_permissions'
+  - label: 'GTFOBins (for later, once you are comfortable with the basics)'
+    url: 'https://gtfobins.github.io/'
+---
+
+## Back to the practice folder
+
+```bash
+cd ~/linux-essentials
+```
+
+Everything in this lesson happens inside this folder, on files you own. Nothing here needs `sudo`, and nothing here can break anything outside `~/linux-essentials`.
+
+## Reading ls -l
+
+Create a file to look at:
+
+```bash
+touch notes.txt
+ls -l notes.txt
+```
+
+You will see a line that looks something like this:
+
+```
+-rw-r--r-- 1 you you 0 Jan 10 08:00 notes.txt
+```
+
+That first column, `-rw-r--r--`, is the permission string, and it is worth being able to read on sight, because it is the first thing you check on any file that matters.
+
+The very first character is the file type. A `-` means a regular file; a `d` means a directory. You will see both as you move around a real filesystem.
+
+The remaining nine characters break into three groups of three:
+
+- Characters 2-4: what the **owner** (the user who owns the file) can do.
+- Characters 5-7: what the **group** (a set of users sharing access) can do.
+- Characters 8-10: what **other** (everyone else on the system) can do.
+
+Within each group of three, the letters stand for:
+
+- `r` = read (view the contents)
+- `w` = write (modify or delete the contents)
+- `x` = execute (run it as a program or script)
+
+A `-` in any position means that permission is absent. So `-rw-r--r--` reads as: a regular file, the owner can read and write but not execute, the group can only read, and everyone else can only read.
+
+### The numeric (octal) equivalent
+
+Each `rwx` triplet also has a number, built by adding up the value of whichever permissions are present:
+
+- `r` = 4
+- `w` = 2
+- `x` = 1
+
+Add the ones that apply. `rw-` is `4 + 2 = 6`. `r-x` is `4 + 1 = 5`. `r--` is just `4`. `rwx` is `4 + 2 + 1 = 7`.
+
+That gives you a three-digit number for the whole file, one digit per group, in owner-group-other order. `-rw-r--r--` is `644`. `-rwxr-xr-x` is `755`. You will see both of these numbers constantly, and now you know exactly what they mean instead of having to memorize them as magic words.
+
+## chmod: changing permissions
+
+`chmod` changes a file's permission bits. It has two forms, symbolic and numeric, and both are worth knowing.
+
+### Symbolic form
+
+Symbolic `chmod` adds or removes specific bits without touching the rest. The pattern is a target (`u` for owner, `g` for group, `o` for other, `a` for all), an operator (`+` to add, `-` to remove), and a letter (`r`, `w`, or `x`):
+
+```bash
+chmod u+x notes.txt
+ls -l notes.txt
+```
+
+That adds execute permission for the owner only, turning `-rw-r--r--` into `-rwxr--r--`, and leaving the group and other bits untouched. Remove it the same way:
+
+```bash
+chmod u-x notes.txt
+ls -l notes.txt
+```
+
+### Numeric form
+
+Numeric `chmod` sets the entire permission string at once, using the three-digit numbers you just worked out above:
+
+```bash
+chmod 644 notes.txt
+ls -l notes.txt
+```
+
+That sets `notes.txt` to exactly `-rw-r--r--`: owner can read and write, group and other can only read. Try a different number and watch the letters change to match:
+
+```bash
+chmod 755 notes.txt
+ls -l notes.txt
+```
+
+Now the owner can read, write, and execute, while group and other can read and execute but not write. That `755` is the standard permission set for a script or program that everyone should be able to run but only the owner should be able to edit. Set `notes.txt` back to a plain, non-executable file when you are done experimenting:
+
+```bash
+chmod 644 notes.txt
+```
+
+Permission numbers like these are not just a Linux quirk worth memorizing; they are one of the first things checked in a real penetration test. A world-writable script owned by root, something a `666` or a careless `777` would produce, means any user on the box can rewrite what root is about to run, and that is a textbook privilege-escalation path, not a hypothetical one. Getting comfortable reading `644` versus `755` versus an overly loose `666` at a glance is exactly how a defender spots that weakness before someone else exploits it.
+
+## chown: ownership, conceptually
+
+Every file on a real Linux system has an owner (a user) and a group. `ls -l` shows both, right between the permission string and the file size, for example `you you` in the listing above: owner `you`, group `you`.
+
+Changing a file's owner or group is done with `chown`, typically like `chown newuser:newgroup file`. You will not run that command in this lesson, and here is why: on Linux, `chown` to another user always requires `sudo`, root-level privilege, full stop, even for a file you already own yourself. An ordinary user cannot give a file away, there is no "it's mine so I can hand it off" exception; only root can reassign ownership. (A non-root user can change a file's *group*, with `chgrp`, but only to a group they themselves already belong to.) That is deliberately out of scope for this safe, no-sudo track. It becomes directly relevant once you are managing a real server with multiple users, and you will pick it up again then.
+
+This is also the deeper reason permissions matter beyond Linux trivia: "least privilege", giving a user or a file only the access it genuinely needs and nothing more, is a core security principle, and a misconfigured config file or credentials file left readable or writable by everyone is one of the most common findings auditors and attackers alike go looking for first. Every permission bit left open beyond what is required is a door that did not need to be left unlocked.
+
+### What to notice
+
+- The permission string from `ls -l` breaks into type, owner, group, and other, and each triplet of `rwx` has a numeric equivalent built from 4, 2, and 1.
+- `chmod` can change permissions symbolically (`u+x`, targeted and additive) or numerically (`755`, setting the whole string at once).
+- `chown` changes ownership and always needs `sudo`/root, with no exception for files you already own yourself; it is conceptual here, a tool you will reach for later on real servers.
+- Permission misconfigurations are a routine, real-world finding in security assessments, which is exactly why least privilege matters.

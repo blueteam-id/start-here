@@ -6,7 +6,8 @@ test('the tracks teaser only links to live tracks, never a coming-soon one', asy
   const container = await AstroContainer.create();
   const html = await container.renderToString(HomeView, {});
   expect(html).toContain('href="/tracks/computing-basics/"');
-  expect(html).not.toContain('href="/tracks/linux-essentials/"');
+  expect(html).toContain('href="/tracks/linux-essentials/"');
+  expect(html).not.toContain('href="/tracks/windows-foundations/"');
   expect(html).toContain('/tracks/');
 });
 
