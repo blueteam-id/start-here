@@ -49,12 +49,13 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     slug: 'windows-foundations',
     title: 'Windows Foundations',
     category: 'OS & Linux/Windows',
-    status: 'coming-soon',
+    status: 'live',
     summary:
-      'CLI, file system, permissions, PowerShell, Event Viewer, registry basics, hands-on.',
-    estimatedMinutes: 150,
-    lessonCount: 6,
+      'CLI, file system, permissions, Active Directory, PowerShell, Event Viewer, registry basics, hands-on.',
+    estimatedMinutes: 175,
+    lessonCount: 7,
     icon: '🪟',
+    needsVM: true,
     handsOn: true,
   },
   {

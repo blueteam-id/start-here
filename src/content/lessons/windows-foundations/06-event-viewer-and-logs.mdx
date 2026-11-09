@@ -1,0 +1,69 @@
+---
+title: 'Event Viewer and Windows Logs: What Defenders Actually Watch'
+track: 'windows-foundations'
+phase: 'Core Concepts'
+order: 6
+estimatedMinutes: 30
+prerequisites: 'Lesson 5 (PowerShell Essentials), for Get-WinEvent and pipeline filtering.'
+reflectQuestions:
+  - 'One failed login (Event ID 4625) usually means nothing. Many failed logins for the same account, within a few seconds, usually means something. Why does the pattern matter more than any single event?'
+  - 'Event ID 1102 means someone cleared the security log. Why is that almost always a bad sign, even before you know what was in the log?'
+  - 'You checked logon events on your own computer. If you had to check an unfamiliar server during a real incident, what would you want to know about that server first?'
+resources:
+  - label: 'Windows Security Log Events (Microsoft Learn, full Event ID reference)'
+    url: 'https://learn.microsoft.com/windows/security/threat-protection/auditing/windows-security-audit-events'
+  - label: 'about_WinEvent cmdlets (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent'
+---
+
+## What the Windows Event Log actually is
+
+Where Linux typically keeps logs as plain text files (`/var/log/auth.log`, `/var/log/syslog`, the kind of thing Linux Essentials' `grep` lesson searched directly), Windows keeps logs in a structured, binary format called the **Windows Event Log**, viewable through the built-in **Event Viewer** application or queried from the command line. Every event is a structured record with a timestamp, a source, a severity level, and, most usefully, a numeric **Event ID** that identifies exactly what kind of thing happened.
+
+Three logs matter most for everyday defensive work:
+
+- **Application**: events logged by installed software.
+- **System**: events logged by Windows itself and its drivers (a service failing to start, a disk reporting errors).
+- **Security**: logon attempts, privilege use, and other audit-relevant events. This is the one a defender opens first during almost any investigation.
+
+Open Event Viewer now (search for it in the Start menu) and expand **Windows Logs** in the left pane to see all three. Click **Security** and you'll see a long list of entries, each with a timestamp and an Event ID in its own column.
+
+## Event IDs worth recognizing on sight
+
+A handful of Security log Event IDs come up constantly enough that recognizing them immediately is worth the effort:
+
+- **4624**: An account successfully logged on. Completely routine on its own, you'll see dozens of these on any active machine, but the *pattern* matters: a 4624 for an account, from a location or at a time that doesn't fit how that account is normally used, is worth a second look.
+- **4625**: An account failed to log on. A handful of these happen to everyone who mistypes a password. A *burst* of many 4625 entries for the same account in a short window is the classic signature of a brute-force or password-guessing attempt.
+- **4688**: A new process was created (this one requires process-creation auditing to be enabled, which isn't on by default everywhere). This is the Windows equivalent of watching exactly what program just ran and with what command line, directly comparable to the process-inspection habit Linux Essentials built with `ps`.
+- **1102**: The audit log was cleared. This deserves to stand out from the rest of this list: an attacker who has gained enough access to clear the Security log is actively trying to erase evidence of what they just did. Seeing a 1102 event is one of the strongest single red flags a Windows log can show you, specifically because the honest reason to clear a production audit log is rare, and the dishonest reason is common.
+
+## Querying logs from PowerShell
+
+Event Viewer's GUI is fine for a quick look, but filtering from PowerShell scales much better once you're looking for something specific. `Get-WinEvent` queries any log directly:
+
+```powershell
+Get-WinEvent -LogName Security -MaxEvents 20 | Select-Object TimeCreated, Id, Message | Format-List
+```
+
+This pulls the twenty most recent Security log entries. Now filter for just the events that matter most, successful and failed logons, using a filter hashtable:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4624,4625} -MaxEvents 15 |
+    Select-Object TimeCreated, Id, Message |
+    Format-Table -Wrap
+```
+
+Read this the way you read the filtering pipeline in Lesson 4: `Get-WinEvent` pulls from the Security log, `-FilterHashtable` narrows the query to just Event IDs 4624 and 4625 (letting the query itself do the filtering, much faster than pulling everything and filtering afterward with `Where-Object`), and the rest formats the output for reading. On an ordinary desktop you'll mostly see your own 4624 logons; on a machine with any failed login attempts, real or just your own mistyped passwords, you'll see 4625s mixed in, each one timestamped.
+
+If you want to isolate just the failures, to practice spotting the brute-force pattern described above:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 15 |
+    Select-Object TimeCreated, Message
+```
+
+### What to notice
+
+- A single 4625 is nothing. Many 4625s, for the same account, close together in time, is the pattern that actually matters, think in bursts, not individual events.
+- Event ID 1102 (audit log cleared) is a near-worst-case single event: it usually means someone with real access just tried to cover their tracks.
+- `Get-WinEvent -FilterHashtable` filters at the source instead of pulling everything first, which matters a great deal on a busy server with a huge log.

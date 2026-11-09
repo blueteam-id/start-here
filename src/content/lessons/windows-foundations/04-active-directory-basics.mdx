@@ -1,0 +1,69 @@
+---
+title: 'Active Directory: How One Company Manages Every Windows Computer'
+track: 'windows-foundations'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lesson 3 (Permissions and Ownership), so you already know the difference between a standard user and an administrator on one machine.'
+reflectQuestions:
+  - 'In the badge analogy, what job does the domain controller do?'
+  - 'Why is stealing one Domain Admin account more dangerous than stealing one Administrator account on a single laptop?'
+  - 'Did the command below show your computer as part of a domain, or as a workgroup (standalone)? What do you think changes for a computer that is part of a domain?'
+resources:
+  - label: 'Active Directory Domain Services Overview (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview'
+  - label: 'What Is a Domain Controller? (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview#domain-controllers'
+---
+
+## Why this lesson exists
+
+So far, everything in this track has been about one single computer: its own files, its own permissions, its own local accounts. That's a fair picture of a home computer, but it is not how a real company works. A company with a hundred employees does not want to manage a hundred separate computers one by one, each with its own private list of users and passwords. It wants one place to manage everyone and everything, at once. That one place is **Active Directory**, usually just called **AD**.
+
+You will hear "Active Directory" constantly in any security job, even if you never touch a Windows desktop yourself, because almost every mid-size or large company runs on it. It is genuinely hard to picture if you have never used a work computer that belongs to a company network, so this lesson leans heavily on one simple comparison.
+
+## The badge-office analogy
+
+Picture a company with five separate office buildings, and no Active Directory at all. Each building has its own front door, with its own lock, and its own separate list of who is allowed in. If you work across two buildings, you need two different keys. If you lose your job, someone has to go around and remove your name from five separate lists, one building at a time, and hope they do not forget one.
+
+Now picture the same company with Active Directory. There is one central badge office. That badge office issues you a single badge, and that same badge opens every building's door, because every building trusts the same badge office instead of keeping its own separate list. If you lose your job, the badge office disables your one badge, one time, and every door in the company stops letting you in immediately.
+
+In that picture:
+
+- The **badge office** is a **domain controller**, a special Windows server whose job is to hold the master list of every user, every computer, and every rule.
+- The **company's buildings, all trusting the same badge office**, together are called a **domain**. When your work laptop "joins the domain," it is agreeing to trust that same central badge office instead of keeping its own private list of users.
+- **Active Directory** is the name for the whole system: the database of users, computers, and rules, plus the service that answers "is this badge valid, and what is it allowed to open?"
+
+## A few words worth knowing
+
+A handful of Active Directory terms come up constantly enough to learn now, in plain terms:
+
+- **Domain controller (DC).** The server running the badge office. A company usually has more than one, so there is a backup if one goes down.
+- **Domain.** The whole set of users and computers that trust one badge office.
+- **Organizational Unit (OU).** A folder-like grouping inside Active Directory, used to organize users and computers, for example one OU for the Sales team and a different one for IT, so different rules can apply to each.
+- **Group Policy.** A way for the badge office to push settings to every computer in the domain at once, for example "lock the screen after five minutes" or "block USB drives." Instead of visiting a hundred computers one by one, an administrator sets the rule once, centrally.
+- **Security group.** Instead of giving one person access to one thing at a time, you put people into a named group (for example, "Finance Team"), and the group itself is given access. Adding or removing someone from the group instantly changes what they can reach everywhere, without editing each resource by hand.
+
+## Why this matters so much for defenders
+
+Here is the part that makes Active Directory a security topic, not just an IT convenience topic: the same badge office that makes life easier for administrators is also the single most valuable target for an attacker. One stolen set of ordinary employee credentials is bad, but it usually only opens a small number of doors. One stolen **Domain Admin** account, the highest level of access inside Active Directory, can open every door in the company: every computer, every file share, every mailbox.
+
+This is exactly why so much of real-world ransomware and larger intrusions are not really about the first computer an attacker lands on. The first computer is just a foothold. The actual goal, in almost every serious attack against a business, is to climb from "I have one ordinary laptop" to "I have a Domain Admin badge," because from there an attacker can reach almost anything the company owns. You will hear this climb called **lateral movement** (spreading from one computer to others) and **privilege escalation** (going from a low level of access to a much higher one). You do not need to know how to perform either of those yet, this track stays at foundation depth, but recognizing the terms, and understanding why Active Directory makes the prize so large, is exactly the foundation a later, deeper course will build on.
+
+## Checking your own computer
+
+Most personal computers and the evaluation VM you may be using for this track are **not** joined to any domain; they are what Windows calls a **workgroup**, its name for "standalone, not part of a company network." Check which one your computer is:
+
+```powershell
+Get-CimInstance Win32_ComputerSystem | Select-Object Domain, PartOfDomain
+```
+
+If `PartOfDomain` shows `False`, your `Domain` value will read `WORKGROUP`, the generic placeholder name Windows uses for a computer that trusts no one but itself, exactly what you'd expect on a personal machine or a standalone VM. If you ever run this same command on a company laptop that is joined to a domain, `PartOfDomain` will show `True`, and `Domain` will show the company's actual domain name instead.
+
+You may recall `systeminfo`, back in Lesson 1, also printed a `Domain:` line. That was the same fact, just buried inside a much longer report; this command asks for exactly that one piece of information, and nothing else.
+
+### What to notice
+
+- Active Directory exists to solve one problem: managing users, computers, and rules for an entire company from one place, instead of one computer at a time.
+- A Domain Admin account is the single most valuable target in a company's entire Windows network, because it is the one badge that opens every door.
+- "Lateral movement" and "privilege escalation" describe the climb from one ordinary foothold to that one powerful account, which is the real goal behind most serious intrusions, not just breaking into the first machine.

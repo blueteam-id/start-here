@@ -1,0 +1,65 @@
+---
+title: 'Permissions and Ownership: NTFS ACLs and UAC'
+track: 'windows-foundations'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 2 (Getting Oriented), for your windows-foundations practice folder.'
+reflectQuestions:
+  - 'Windows permissions can name one exact person and one exact right. Linux permissions only use three groups: owner, group, and other. What gets easier, and what gets harder, with the Windows approach?'
+  - 'UAC asks you to click "Yes" before a program can make a big change. Why would a piece of malware want you to click that button for it?'
+  - 'If `icacls` showed `Everyone:(F)` (Full control) on a file, would you treat that as worth flagging? Why, or why not?'
+resources:
+  - label: 'How Access Control Lists work (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/windows/win32/secauthz/access-control-lists'
+  - label: 'How User Account Control works (Microsoft Learn)'
+    url: 'https://learn.microsoft.com/windows/security/application-security/application-control/user-account-control/how-it-works'
+---
+
+## NTFS permissions: more detailed than Linux's nine bits
+
+Linux Essentials taught you to read a permission string like `-rwxr-xr--`: three fixed categories (owner, group, other), three fixed rights (read, write, execute) each. Windows's native filesystem, **NTFS**, uses a richer model called an **Access Control List (ACL)**: instead of three fixed categories, a file or folder carries a list of **Access Control Entries (ACEs)**, each one naming a specific user or group and exactly which rights they get, such as Read, Write, Modify, or Full control. This is more expressive than Linux's model, a single file really can grant one specific person Read-only while granting another Full control, but that expressiveness is exactly why auditing Windows permissions carefully matters: a long, inconsistent ACL is much easier to get wrong, and much harder to eyeball at a glance, than a nine-character Linux permission string.
+
+Every file and folder also tracks an **owner**, same concept as Linux, and most permissions are **inherited** from the parent folder by default rather than set individually on every file, which is usually convenient and occasionally the reason a permission problem is harder to find than expected, the actual ACE might be sitting several folders up, not on the file you're looking at.
+
+## Reading permissions from PowerShell
+
+Create a practice file and inspect it:
+
+```powershell
+Set-Location "$HOME\windows-foundations"
+New-Item -ItemType File -Name "practice.txt"
+Get-Acl .\practice.txt | Format-List
+```
+
+`Get-Acl` returns the file's full ACL. The output is dense on first read, look for the `Access` property, which lists each ACE as `<Principal> Allow <Rights>`, for example `BUILTIN\Users Allow ReadAndExecute, Synchronize`. Each line is one ACE: who, and exactly what they can do.
+
+For a more compact, classic view, the older `icacls` tool (short for "Integrity Control ACLs," inherited from cmd.exe but perfectly usable from PowerShell) is often faster to read:
+
+```powershell
+icacls .\practice.txt
+```
+
+This prints each principal with a short rights code in parentheses, such as `(F)` for Full control, `(M)` for Modify, `(RX)` for Read & execute. A file you just see as `BUILTIN\Users:(RX)` plus your own account with `(F)` is an unremarkable, sane default. A file where `Everyone:(F)` shows up is the Windows equivalent of a Linux file world-writable and executable, worth exactly the same scrutiny: anyone on the system, not just you, can change or replace it.
+
+## Administrator, standard users, and UAC
+
+Separately from file permissions, every Windows account has a **privilege level**: a **standard user** can use installed software and change their own files, but can't make system-wide changes, while an **Administrator** account can. This maps to the same idea as Linux's distinction between an ordinary user and root, but Windows adds one more layer on top: **User Account Control (UAC)**.
+
+Even when you're logged in as an Administrator, Windows doesn't run everything you do with full administrative rights by default. Instead, most of what you do runs at standard-user privilege, and the moment an action genuinely needs administrative rights, installing software, changing certain settings, running a tool "as Administrator", Windows pops up a UAC prompt asking you to explicitly approve it. You've likely clicked through dozens of these without thinking about why they exist: UAC exists specifically so that a stray click, a malicious script, or compromised software can't silently gain full control of the machine without you (or an attacker who already has your session) actively approving it first.
+
+This is exactly why UAC bypass is a well-known category of attack technique: malware that successfully avoids triggering that prompt, or tricks a user into approving it without reading it, has effectively defeated the one speed bump standing between "ran as a normal program" and "has full control of this machine." Seeing an unexpected UAC prompt, or discovering that one was approved around a time you don't remember approving anything, is a real signal worth investigating, not just background noise to click past.
+
+You can check your own account's privilege level from PowerShell:
+
+```powershell
+whoami /groups
+```
+
+Look through the output for `BUILTIN\Administrators`. If it's listed, your account is an administrator on this machine, even though, as just explained, most of what you do still runs at standard privilege until something specifically asks UAC to elevate it.
+
+### What to notice
+
+- NTFS ACLs name specific principals and specific rights rather than relying on three fixed categories, which gives real flexibility but also means a permission problem can be hiding several folders up the inheritance chain, not on the file itself.
+- `Everyone:(F)` on a file you didn't deliberately open up that way is the Windows equivalent of Linux's `777`, worth flagging the same way.
+- UAC is the one deliberate pause between "a program ran" and "a program has administrative control." An unexpected or unremembered approval is worth treating as a real finding.

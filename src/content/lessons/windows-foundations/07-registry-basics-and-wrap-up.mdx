@@ -1,0 +1,113 @@
+---
+title: 'Registry Basics and Wrap-up: Persistence and Putting It Together'
+track: 'windows-foundations'
+phase: 'Wrap-up'
+order: 7
+estimatedMinutes: 25
+prerequisites: 'Lessons 1-6, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the six earlier lessons changed how you think about working on a Windows system the most? Why?'
+  - 'Write down one question this track raised that it did not answer. That is a good first question to ask in the Discord.'
+  - 'Explain the combined exercise below to a friend, in three or four simple sentences, with no technical jargon.'
+resources:
+  - label: 'Windows Registry (Microsoft Learn, structure and concepts)'
+    url: 'https://learn.microsoft.com/windows/win32/sysinfo/structure-of-the-registry'
+  - label: 'OverTheWire: Bandit (free hands-on wargame, Linux, but good general triage practice)'
+    url: 'https://overthewire.org/wargames/bandit/'
+---
+
+## What the registry actually is
+
+The **registry** is a hierarchical database Windows uses to store configuration: hardware settings, installed-software data, user preferences, and, importantly for defenders, the settings that decide what runs automatically. It's organized into a handful of root keys called **hives**, the two you'll encounter constantly are:
+
+- **HKEY_LOCAL_MACHINE (HKLM)**: machine-wide settings, affecting every user on this computer.
+- **HKEY_CURRENT_USER (HKCU)**: settings specific to whichever account is currently logged in.
+
+Underneath each hive, the registry branches into **keys** (think folders) containing **values** (think individual settings, each with a name, a type, and data). You can browse it visually with the built-in `regedit` application, or query it directly from PowerShell, which is safer for this lesson since it stays strictly read-only:
+
+```powershell
+Get-ChildItem "HKCU:\Software" | Select-Object -First 10 Name
+```
+
+This lists the first ten subkeys under your own user hive's `Software` key, each one usually corresponding to a piece of installed software that stores its settings there.
+
+## The Run keys: where attackers plant persistence
+
+One specific pair of registry keys matters more to a defender than almost any other: the **Run keys**, which list programs Windows should launch automatically every time a user logs in.
+
+```powershell
+Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
+```
+
+The first checks your own user's autorun programs, the second checks the machine-wide list that applies to every account. On a clean personal machine, you'll typically see a short, boring list, maybe a cloud-sync client or a hardware vendor's tray utility. That's exactly the point: this list should be short, boring, and explainable. Malware that wants to survive a reboot without needing to re-infect the machine every time will very often add itself to one of these two keys, which is why checking them is one of the first, fastest things a defender does during triage on a machine suspected of being compromised. An entry here you can't account for, pointing at a file in `%TEMP%` or another unusual location, is exactly the kind of finding that turns a routine check into a real incident.
+
+This lesson only reads these keys, never writes to them. On a real investigation you would compare what you find here against a baseline of what's normally expected on that machine, not edit anything in the moment.
+
+## What you now know
+
+Six lessons ago you had never opened a PowerShell prompt with intent. Here's the short version of the ground you've covered since:
+
+1. **What Is Windows, and Why It Matters for Defenders.** Windows shares one NT kernel across desktop and server editions, and Active Directory is why a single compromised Windows account can matter far more than one machine.
+2. **Getting Oriented.** PowerShell and cmd.exe can both run side by side, the file system is organized around drive letters and a handful of folders worth knowing (`Program Files`, `Users`, `%TEMP%`), and `%TEMP%` is a common landing spot for dropped files.
+3. **Permissions and Ownership.** NTFS ACLs name specific principals and rights rather than three fixed categories, `icacls` and `Get-Acl` read them, and UAC is the one deliberate pause between a program running and a program gaining administrative control.
+4. **Active Directory.** One domain controller manages logins and permissions for every computer in a company, the same way one badge office can open every door, which is why one stolen Domain Admin account is so much more dangerous than one stolen local account.
+5. **PowerShell Essentials.** The pipeline passes structured objects, not text, `Where-Object` and `Sort-Object` filter and sort on real properties, and a long encoded PowerShell command line is a classic fileless-malware signature.
+6. **Event Viewer and Windows Logs.** The Security log's 4624/4625 logon events, 4688 process-creation events, and the single, alarming 1102 "log cleared" event are the backbone of most Windows triage.
+
+Those six ideas, confident navigation, reading permissions correctly, understanding how Active Directory ties a whole company together, using the pipeline to filter real data, reading the Security log, and now checking the registry's autorun keys, are the daily reflexes of anyone who triages Windows systems for a living.
+
+## Hands-on: triage a suspicious autorun entry
+
+This last exercise chains together commands from across the whole track into one small scenario: a machine shows signs of an unwanted program running automatically, and you work through it end to end, the way you would on a real system.
+
+Get back to your practice folder first:
+
+```powershell
+Set-Location "$HOME\windows-foundations"
+```
+
+Simulate the dropped file. Imagine, for a moment, that this arrived via a phishing attachment rather than a command you just typed yourself:
+
+```powershell
+New-Item -ItemType File -Path "$env:TEMP\update-helper.exe"
+```
+
+Check its permissions the way Lesson 3 taught you:
+
+```powershell
+icacls "$env:TEMP\update-helper.exe"
+```
+
+You'll see the ordinary, unremarkable permissions any file in `%TEMP%` gets by default, which is itself worth noticing: this location grants broad write access to the current user by design, exactly why it's such a convenient drop point.
+
+Now add a registry entry pointing at it, inside your own user hive only, so this stays fully reversible and never touches machine-wide settings:
+
+```powershell
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "UpdateHelper" -Value "$env:TEMP\update-helper.exe" -PropertyType String
+```
+
+Check your Run key the way you just learned earlier in this lesson, and you'll see the entry you just planted sitting alongside whatever else was already there:
+
+```powershell
+Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+```
+
+That `UpdateHelper` entry, pointing at a file sitting in `%TEMP%` with a generic name designed to look routine, is exactly the pattern described earlier in this lesson: an autorun entry you can't immediately account for, pointing at an unusual location. On a real investigation, this is the moment you'd escalate rather than assume.
+
+Clean up both pieces now, so your machine is left exactly as it was before this exercise:
+
+```powershell
+Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "UpdateHelper"
+Remove-Item "$env:TEMP\update-helper.exe"
+```
+
+You just walked the whole path: a dropped file in a writable location, an autorun entry pointing at it, and the two checks, `icacls` and the Run key, that would have caught it. Several lessons' worth of commands, one small scenario, and nothing outside your own user hive and `windows-foundations` folder touched the entire time.
+
+## Where to go from here
+
+This track deliberately stopped at foundation depth. Group Policy, deeper Active Directory administration, fuller Event Log auditing, and memory/disk forensics are each topics people spend entire careers getting deeper into. Stopping here is the point: you now have the map, the vocabulary, and enough hands-on muscle memory not to be lost the first time a real Windows machine asks something of you.
+
+If something in this track made you want to go deeper right now, or a command didn't behave the way a lesson said it would, **bring it to the community Discord** using the Join Discord button at the top of the page. That's where the harder questions get worked through. The open question you wrote down in the reflection below is a perfectly good place to start that conversation.
+
+When you're ready, the tracks that build most directly on what you just practiced here are **Security Concepts**, which picks up the broader defensive vocabulary this track kept brushing against (the CIA triad, threat vs. vulnerability vs. risk), and **Networking Fundamentals**, once a machine needs to talk to another one. The habits you built checking permissions, reading logs, and inspecting autorun entries carry over directly.

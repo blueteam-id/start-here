@@ -7,7 +7,8 @@ test('the tracks teaser only links to live tracks, never a coming-soon one', asy
   const html = await container.renderToString(HomeView, {});
   expect(html).toContain('href="/tracks/computing-basics/"');
   expect(html).toContain('href="/tracks/linux-essentials/"');
-  expect(html).not.toContain('href="/tracks/windows-foundations/"');
+  expect(html).toContain('href="/tracks/windows-foundations/"');
+  expect(html).not.toContain('href="/tracks/git-fundamentals/"');
   expect(html).toContain('/tracks/');
 });
 

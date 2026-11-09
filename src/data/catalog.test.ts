@@ -5,9 +5,13 @@ test('there are exactly 13 tracks', () => {
   expect(CATALOG_TRACKS).toHaveLength(13);
 });
 
-test('exactly two tracks are live, the rest are coming-soon', () => {
+test('exactly three tracks are live, the rest are coming-soon', () => {
   const live = CATALOG_TRACKS.filter((t) => t.status === 'live');
-  expect(live.map((t) => t.slug)).toEqual(['computing-basics', 'linux-essentials']);
+  expect(live.map((t) => t.slug)).toEqual([
+    'computing-basics',
+    'linux-essentials',
+    'windows-foundations',
+  ]);
 });
 
 test('groupByCategory preserves the 7-category spec order', () => {
