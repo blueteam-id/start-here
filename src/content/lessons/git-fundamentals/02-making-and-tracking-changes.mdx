@@ -1,0 +1,96 @@
+---
+title: 'Making and Tracking Changes: add, commit, log, and diff'
+track: 'git-fundamentals'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for your practice folder and your Git identity.'
+reflectQuestions:
+  - 'Why does Git split "save this change" into two steps, staging and then committing, instead of just one?'
+  - 'If you were investigating a suspicious change to a config file, would `git log` or `git diff` answer "who changed it and when"? Which one answers "exactly what changed"?'
+  - 'What would a commit message like "fix stuff" tell a future investigator, compared to one that explains what was wrong and why the fix works?'
+resources:
+  - label: 'git-commit (official reference)'
+    url: 'https://git-scm.com/docs/git-commit'
+  - label: 'git-log (official reference)'
+    url: 'https://git-scm.com/docs/git-log'
+---
+
+## Turning a folder into a repository: git init
+
+A plain folder becomes a Git repository the moment you run:
+
+```bash
+git init
+```
+
+inside it, from your `git-fundamentals` practice folder. This creates a hidden `.git` folder holding the entire history you're about to build, every commit, every version of every file. Deleting that one hidden folder is the one way to truly lose everything Git has tracked, worth knowing before you ever run a cleanup command carelessly.
+
+## The three places a change can be
+
+Git thinks about a file in three states: the **working directory** (what you see and edit normally), the **staging area** (changes you've marked as ready to save), and the **repository** (changes you've actually committed, permanently). Create a file and watch it move through them:
+
+```bash
+echo "Practice notes for Git Fundamentals" > notes.txt
+git status
+```
+
+`git status` reports `notes.txt` as **untracked**, Git sees it exists but isn't tracking it yet.
+
+## Staging and committing: git add, git commit
+
+```bash
+git add notes.txt
+git status
+```
+
+The file now shows as staged, ready to be saved. Commit it:
+
+```bash
+git commit -m "Add practice notes"
+```
+
+A **commit** is a permanent, immutable snapshot: the exact state of every staged file, plus metadata, your name and email from Lesson 1, a timestamp, a message, and a link back to the commit before it. That metadata is the whole reason Lesson 1 insisted on a real identity: it's attached to every single commit you ever make, forever.
+
+Write commit messages as a short, clear summary of what changed and why, not "fix" or "update". A future reader, possibly you, possibly someone investigating an incident, has only that message and the diff to go on.
+
+## Reading history: git log
+
+```bash
+git log
+```
+
+Each entry shows the commit's unique hash, author, date, and message. The shorter view is often more useful day to day:
+
+```bash
+git log --oneline
+```
+
+This is literally the command you'd reach for during an investigation into "who touched this file, and when": `git log --follow -- notes.txt` shows every commit that ever touched that one file, even across a rename.
+
+## Seeing exactly what changed: git diff
+
+Edit the file and compare:
+
+```bash
+echo "A second line." >> notes.txt
+git diff
+```
+
+`git diff` shows the exact lines added and removed, marked with `+` and `-`. This is the same mechanism underneath code review and configuration-drift detection tools: a human or a tool reading a diff is how unauthorized or unexpected changes actually get caught, not by re-reading the whole file from scratch every time.
+
+Stage and commit this change too, then look at your history:
+
+```bash
+git add notes.txt
+git commit -m "Add a second line to practice notes"
+git log --oneline
+```
+
+You should see two commits now, oldest at the bottom.
+
+### What to notice
+
+- Staging exists so you can build a commit deliberately, file by file or change by change, instead of being forced to save everything in the working directory at once.
+- `git log` answers "who, and when." `git diff` answers "exactly what." Real investigations usually need both.
+- A clear commit message is written for a reader who has no other context, which, during an incident, is exactly the position you'll be in yourself.

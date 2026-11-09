@@ -5,12 +5,14 @@ test('there are exactly 13 tracks', () => {
   expect(CATALOG_TRACKS).toHaveLength(13);
 });
 
-test('exactly three tracks are live, the rest are coming-soon', () => {
+test('exactly five tracks are live, the rest are coming-soon', () => {
   const live = CATALOG_TRACKS.filter((t) => t.status === 'live');
   expect(live.map((t) => t.slug)).toEqual([
     'computing-basics',
     'linux-essentials',
     'windows-foundations',
+    'git-fundamentals',
+    'github-gitlab-fundamentals',
   ]);
 });
 

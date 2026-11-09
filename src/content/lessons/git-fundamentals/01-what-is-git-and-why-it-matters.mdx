@@ -1,0 +1,71 @@
+---
+title: 'What Is Git, and Why Security Teams Live in It'
+track: 'git-fundamentals'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Why would a security team care who changed a line of code, and when, not just what the line now says?'
+  - 'If a company keeps its firewall rules and detection rules in Git, what happens during an investigation if that history is incomplete or missing?'
+  - 'Did `git --version` print a version number for you? If not, what do you need to do before the rest of this track?'
+resources:
+  - label: 'Pro Git (free, official book)'
+    url: 'https://git-scm.com/book/en/v2'
+  - label: 'Git documentation'
+    url: 'https://git-scm.com/doc'
+---
+
+## What Git actually is
+
+**Git** is a **version control system**: a tool that tracks every change ever made to a set of files, who made it, when, and why, and lets you move between any of those versions at will. It's **distributed**, meaning every copy of a repository (a project tracked by Git) carries the full history, not just the latest snapshot. That matters more than it sounds: there is no single central server whose loss wipes out the project's past, every clone is a complete backup of everything that happened.
+
+Git was created in 2005 by Linus Torvalds, the same person behind the Linux kernel, specifically to manage that kernel's own development. Today it is, by a wide margin, the most widely used version control system in the world, for open source and corporate code alike.
+
+## Why a security team ends up living in Git, whether it plans to or not
+
+- **Infrastructure as code.** Firewall rules, cloud configuration, and detection rules increasingly live as files in a Git repository rather than as settings clicked into a console somewhere. A misconfigured rule, tracked this way, carries a commit author, a timestamp, and a message explaining the change, exactly the information an investigation needs first.
+- **The software supply chain runs on Git.** Nearly all software, open source and internal, moves through Git-based workflows before it reaches production. Understanding Git well is what lets you actually follow a supply-chain security advisory instead of taking its conclusions on faith.
+- **It's a hard-to-fake audit trail.** Once a commit is shared and other people have copies of it, quietly rewriting history without anyone noticing is genuinely difficult, especially with the protections later lessons and the next track cover. That resistance to quiet tampering is exactly why Git history is trusted as a record of what happened.
+
+None of this requires you to be a software developer. It requires you to be comfortable reading and reasoning about a tool that, more and more, is where the evidence already lives.
+
+## Installing and checking your setup
+
+Open a terminal and check whether Git is already installed:
+
+```bash
+git --version
+```
+
+If that printed a version number, you're set. If it didn't, install Git from the official [git-scm.com downloads page](https://git-scm.com/downloads), which has installers for Windows, macOS, and Linux, then run the command above again to confirm.
+
+Now tell Git who you are. Every commit you make will be permanently stamped with this name and email, it's literally the "who" in the audit trail described above, so use your real identity rather than something generic:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+`--global` applies this to every repository on your machine, not just one. You can check it worked:
+
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+## Creating your practice space
+
+Just like the other hands-on tracks, you'll reuse one dedicated folder for every exercise in this track:
+
+```bash
+mkdir git-fundamentals
+cd git-fundamentals
+```
+
+From here on, whenever a lesson says "in your terminal," assume it means from inside this folder unless it says otherwise.
+
+### What to notice
+
+- Every commit is permanently labeled with a name and email, set once with `git config --global`, which is exactly why that identity should be real rather than a placeholder.
+- Because Git is distributed, every clone is a full copy of the project's history, not just its latest state.
+- Infrastructure-as-code and detection-as-code are why security work increasingly means reading Git history directly, not just reading a dashboard built on top of it.

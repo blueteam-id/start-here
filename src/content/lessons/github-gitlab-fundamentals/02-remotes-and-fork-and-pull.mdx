@@ -1,0 +1,65 @@
+---
+title: 'Remotes and the Fork-and-Pull Workflow'
+track: 'github-gitlab-fundamentals'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for your practice repository.'
+reflectQuestions:
+  - 'What is the difference between cloning a repository and forking one?'
+  - 'If a CI pipeline runs code from a pull request submitted by a stranger, and that pipeline also holds real secrets, what could go wrong?'
+  - 'Why does `git fetch` downloading changes without merging them give you a safer first look than `git pull` does?'
+resources:
+  - label: 'About forks (GitHub Docs)'
+    url: 'https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks'
+  - label: 'Keeping your GitHub Actions and workflows secure (GitHub security lab)'
+    url: 'https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/'
+---
+
+## What a "remote" actually is
+
+A **remote** is just a named pointer to another copy of your repository, almost always one hosted on GitHub or GitLab. When you clone a repository, Git automatically names that source `origin`, the default name for "the remote I'm working with."
+
+## Connecting to your practice repository
+
+On your practice repository's GitHub page, click the green **Code** button and copy the URL (HTTPS is the simplest option to start with). Then, from your own machine:
+
+```bash
+git clone <the-url-you-copied>
+cd git-practice
+```
+
+`git clone` downloads the full repository, history included, and automatically sets up `origin` pointing back at it. From here, the Git Fundamentals workflow continues exactly as before:
+
+```bash
+echo "A change made locally." >> README.md
+git add README.md
+git commit -m "Update README from local clone"
+git push origin main
+```
+
+`git push` uploads your new commit to the remote. Refresh the repository's page on GitHub, your change is there.
+
+## Fork vs. clone
+
+**Cloning** copies a repository to your own machine; it's a Git-level operation and works on any repository you can read. **Forking** is different: it's a GitHub/GitLab-level operation that creates your own copy of someone else's repository, under your own account, on the platform itself. You fork when you want to propose a change to a project you don't have write access to: fork it, clone your fork locally, branch, commit, push to your fork, then open a pull request asking the original project to pull your changes in. This fork-and-pull pattern is the standard way almost all open-source contribution happens.
+
+## The security wrinkle: running untrusted code from a fork
+
+Here's a real, current security issue worth understanding at a conceptual level, even without touching it hands-on. When a CI pipeline is configured to automatically run on every pull request, including ones from forks submitted by people you've never heard of, and that pipeline also has access to the repository's secrets or elevated permissions, an attacker can submit a pull request specifically crafted to abuse that combination, for example, to exfiltrate a secret the pipeline can see, or to tamper with a build step. This class of issue is well known enough in both GitHub Actions and GitLab CI to have a name, often called a "pwn request."
+
+This is exactly why GitHub requires a maintainer to manually approve the first CI run for a pull request from a first-time contributor, and why well-configured pipelines deliberately withhold secrets from workflows triggered by fork pull requests. You don't need to know how to exploit this to recognize why that approval step exists: it's a deliberate pause, placed exactly where an untrusted contribution meets real permissions, by the same logic as a UAC prompt sitting between a program and administrative access.
+
+## Fetch vs. pull
+
+```bash
+git fetch origin
+```
+
+`fetch` downloads whatever is new on the remote without touching your own branches, letting you look before you merge anything in. `git pull` is really `git fetch` followed immediately by `git merge`, convenient most of the time, but worth knowing it's two steps bundled into one, since the fetch-first habit is exactly how you'd want to review someone else's remote changes before blending them into your own work.
+
+### What to notice
+
+- A clone copies a repository you can already read; a fork creates your own copy of one you can't write to directly, so you can propose changes without needing write access.
+- A pull request from an unfamiliar contributor is a normal, expected event, which is exactly why CI pipelines need deliberate guardrails around what that pull request's code is allowed to touch.
+- `git fetch` gives you a look before you leap; `git pull` leaps immediately.

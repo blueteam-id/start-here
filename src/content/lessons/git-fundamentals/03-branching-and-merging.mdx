@@ -1,0 +1,100 @@
+---
+title: 'Branching and Merging'
+track: 'git-fundamentals'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 2, for a repository with at least one commit.'
+reflectQuestions:
+  - 'Why is it safer to try a risky change on a branch than directly on main?'
+  - 'If two people both edit the same line of a firewall config on separate branches, why should a human carefully choose which version is correct, instead of a tool just picking one automatically?'
+  - 'You just resolved a merge conflict by hand. Why does that moment deserve the same care as writing the code the first time?'
+resources:
+  - label: 'git-branch (official reference)'
+    url: 'https://git-scm.com/docs/git-branch'
+  - label: 'git-merge (official reference)'
+    url: 'https://git-scm.com/docs/git-merge'
+---
+
+## What a branch actually is
+
+A **branch** is a lightweight, movable pointer to a commit, not a separate copy of your files. Creating a branch is instant and cheap, exactly because it isn't copying anything, it's just a new named pointer sitting alongside `main`. See your current branch:
+
+```bash
+git branch
+```
+
+You should see `main` (or `master` on older setups), the default branch Git created automatically. Create and switch to a new one:
+
+```bash
+git switch -c feature-notes
+```
+
+`-c` creates the branch; `switch` moves you onto it. You're now working on `feature-notes`, completely isolated from `main`, anything you commit here doesn't touch `main` until you explicitly merge it.
+
+## Why branch instead of editing directly
+
+This isolation is the entire point. You can experiment, make a mess, and commit half-finished work on a branch without ever putting `main` at risk. This is why "never edit directly on `main`, always branch first" is close to a universal rule in professional software and security engineering alike: `main` is often what's actually deployed, or what detection rules are actually built from, so keeping it stable matters more than keeping any one branch tidy.
+
+Make a change here to prove the isolation:
+
+```bash
+echo "A note added on a branch." >> notes.txt
+git add notes.txt
+git commit -m "Add a branch-only note"
+git switch main
+cat notes.txt
+```
+
+Your `main` branch's `notes.txt` doesn't have that new line, it only exists on `feature-notes` until you merge it.
+
+## Merging branches together
+
+Bring the branch's work into `main`:
+
+```bash
+git merge feature-notes
+```
+
+If `main` hadn't changed since you branched, Git performs a **fast-forward merge**: it just moves the `main` pointer forward, no new commit needed. If both branches had new commits, Git creates a dedicated **merge commit** that joins both histories together instead.
+
+## When Git can't decide for you: merge conflicts
+
+A **conflict** happens when two branches changed the exact same lines differently, and Git genuinely cannot guess which version you want. Create one deliberately:
+
+```bash
+git switch -c conflict-demo
+echo "Branch version of this line." > conflict.txt
+git add conflict.txt
+git commit -m "Add conflict.txt on conflict-demo"
+git switch main
+echo "Main version of this line." > conflict.txt
+git add conflict.txt
+git commit -m "Add conflict.txt on main"
+git merge conflict-demo
+```
+
+Git stops and marks the file with conflict markers:
+
+```
+<<<<<<< HEAD
+Main version of this line.
+=======
+Branch version of this line.
+>>>>>>> conflict-demo
+```
+
+Open `conflict.txt`, decide what the final content should actually be (keep one version, the other, or something that combines both), delete the `<<<<<<<`, `=======`, and `>>>>>>>` markers, then finish the merge:
+
+```bash
+git add conflict.txt
+git commit -m "Resolve conflict.txt merge"
+```
+
+Resolving a conflict is a real editorial decision, not a mechanical one. In a firewall rule or a detection rule, two well-intentioned changes merged carelessly could silently cancel each other out, or reopen something a previous change had closed. Treat a conflict as a moment that deserves the same scrutiny as writing the rule in the first place, not an obstacle to clear as fast as possible.
+
+### What to notice
+
+- A branch costs almost nothing to create precisely because it's just a pointer, which is exactly what makes "always branch first" practical advice rather than a burden.
+- A fast-forward merge just moves a pointer; a real merge commit records that two separate histories joined, which is itself useful information later.
+- A merge conflict is Git refusing to guess. Resolving it carefully, not quickly, is what keeps that refusal useful.

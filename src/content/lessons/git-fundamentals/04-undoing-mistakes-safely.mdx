@@ -1,0 +1,79 @@
+---
+title: 'Undoing Mistakes Safely: restore, reset, revert, and stash'
+track: 'git-fundamentals'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lesson 3, for a repository with some branch and merge history already in it.'
+reflectQuestions:
+  - 'If you already pushed a bad commit and other people might have it too, why is rewriting history a worse idea than adding a new commit that undoes it?'
+  - 'Quietly erasing a mistake from the record can look a lot like covering something up, even when nobody intended that. Why would a defender want the record kept instead?'
+  - 'When would you reach for `git stash` instead of just committing your half-finished work?'
+resources:
+  - label: 'git-revert (official reference)'
+    url: 'https://git-scm.com/docs/git-revert'
+  - label: 'git-reset (official reference)'
+    url: 'https://git-scm.com/docs/git-reset'
+---
+
+## Four different ways to undo, and why they're not interchangeable
+
+Git gives you several ways to undo something, and picking the wrong one for the situation causes real problems, so it's worth knowing exactly what each one does before you need it in a hurry:
+
+- **`git restore`** throws away uncommitted changes to a file, back to how it looked at the last commit. Use it for a change you haven't saved yet and don't want.
+- **`git reset`** moves your branch pointer backward, which rewrites local history. Safe on commits only you have ever seen; dangerous on anything you've already shared, because it can make commits other people already have simply vanish from your side of the story.
+- **`git revert`** creates a brand-new commit that undoes an earlier one, leaving both the mistake and the fix fully visible in history. Safe to use on shared, already-pushed history.
+- **`git stash`** temporarily shelves uncommitted changes without committing them, so you can switch tasks and come back later.
+
+## Try `git restore` on an unwanted change
+
+```bash
+echo "A line I did not mean to add." >> notes.txt
+git restore notes.txt
+cat notes.txt
+```
+
+That line is gone, and nothing was ever committed, so there's nothing to undo later.
+
+## Why `git revert`, not `git reset`, on anything shared
+
+Commit a genuine mistake first:
+
+```bash
+echo "This line is wrong and needs undoing." >> notes.txt
+git add notes.txt
+git commit -m "Accidentally commit an incorrect note"
+```
+
+Now undo it the safe way:
+
+```bash
+git revert HEAD
+git log --oneline
+```
+
+Your history now shows **both** commits: the mistake, and a new commit that explicitly undoes it. Nothing was erased. Compare that to what `git reset` would have done instead, moving the branch pointer backward and making the mistaken commit disappear from the visible history entirely.
+
+This distinction matters more than it might seem. A Git history with commits quietly missing, especially on a branch other people already pulled from, looks a lot like someone covering their tracks, even when the intent was completely innocent. This is exactly why force-pushing and history rewrites are commonly blocked outright on shared, protected branches: `git revert` keeps the record honest, "this was wrong, and here is the fix," both still visible, the same instinct behind never clearing an audit log instead of just addressing what it shows.
+
+## git stash for "I need to switch away right now"
+
+```bash
+echo "Half-finished work, not ready to commit yet." >> notes.txt
+git stash
+git status
+```
+
+Your change is shelved, and `notes.txt` is back to its last committed state. Bring it back whenever you're ready:
+
+```bash
+git stash pop
+```
+
+`git stash list` shows everything you've stashed if you ever shelve more than one thing at once.
+
+### What to notice
+
+- `git restore` undoes what was never committed. `git revert` undoes what was committed and shared. They solve different problems; using the wrong one in the wrong situation is how real history gets lost.
+- A history with an honest mistake-and-fix pair, both visible, is more trustworthy than one where the mistake was quietly made to disappear.
+- `git stash` is for "not now, but don't lose this," not for genuinely finished work, which should be committed instead.

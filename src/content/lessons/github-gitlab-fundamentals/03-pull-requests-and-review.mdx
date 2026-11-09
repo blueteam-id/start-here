@@ -1,0 +1,56 @@
+---
+title: 'Pull Requests, Code Review, and Branch Protection'
+track: 'github-gitlab-fundamentals'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 2, for a cloned practice repository you can push to.'
+reflectQuestions:
+  - 'What is a pull request actually asking someone else to do?'
+  - 'Why is a quick "looks good to me" approval, on a large or urgent-looking change, a risk even when the reviewer means well?'
+  - 'Why would a team want a rule that blocks pushing directly to `main`, even for its most trusted member?'
+resources:
+  - label: 'About pull requests (GitHub Docs)'
+    url: 'https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests'
+  - label: 'About protected branches (GitHub Docs)'
+    url: 'https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches'
+---
+
+## Opening a pull request
+
+Create a branch, make a change, and push it:
+
+```bash
+git switch -c add-practice-notes
+echo "Notes from the GitHub/GitLab Fundamentals track." > notes.txt
+git add notes.txt
+git commit -m "Add practice notes"
+git push -u origin add-practice-notes
+```
+
+On your repository's GitHub page, you'll see a prompt to open a pull request from this branch. Click it, give it a short title, and open it against `main`.
+
+A **pull request** (GitLab: **merge request**) is a proposal: "please merge this branch into that one," shown as a diff, with a running conversation attached, comments, review approvals, and automated checks, all tied to that one proposed change. It's the exact `git diff` concept from Git Fundamentals Lesson 2, now surfaced as a first-class object other people can discuss before anything merges.
+
+## Why review is a security control, not just a style check
+
+Code review's real job is catching a problem, a bug, an accidental secret, or a deliberately malicious change, before it reaches `main`. It fails in a specific, well-known way: a reviewer under time pressure, looking at a large or urgent-seeming diff, approves it with a quick "looks good to me" without actually reading every changed line. That's a social-engineering pattern, the same instinct a phishing email exploits, just aimed at a tired reviewer instead of an inbox.
+
+A few habits keep review doing its actual job:
+
+- Read the full diff, not just the description of what it's supposed to do.
+- Pay closer attention, not less, to changes touching CI configuration, dependencies, or build scripts, since those run with real permissions.
+- Question a file that changed but shouldn't have needed to, for this particular fix.
+- Treat "trust me, it's fine" as a reason to look more closely, not less.
+
+## Branch protection rules
+
+On the repository's **Settings → Branches** page, you can add a protection rule for `main` that requires, for example, at least one approving review before merge, passing CI checks before merge, and no direct pushes, everyone, including repository admins, has to go through a pull request. This turns the "always branch, always review" habit from Git Fundamentals into an enforced policy instead of something that depends on everyone remembering to do it.
+
+Merge your own pull request now through the web UI, then look at your repository's commit history, it reads exactly like `git log`, because that's what it is.
+
+### What to notice
+
+- A pull request is a `git diff` made visible and discussable before it becomes permanent, not a separate thing from the Git workflow you already know.
+- A rushed approval on a diff nobody actually read is a known, real way a problem gets through review, not a hypothetical.
+- Branch protection turns a good habit into a rule everyone has to follow, including the people who'd otherwise be trusted to skip it.

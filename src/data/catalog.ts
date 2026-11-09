@@ -62,7 +62,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     slug: 'git-fundamentals',
     title: 'Git Fundamentals',
     category: 'Dev Tools & Collaboration',
-    status: 'coming-soon',
+    status: 'live',
     summary:
       'Commits, branches, merges, and history, how to undo a mistake without losing work.',
     estimatedMinutes: 120,
@@ -74,7 +74,7 @@ export const CATALOG_TRACKS: CatalogTrack[] = [
     slug: 'github-gitlab-fundamentals',
     title: 'GitHub/GitLab Fundamentals',
     category: 'Dev Tools & Collaboration',
-    status: 'coming-soon',
+    status: 'live',
     summary:
       'Remotes, pull/merge requests, issues, and CI basics, collaborating on code at scale.',
     estimatedMinutes: 120,

@@ -1,0 +1,71 @@
+---
+title: 'CI Basics and Putting It Together'
+track: 'github-gitlab-fundamentals'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 25
+prerequisites: 'Lessons 1-4, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the four earlier lessons changed how you think about collaborating on code the most? Why?'
+  - 'Why does running automatically, holding real permissions, and being triggerable by a pull request, all at once, make CI/CD such a valuable target?'
+  - 'Write down one question this track raised that it did not answer. That is a good first question to ask in the Discord.'
+resources:
+  - label: 'GitHub Actions documentation'
+    url: 'https://docs.github.com/actions'
+  - label: 'Security hardening for GitHub Actions (GitHub Docs)'
+    url: 'https://docs.github.com/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions'
+---
+
+## What CI actually is
+
+**Continuous Integration (CI)** means automatically running something, tests, a build, a security scan, every time code changes, usually on every push and every pull request. The instructions live as a file committed directly into the repository itself: `.github/workflows/*.yml` for GitHub Actions, `.gitlab-ci.yml` for GitLab CI. This project's own repository works exactly this way: its workflow file defines a job that installs dependencies, runs the test suite, and builds the site, automatically, every time someone opens a pull request here.
+
+## Why CI/CD is one of the highest-value targets in modern security
+
+Pull the threads from Lessons 2 and 4 together and the picture gets sharp: CI runs **automatically**, it often holds **real secrets and permissions**, and it can be **triggered by a pull request**, something an outside contributor can submit. That combination, automatic execution, real access, and an attacker-influenceable trigger, is exactly why CI/CD pipeline security has become its own specialty inside software supply-chain security, not a minor afterthought.
+
+A few concrete habits worth knowing at foundation depth, even before you're the one configuring a pipeline:
+
+- **Pin dependency and action versions** instead of trusting "latest," so a compromised upstream update can't silently change what your pipeline runs.
+- **Review changes to workflow files with the same care as code changes**, since a workflow file is code, with real permissions attached.
+- **Require approval before running CI on a first-time contributor's pull request**, exactly the guardrail Lesson 2 described.
+
+## What you now know
+
+Four lessons ago, your code only lived on your own machine. Here's the short version of the ground you've covered since:
+
+1. **What GitHub and GitLab Add on Top of Git.** These platforms add hosting, a web UI, and collaboration on top of plain Git, and account security on them is repository security.
+2. **Remotes and the Fork-and-Pull Workflow.** A fork lets you propose changes without write access, and a CI pipeline that runs fork pull requests with real secrets attached is a known, named risk.
+3. **Pull Requests, Code Review, and Branch Protection.** A pull request makes a diff discussable before it's permanent, and branch protection turns "always review" from a habit into an enforced rule.
+4. **Access Control and Secrets.** Least privilege applies to repository access the same as anywhere else, and a secret belongs in the platform's secret store, never committed to the code itself.
+
+Those four ideas, understand what the platform adds, use forks and pull requests deliberately, review changes like they matter, and keep access and secrets locked down, are what collaborating on code at scale actually requires.
+
+## Combined hands-on exercise: a mini repository security check
+
+This last exercise chains together the whole track into one small scenario: reviewing your own practice repository the way you'd do a quick security pass on any project you'd just been handed access to.
+
+1. Open your practice repository's **Settings → Collaborators** (or **Members** on GitLab) and check who has access, and at what level. On a solo practice repo it should just be you, which is itself worth confirming rather than assuming.
+2. Open **Settings → Branches** and confirm whether `main` has any protection rule. If not, add one now requiring at least one approval before merge, the same rule described in Lesson 3.
+3. Open the **Settings → Secrets** page one more time from Lesson 4, and confirm it's empty, exactly as a brand-new practice repository should be.
+4. Finally, make one more small change the right way: branch, commit, push, open a pull request, and merge it, so your repository's history ends on a clean example of the full workflow this track taught.
+
+```bash
+git switch -c wrap-up-check
+echo "GitHub/GitLab Fundamentals complete." >> notes.txt
+git add notes.txt
+git commit -m "Mark GitHub/GitLab Fundamentals complete"
+git push -u origin wrap-up-check
+```
+
+Open and merge the pull request through the web UI, the same way Lesson 3 did.
+
+You just walked the whole path: checking who has access, confirming branch protection, confirming no secrets are sitting where they shouldn't be, and closing out with the exact branch-review-merge workflow the track is built around.
+
+## Where to go from here
+
+This track deliberately stopped at the concepts you'll use daily. Deeper CI/CD pipeline design, GitHub Actions and GitLab CI syntax in depth, and organization-wide security policies are each worth learning eventually, but they're not foundation material.
+
+If something here made you want to go deeper right now, **bring it to the community Discord** using the Join Discord button at the top of the page. The open question you wrote down in the reflection below is a perfectly good place to start that conversation.
+
+When you're ready, **Servers & Services** and **Security Concepts** both build directly on what you just practiced here, from the access-control and least-privilege habits to the idea of automated systems as real attack surface.

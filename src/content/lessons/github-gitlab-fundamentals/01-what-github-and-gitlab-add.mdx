@@ -1,0 +1,48 @@
+---
+title: 'What GitHub and GitLab Add on Top of Git'
+track: 'github-gitlab-fundamentals'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+prerequisites: 'The Git Fundamentals track, or solid comfort with git init, add, commit, branch, and merge.'
+reflectQuestions:
+  - 'Git itself runs entirely on your own machine. What does GitHub or GitLab actually add on top of that?'
+  - 'If almost all of a company''s source code lives on one platform, why does who can log into that platform matter as much as who can walk into the building?'
+  - 'Why would turning on two-factor authentication on your new account matter, even for a throwaway practice account?'
+resources:
+  - label: 'About GitHub (GitHub Docs)'
+    url: 'https://docs.github.com/get-started/start-your-journey/about-github-and-git'
+  - label: 'GitLab basics (GitLab Docs)'
+    url: 'https://docs.gitlab.com/topics/git/'
+---
+
+## Git the tool, GitHub and GitLab the platforms
+
+Everything in the Git Fundamentals track ran entirely on your own machine, no internet connection required. **GitHub** and **GitLab** are hosted platforms built around Git: they store a copy of your repository on their servers, add a web interface, and layer collaboration features on top, pull requests (GitHub's term) or merge requests (GitLab's term, same idea), issues for tracking work, access control, and built-in CI/CD. This track uses GitHub for its screenshots and exact menu names, since it's the more widely used of the two, but every concept here applies to GitLab the same way, just under slightly different labels, noted as they come up.
+
+## Why a security team can't avoid these platforms
+
+- **They're the front door to the software supply chain.** Nearly all source code, open source and corporate, is hosted on one of these two platforms. Understanding how code actually moves through them, who can change what, and how, is understanding how software actually gets built today.
+- **Access to the platform is access to the crown jewels.** Deciding who can read, write, or administer a repository is identity and access management applied directly to a company's source code and, as Lesson 4 covers, its secrets. A compromised account with write access is a direct path to tampering with code everyone else trusts.
+- **Automation runs here, with real permissions attached.** CI/CD pipelines, covered properly in Lesson 5, execute automatically and often hold meaningful access. That combination, automatic execution plus real permissions, is exactly why these platforms are treated as serious security surface, not just developer convenience.
+- **Untrusted contributions are a normal, expected part of the workflow**, which is powerful for open source and also means a pull request from someone you don't know is a realistic way for a problem, intentional or accidental, to show up. Lesson 2 covers the specific risk this creates for CI.
+
+## Getting set up
+
+If you don't already have one, create a free account at [github.com](https://github.com) (or [gitlab.com](https://gitlab.com), the free tier covers everything this track needs). The moment you have an account, turn on **two-factor authentication** in its security settings. This matters even for a brand-new practice account, because the habit is the point: the same account security you build here is exactly what protects a real account with real write access to real projects later.
+
+## Hands-on: create a practice repository
+
+From the web interface, create a new repository:
+
+- Name it something like `git-practice`.
+- Set it to **private** (you can always make it public later; there's no reason for practice work to be public by default).
+- Choose to initialize it with a README, the simplest way to end up with a repository that already has one commit.
+
+You don't need to understand every option on that screen yet, the rest of this track walks through what matters, one piece at a time.
+
+### What to notice
+
+- GitHub and GitLab add hosting, a web UI, review workflows, access control, and CI on top of plain Git, they don't replace anything from the Git Fundamentals track, they build on it.
+- Platform account security (2FA, a strong unique password or a passkey) is repository security, because the account is the thing standing between an attacker and write access to the code.
+- A private-by-default habit for new repositories costs nothing and avoids ever having to notice, after the fact, that something should not have been public.
