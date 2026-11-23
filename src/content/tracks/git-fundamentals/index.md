@@ -8,9 +8,9 @@ estimatedMinutes: 120
 lessonCount: 5
 author: 'Wahyu N'
 reviewer: 'Wahyu N'
-updatedAt: 2026-11-09
+updatedAt: 2026-11-23
 icon: '🌿'
-version: '1.0'
+version: '1.1'
 ---
 
 This track is about Git, the version control tool that quietly runs underneath almost everything a modern security team touches: infrastructure-as-code, detection rules, internal tooling, and the open-source software everyone depends on. Five lessons take you from your first commit to confidently branching, merging, and undoing a mistake without losing work or quietly erasing the record of what happened.

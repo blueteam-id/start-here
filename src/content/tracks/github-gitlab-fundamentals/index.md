@@ -8,9 +8,9 @@ estimatedMinutes: 120
 lessonCount: 5
 author: 'Wahyu N'
 reviewer: 'Wahyu N'
-updatedAt: 2026-11-09
+updatedAt: 2026-11-23
 icon: '🐙'
-version: '1.0'
+version: '1.1'
 ---
 
 This track picks up exactly where Git Fundamentals leaves off: your code now needs to live somewhere shared, get reviewed by other people, and run automatically through CI. Five lessons cover remotes, forks and pull/merge requests, code review as a real security control, access control and secrets, and the basics of CI, using GitHub as the primary example, with GitLab's equivalent terms noted throughout since the underlying ideas are the same on either platform.

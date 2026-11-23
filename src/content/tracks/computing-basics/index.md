@@ -8,9 +8,9 @@ estimatedMinutes: 120
 lessonCount: 5
 author: 'Wahyu N'
 reviewer: 'Wahyu N'
-updatedAt: 2026-11-06
+updatedAt: 2026-11-23
 icon: '🖥️'
-version: '1.0'
+version: '1.1'
 ---
 
 This is the starting point of the foundation program. It is intentionally "at a glance": five short lessons that give you a working mental model of what is inside the machine in front of you, from the processor and memory, through storage and the operating system, up to virtual machines and the cloud.

@@ -7,7 +7,7 @@ test('the windows-foundations track and its 6 lessons satisfy the schema and spe
   expect(track?.data.status).toBe('live');
   expect(track?.data.author).toBe('Wahyu N');
   expect(track?.data.reviewer).toBe('Wahyu N');
-  expect(track?.data.version).toBe('1.0');
+  expect(track?.data.version).toBe('1.1');
 
   const lessons = (await getCollection('lessons')).filter(
     (l) => l.data.track === 'windows-foundations',

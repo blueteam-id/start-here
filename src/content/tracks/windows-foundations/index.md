@@ -8,9 +8,9 @@ estimatedMinutes: 175
 lessonCount: 7
 author: 'Wahyu N'
 reviewer: 'Wahyu N'
-updatedAt: 2026-11-09
+updatedAt: 2026-11-23
 icon: '🪟'
-version: '1.0'
+version: '1.1'
 ---
 
 This track is about driving a Windows system the way a defender actually has to: from the command line and PowerShell, through the file system and its permission model, through Active Directory, the system most companies use to manage every computer at once, into the Event Log and registry where most of the evidence lives. Seven lessons take you from your first PowerShell prompt to the places an analyst checks first during triage, such as logon events in the Security log and the registry keys malware abuses to survive a reboot.

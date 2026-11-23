@@ -8,9 +8,9 @@ estimatedMinutes: 180
 lessonCount: 7
 author: 'Wahyu N'
 reviewer: 'Wahyu N'
-updatedAt: 2026-11-06
+updatedAt: 2026-11-23
 icon: '🐧'
-version: '1.0'
+version: '1.1'
 ---
 
 This track is about driving a Linux system from the command line: moving around the file system, reading what is in it, and controlling who can do what to it. Seven lessons take you from the first prompt to the commands defenders reach for every day, such as `grep` for finding a needle in a log and `chmod` for locking down a file that should not be world-readable.
