@@ -1,5 +1,6 @@
 ---
 import { SITE_HOSTNAME, DISCORD_INVITE_URL } from '../lib/site';
+import SearchDialog from './SearchDialog.astro';
 
 export { DISCORD_INVITE_URL };
 ---
@@ -12,6 +13,7 @@ export { DISCORD_INVITE_URL };
     </a>
 
     <nav class="site-header__nav" aria-label="Main">
+      <a href="/start/">Start here</a>
       <a href="/tracks/">Tracks</a>
       <a href="/faq/">FAQ</a>
       <a href="/contributing/">Contributing</a>
@@ -20,9 +22,12 @@ export { DISCORD_INVITE_URL };
       </a>
     </nav>
 
-    <a class="site-header__cta" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
-      Join Discord
-    </a>
+    <div class="site-header__actions">
+      <SearchDialog />
+      <a class="site-header__cta" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
+        Join Discord
+      </a>
+    </div>
   </div>
 </header>
 
@@ -79,6 +84,13 @@ export { DISCORD_INVITE_URL };
   .site-header__nav a:hover,
   .site-header__nav a:focus-visible {
     color: var(--text);
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
   }
 
   .site-header__cta {

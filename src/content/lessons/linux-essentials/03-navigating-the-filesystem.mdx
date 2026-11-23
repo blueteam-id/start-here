@@ -16,6 +16,8 @@ resources:
     url: 'https://linuxcommand.org/tlcl.php'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## Getting back to your practice folder
 
 Every exercise in this lesson happens inside the folder you created in Lesson 2. Open your terminal and go there:
@@ -136,7 +138,11 @@ rm reports/2024/summary-backup.txt
 ls -la reports/2024
 ```
 
+<Callout type="warning">
+
 This is the most important sentence in the lesson: **`rm` has no undo.** There is no recycle bin and, by default, no "are you sure?" question. The file is gone.
+
+</Callout>
 
 That is why every example here runs inside `~/linux-essentials`. Here, a mistake costs nothing. The same command on a real system, one folder off, cannot be reversed. Before any deletion, check where you are with `pwd` and what is there with `ls`.
 

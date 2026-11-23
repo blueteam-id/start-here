@@ -1,0 +1,47 @@
+---
+// Site-wide search over lessons, track pages, the glossary, and Start here.
+// Powered by Pagefind: `npm run build` indexes the built HTML into
+// dist/pagefind/, and the search runs entirely in the visitor's browser.
+// No server, no third-party service, nothing sent anywhere.
+//
+// The index only exists after a build, so in `npm run dev` this page shows
+// a short note instead of a search box.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProsePage from '../../components/ProsePage.astro';
+import '../../styles/search.css';
+---
+
+<BaseLayout title="Search" description="Search every lesson on start.blueteam.id.">
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  <ProsePage heading="Search" intro="Search every lesson, track page, and the glossary. The search runs in your browser.">
+    <div id="site-search" class="site-search site-search--page"></div>
+    <p class="site-search__unavailable" data-search-unavailable hidden>
+      Search is built when the site is built, so it is not available in development mode. Run
+      <code>npm run build</code> and <code>npm run preview</code> to try it.
+    </p>
+  </ProsePage>
+</BaseLayout>
+
+<script is:inline src="/pagefind/pagefind-ui.js"></script>
+<script is:inline>
+  (function () {
+    var target = document.getElementById('site-search');
+    if (!target) return;
+    if (typeof window.PagefindUI !== 'function') {
+      var note = document.querySelector('[data-search-unavailable]');
+      if (note) note.hidden = false;
+      return;
+    }
+    var params = new URLSearchParams(window.location.search);
+    var ui = new window.PagefindUI({
+      element: '#site-search',
+      showSubResults: true,
+      showImages: false,
+      resetStyles: false,
+      autofocus: true,
+      translations: { placeholder: 'Search lessons, e.g. grep, UAC, merge conflict', clear_search: 'Clear' },
+    });
+    var q = params.get('q');
+    if (q) ui.triggerSearch(q);
+  })();
+</script>

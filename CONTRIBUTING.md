@@ -86,6 +86,13 @@ Two mechanical rules on top of the schema:
   (see `src/components/TrackLink.astro`) instead of writing the title in
   bold. It links the track when it is live and adds "(coming soon)" when it
   is not, so the lesson never goes out of date when a track launches.
+- **Callouts:** pull a warning, a Windows-only step, or a common error out
+  of the prose with `<Callout type="warning|tip|windows|stuck|note">`
+  (see `src/components/Callout.astro`). Use them sparingly, a few per lesson
+  at most.
+- **Expected output:** when you show what the learner should see (not
+  something to type), use a ` ```text ` fence. It gets a "You should see"
+  label and no copy button.
 - **Catalog and track entry stay in sync:** a test
   (`src/content/catalogSync.test.ts`) fails if `catalog.ts` and a track's
   `index.md` disagree, or if `lessonCount` / `estimatedMinutes` do not match

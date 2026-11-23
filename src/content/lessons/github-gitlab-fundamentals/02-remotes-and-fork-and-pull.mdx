@@ -16,6 +16,8 @@ resources:
     url: 'https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## What a "remote" is
 
 A **remote** is a named pointer to another copy of your repository, almost always one on GitHub or GitLab. When you clone a repository, Git names its source `origin`, the default name for "the remote I work with".
@@ -54,7 +56,13 @@ On Linux and WSL, Git will ask for the token on every push unless you let it rem
 git config --global credential.helper 'cache --timeout=3600'
 ```
 
-Treat a token exactly like a password: never paste it into a chat, a file in the repository, or a screenshot. Lesson 4 explains why tokens are safer than passwords (you can limit them and revoke them one by one). Now push:
+<Callout type="warning">
+
+Treat a token exactly like a password: never paste it into a chat, a file in the repository, or a screenshot. Lesson 4 explains why tokens are safer than passwords (you can limit them and revoke them one by one).
+
+</Callout>
+
+Now push:
 
 ```bash
 git push origin main

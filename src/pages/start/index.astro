@@ -1,0 +1,119 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProsePage from '../../components/ProsePage.astro';
+import TrackLink from '../../components/TrackLink.astro';
+import { CATALOG_TRACKS } from '../../data/catalog';
+
+// The suggested order through the program, with one line on why each step
+// comes where it does. Status ("coming soon") comes from the catalog via
+// TrackLink, so this page never needs editing when a track goes live.
+const PATH: Array<{ slug: string; why: string }> = [
+  { slug: 'computing-basics', why: 'The map of what is inside the machine. Everything else assumes it.' },
+  { slug: 'linux-essentials', why: 'Most servers, cloud machines, and security tools run Linux. Start here if you are unsure which OS track to take first.' },
+  { slug: 'windows-foundations', why: 'Most company laptops run Windows, so most incidents start there. Take it right after Linux, or first if Windows is what you use every day.' },
+  { slug: 'git-fundamentals', why: 'Rules, configs, and tools live in Git. Its history is evidence.' },
+  { slug: 'github-gitlab-fundamentals', why: 'Collaboration, review, secrets, and CI: where code meets real permissions.' },
+  { slug: 'networking-fundamentals', why: 'How machines find and talk to each other: addresses, ports, and packets.' },
+  { slug: 'security-concepts', why: 'The shared language of the field: CIA, threat versus risk, crypto basics, and the rules of the road.' },
+  { slug: 'how-the-web-really-works', why: 'What happens between typing a URL and seeing a page, and where it goes wrong.' },
+  { slug: 'programming-basics-python', why: 'Enough Python to automate a boring check and read other people\'s scripts.' },
+  { slug: 'sql-basics', why: 'Ask questions of data, the same way you will ask questions of logs.' },
+  { slug: 'servers-and-services', why: 'Put it all together on a server you build, break, and harden yourself.' },
+  { slug: 'ai-fundamentals', why: 'What AI and machine learning really are, and where they fail. Take it whenever you like.' },
+  { slug: 'how-llms-actually-work', why: 'Tokens, embeddings, and the new attacks against AI features. After AI Fundamentals.' },
+];
+
+function hours(slug: string): string {
+  const track = CATALOG_TRACKS.find((t) => t.slug === slug);
+  return track ? `about ${Math.round((track.estimatedMinutes / 60) * 2) / 2}h` : '';
+}
+---
+
+<BaseLayout
+  title="Start here"
+  description="New to cybersecurity? What this site is, what you need, and the order to take the tracks in."
+>
+  <ProsePage
+    searchable
+    heading="Start here"
+    intro="New to IT or security? This page explains what this site is, what you need, and a good order to take the tracks in."
+  >
+    <h2>Who this is for</h2>
+    <p>
+      Anyone starting out: students, career changers, and people in IT who want to move into
+      security. You do not need any experience. Each track starts from zero, uses plain English,
+      and stops at foundation level on purpose. Deeper questions belong in the Discord, where
+      people who do this work every day can help.
+    </p>
+
+    <h2>What you need</h2>
+    <ul>
+      <li>
+        <strong>A computer</strong> with macOS, Linux, or Windows. You can read on a phone, but the
+        hands-on steps need a real computer.
+      </li>
+      <li><strong>No money and no account.</strong> Everything here is free, and there is nothing to sign up for.</li>
+      <li>
+        <strong>Time:</strong> most tracks take two to three hours, in lessons of 15 to 30 minutes.
+        Short sessions on several days work better than one long one.
+      </li>
+      <li>
+        A few tracks need a <strong>virtual machine</strong>. The track says so up front, and
+        Computing Basics explains what that is.
+      </li>
+    </ul>
+
+    <h2>A suggested order</h2>
+    <p>
+      You can take any track at any time, but this order builds each skill on the one before.
+      Tracks marked "coming soon" are still being written.
+    </p>
+    <ol class="start__path">
+      {PATH.map((step) => (
+        <li>
+          <TrackLink slug={step.slug} /> <span class="start__hours">({hours(step.slug)})</span>
+          <br />
+          {step.why}
+        </li>
+      ))}
+    </ol>
+
+    <h2>Short on time?</h2>
+    <p>
+      Do the first two lessons of <TrackLink slug="computing-basics" />. In under an hour you will
+      have looked inside your own computer from the command line, and you will know whether this
+      way of learning works for you.
+    </p>
+
+    <h2>How each lesson works</h2>
+    <ul>
+      <li><strong>Hands-on:</strong> you type real commands on your own computer, always inside a practice folder, so nothing important can break.</li>
+      <li><strong>What to notice:</strong> the two or three points worth remembering, at the end of each lesson.</li>
+      <li><strong>Reflect on your own:</strong> a few questions to think about. Nothing is graded or sent anywhere.</li>
+      <li><strong>Go further:</strong> free resources for when you want more.</li>
+      <li><strong>Mark complete:</strong> saves your progress in your own browser. See the <a href="/privacy/">Privacy page</a> to move it to another device.</li>
+    </ul>
+
+    <h2>Three habits worth building from day one</h2>
+    <ol>
+      <li><strong>Type the commands yourself</strong> instead of only reading them. The muscle memory is the point.</li>
+      <li><strong>Read error messages slowly.</strong> "Command not found" and "permission denied" mean very different things.</li>
+      <li><strong>Never run a command you do not understand</strong> from a stranger, a forum, or a chat. Ask first. That habit alone stops a lot of real attacks.</li>
+    </ol>
+
+    <p>
+      Unsure about a word? Check the <a href="/glossary/">Glossary</a>. Stuck on a step? Ask in the
+      Discord. Nobody minds a beginner question there.
+    </p>
+  </ProsePage>
+</BaseLayout>
+
+<style>
+  .start__path li {
+    margin-bottom: 0.85rem;
+  }
+
+  .start__hours {
+    font-size: 0.85rem;
+  }
+</style>

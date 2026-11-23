@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProsePage from '../../components/ProsePage.astro';
+import TrackLink from '../../components/TrackLink.astro';
+import { GLOSSARY, termId } from '../../data/glossary';
+
+// Inline `code` in definitions is written with backticks; turn it into
+// <code> safely (definitions are our own static text, but escape anyway).
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function renderDefinition(text: string): string {
+  return escapeHtml(text).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+const letters = [...new Set(GLOSSARY.map((t) => t.term[0].toUpperCase()))];
+---
+
+<BaseLayout
+  title="Glossary"
+  description="Plain-language definitions of the terms used across the start.blueteam.id lessons."
+>
+  <ProsePage
+    searchable
+    heading="Glossary"
+    intro="Short, plain definitions of the terms the lessons use. Each one names the track that explains it properly."
+  >
+    <nav class="glossary__letters" aria-label="Jump to letter">
+      {letters.map((letter) => (
+        <a href={`#letter-${letter}`}>{letter}</a>
+      ))}
+    </nav>
+
+    {letters.map((letter) => (
+      <section class="glossary__group" id={`letter-${letter}`}>
+        <h2>{letter}</h2>
+        <dl>
+          {GLOSSARY.filter((t) => t.term[0].toUpperCase() === letter).map((entry) => (
+            <div class="glossary__entry" id={termId(entry.term)}>
+              <dt>{entry.term}</dt>
+              <dd>
+                <span set:html={renderDefinition(entry.definition)} />{' '}
+                <span class="glossary__track">Learn it in <TrackLink slug={entry.track} />.</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))}
+
+    <p>Missing a term? Ask in the Discord, or suggest it on the Contributing page.</p>
+  </ProsePage>
+</BaseLayout>
+
+<style>
+  .glossary__letters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0 0.5rem;
+  }
+
+  .glossary__letters a {
+    display: inline-block;
+    min-width: 1.9rem;
+    text-align: center;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    background: var(--bg-card);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .glossary__group {
+    scroll-margin-top: 5rem;
+  }
+
+  .glossary__entry {
+    scroll-margin-top: 5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .glossary__entry:target {
+    background: var(--bg-card);
+    outline: 1px solid var(--blue);
+    border-radius: 0.35rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+  }
+
+  .glossary__track {
+    font-size: 0.85rem;
+  }
+</style>

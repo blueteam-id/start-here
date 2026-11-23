@@ -15,6 +15,8 @@ resources:
     url: 'https://git-scm.com/doc'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## What Git is
 
 **Git** is a **version control system**. It tracks every change ever made to a set of files: what changed, who changed it, when, and why. It also lets you go back to any earlier version.
@@ -41,7 +43,11 @@ git --version
 
 If that prints a version number, you are set. If not, install Git from the official [git-scm.com downloads page](https://git-scm.com/downloads), which has installers for Windows, macOS, and Linux. Then run the command again to confirm.
 
-**On Windows, use Git Bash for this track.** The Git for Windows installer also installs **Git Bash**, a small bash terminal. Open it from the Start menu and run every command in this track there. Git itself works the same in PowerShell, but the shell around it does not: in Windows PowerShell, `echo "text" > file.txt` saves the file in an encoding (UTF-16) that Git treats as binary, so `git diff` would show "Binary files differ" instead of the changed lines. Git Bash avoids that, and the commands then match macOS and Linux exactly.
+<Callout type="windows" title="Windows users: use Git Bash for this track">
+
+The Git for Windows installer also installs **Git Bash**, a small bash terminal. Open it from the Start menu and run every command in this track there. Git itself works the same in PowerShell, but the shell around it does not: in Windows PowerShell, `echo "text" > file.txt` saves the file in an encoding (UTF-16) that Git treats as binary, so `git diff` would show "Binary files differ" instead of the changed lines. Git Bash avoids that, and the commands then match macOS and Linux exactly.
+
+</Callout>
 
 Now tell Git who you are. Every commit you make is permanently stamped with this name and email. It is the "who" in the audit trail described above.
 

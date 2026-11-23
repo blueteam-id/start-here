@@ -23,6 +23,7 @@ import { reportEmailUrl, reportIssueUrl } from '../../lib/report';
 // doesn't register its styles that way, even though it renders correctly
 // into the page's HTML. A hidden, empty render here is the workaround.
 import CodeTabs from '../CodeTabs.astro';
+import Callout from '../Callout.astro';
 
 interface Props {
   track: TrackEntry;
@@ -90,30 +91,38 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     progress={progress}
   />
 
-  <div class="lesson-view__main" id="lesson-content" tabindex="-1">
-    <nav class="lesson-view__breadcrumb" aria-label="Breadcrumb">
+  <div
+    class="lesson-view__main"
+    id="lesson-content"
+    tabindex="-1"
+    data-pagefind-body
+    data-pagefind-meta={`track:${track.data.title}`}
+  >
+    <nav class="lesson-view__breadcrumb" aria-label="Breadcrumb" data-pagefind-ignore>
       <a href={trackHref}>{track.data.title}</a>
       <span aria-hidden="true">/</span>
       <span>{lesson.data.title}</span>
     </nav>
 
     <div class="lesson-view__title-block">
-      <span class="lesson-view__phase-tag">{lesson.data.phase}</span>
+      <span class="lesson-view__phase-tag" data-pagefind-ignore>{lesson.data.phase}</span>
       <h1 class="lesson-view__title">{lesson.data.title}</h1>
-      <div class="lesson-view__title-meta">
+      <div class="lesson-view__title-meta" data-pagefind-ignore>
         {lesson.data.estimatedMinutes != null && <span>{lesson.data.estimatedMinutes} min</span>}
         {lesson.data.needsVM && <span class="lesson-view__vm-badge">Needs a VM</span>}
       </div>
     </div>
 
-    {lesson.data.prerequisites && <PrerequisitesCallout text={lesson.data.prerequisites} />}
+    {lesson.data.prerequisites && (
+      <div data-pagefind-ignore><PrerequisitesCallout text={lesson.data.prerequisites} /></div>
+    )}
 
     <article class="lesson-view__content" data-lesson-content>
       {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
-      <div style="display:none" aria-hidden="true"><CodeTabs /></div>
+      <div style="display:none" aria-hidden="true"><CodeTabs /><Callout /></div>
     </article>
 
-    <div class="lesson-view__discord-nudge" role="note">
+    <div class="lesson-view__discord-nudge" role="note" data-pagefind-ignore>
       Stuck, or just want to talk it through? Ask in the{' '}
       <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Discord</a>,
       no need to get stuck here alone.
@@ -122,13 +131,13 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     <ReflectSection questions={reflectQuestions} />
     <GoFurtherSection resources={resources} />
 
-    <p class="lesson-view__report">
+    <p class="lesson-view__report" data-pagefind-ignore>
       Spotted a mistake, or a command that did not work for you?{' '}
       <a href={reportIssueHref} target="_blank" rel="noopener noreferrer" data-report-issue>Report it on GitHub</a>{' '}
       or <a href={reportEmailHref} data-report-email>by email</a>.
     </p>
 
-    <footer class="lesson-view__footer">
+    <footer class="lesson-view__footer" data-pagefind-ignore>
       <div class="lesson-view__footer-side">
         {prevHref && (
           <a class="lesson-view__prev" href={prevHref} rel="prev">
@@ -400,6 +409,23 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
   .lesson-view__content pre {
     padding: 0.75rem 0.9rem;
     border-radius: 0.4rem;
+  }
+
+  /* ```text blocks show what the learner should see, not something to type. */
+  .lesson-view__content pre[data-language='text'] {
+    border: 1px dashed var(--border);
+  }
+
+  .lesson-view__content pre[data-language='text']::before {
+    content: 'You should see';
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
   }
 
   /* Leave room so the button never covers the end of the first line. */

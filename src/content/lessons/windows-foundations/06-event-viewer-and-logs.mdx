@@ -16,6 +16,8 @@ resources:
     url: 'https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## What the Windows Event Log is
 
 Linux usually keeps logs as plain text files, like `/var/log/auth.log` and `/var/log/syslog`, the kind of file you searched with `grep` in Linux Essentials. Windows keeps logs in a structured, binary format called the **Windows Event Log**. You read it with the built-in **Event Viewer** app, or query it from the command line.
@@ -40,7 +42,11 @@ The Security log holds sensitive information, so Windows only lets administrator
 - **Event Viewer:** if your account is an administrator (you checked with `whoami /groups` in Lesson 3), Event Viewer can open the Security log for you.
 - **PowerShell:** a normal prompt is not enough, even on an administrator account. Right-click the Start button and choose **Terminal (Admin)** on Windows 11, or **Windows PowerShell (Admin)** on Windows 10, then click **Yes** on the UAC prompt. The window title now starts with "Administrator".
 
+<Callout type="stuck">
+
 If a command below fails with "Attempted to perform an unauthorized operation", your prompt is not elevated. Close it and open an admin one. If your account is a standard user, you cannot read the Security log at all; you can still follow along by replacing `Security` with `System` in the commands, which shows the same structure with different events.
+
+</Callout>
 
 Everything in this lesson only **reads** logs. Close the admin window when you finish, so you are not left running with more privilege than you need.
 

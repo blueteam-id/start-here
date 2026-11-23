@@ -1,0 +1,80 @@
+---
+// A short, labelled aside inside a lesson body:
+//
+//   <Callout type="warning">This needs an administrator prompt.</Callout>
+//
+// Types and their labels:
+//   tip      "Tip"                 a shortcut or a nice-to-know
+//   warning  "Careful"             something that can break, leak, or cost you
+//   windows  "Windows users"       a step that differs on Windows
+//   stuck    "If it didn't work"   the most likely error and its fix
+//   note     "Note"                anything else worth pulling out of the prose
+//
+// Styles are global on purpose: a component used only inside MDX lesson
+// bodies does not get its styles registered by Astro, so LessonView.astro
+// renders one hidden <Callout /> to make sure these styles ship with the page.
+
+const LABELS = {
+  tip: 'Tip',
+  warning: 'Careful',
+  windows: 'Windows users',
+  stuck: "If it didn't work",
+  note: 'Note',
+} as const;
+
+type CalloutType = keyof typeof LABELS;
+
+interface Props {
+  type?: CalloutType;
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+if (!(type in LABELS)) {
+  throw new Error(`Callout: unknown type "${type}"`);
+}
+const label = title ?? LABELS[type];
+---
+
+<aside class={`callout callout--${type}`} role="note">
+  <p class="callout__label">{label}</p>
+  <div class="callout__body"><slot /></div>
+</aside>
+
+<style is:global>
+  .callout {
+    --callout-accent: var(--blue);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--callout-accent);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .callout--tip {
+    --callout-accent: var(--green);
+  }
+
+  .callout--warning,
+  .callout--stuck {
+    --callout-accent: var(--yellow);
+  }
+
+  .callout__label {
+    margin: 0 0 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--callout-accent);
+  }
+
+  .callout__body > :first-child {
+    margin-top: 0;
+  }
+
+  .callout__body > :last-child {
+    margin-bottom: 0;
+  }
+</style>

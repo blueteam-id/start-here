@@ -16,6 +16,8 @@ resources:
     url: 'https://git-scm.com/docs/git-reset'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## Back to the practice folder
 
 ```bash
@@ -60,7 +62,13 @@ git revert --no-edit HEAD
 git log --oneline
 ```
 
-`--no-edit` tells Git to use its standard message ("Revert ...") for the new commit. Without it, Git opens a text editor so you can write the message yourself. That editor is often **Vim**, which confuses almost everyone the first time. If you ever land in a screen full of `~` lines and cannot type or leave, press `Esc`, then type `:wq` and press `Enter` to save and exit (or `:q!` to exit without saving).
+`--no-edit` tells Git to use its standard message ("Revert ...") for the new commit. Without it, Git opens a text editor so you can write the message yourself.
+
+<Callout type="stuck" title="Stuck in a strange editor?">
+
+That editor is often **Vim**, which confuses almost everyone the first time. If you ever land in a screen full of `~` lines and cannot type or leave, press `Esc`, then type `:wq` and press `Enter` to save and exit (or `:q!` to exit without saving).
+
+</Callout>
 
 Your history now shows **both** commits: the mistake, and a new commit that undoes it. Nothing was erased. `git reset` would have moved the branch pointer back instead, and the mistaken commit would have disappeared from the visible history.
 

@@ -1,0 +1,94 @@
+/* Pagefind search UI themed with the site's tokens. Used by the header
+   search dialog and the /search/ page; both wrap the UI in .site-search.
+
+   Pagefind sets its own defaults on .pagefind-ui, so the variables must be
+   set on that element (inheriting them from a parent is not enough), and
+   its stylesheet is loaded after this one, so every rule here carries an
+   extra class to win on specificity. */
+.site-search .pagefind-ui {
+  --pagefind-ui-scale: 0.85;
+  --pagefind-ui-primary: var(--blue);
+  --pagefind-ui-text: var(--text);
+  --pagefind-ui-background: var(--bg);
+  --pagefind-ui-border: var(--border);
+  --pagefind-ui-tag: var(--bg-elev);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 0.6rem;
+  --pagefind-ui-font: inherit;
+  color: var(--text);
+}
+
+/* Inputs do not inherit text color; without this the query is black. */
+.site-search .pagefind-ui .pagefind-ui__search-input {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.site-search .pagefind-ui .pagefind-ui__search-input::placeholder {
+  color: var(--text-dim);
+  opacity: 1;
+}
+
+.site-search .pagefind-ui .pagefind-ui__search-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgb(79 142 247 / 0.25);
+}
+
+.site-search .pagefind-ui .pagefind-ui__form::before {
+  background-color: var(--text-dim);
+}
+
+/* "Clear": a quiet text button inside the field, not a boxed button. */
+.site-search .pagefind-ui .pagefind-ui__search-clear {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  /* Centered on the input row (64px tall at scale 1), not on the whole
+     form, which also contains the results. */
+  top: calc(32px * var(--pagefind-ui-scale));
+  transform: translateY(-50%);
+  height: auto;
+  padding: 0.3rem 0.65rem;
+  margin-right: 0.35rem;
+  border-radius: 999px;
+}
+
+.site-search .pagefind-ui .pagefind-ui__search-clear:hover,
+.site-search .pagefind-ui .pagefind-ui__search-clear:focus-visible {
+  color: var(--text);
+  background: var(--bg-elev);
+}
+
+.site-search .pagefind-ui .pagefind-ui__message,
+.site-search .pagefind-ui .pagefind-ui__result-excerpt {
+  color: var(--text-dim);
+}
+
+.site-search .pagefind-ui .pagefind-ui__result-link,
+.site-search .pagefind-ui .pagefind-ui__result-title {
+  color: var(--text);
+}
+
+.site-search .pagefind-ui .pagefind-ui__result-link:hover {
+  color: var(--blue);
+}
+
+.site-search .pagefind-ui mark {
+  background: transparent;
+  color: var(--yellow);
+  font-weight: 700;
+}
+
+.site-search .pagefind-ui .pagefind-ui__result-tag {
+  color: var(--text-dim);
+}
+
+.site-search .pagefind-ui .pagefind-ui__button {
+  background: var(--bg-elev);
+  color: var(--text);
+  border-color: var(--border);
+}

@@ -219,6 +219,12 @@ Priority 1: small changes, big effect for learners
 
 Priority 2: medium effort, still static
 
+> **Status 2026-11-23:** P2.1 (Pagefind search at `/search/`), P2.2
+> (`/start/`), P2.3 (`/glossary/`, 41 terms), P2.5 (`<Callout>`), P2.6
+> (` ```text ` output blocks), P2.7 and P2.8 (`/privacy/` with progress
+> copy, paste, and reset) implemented. P2.4 (lab file downloads) is
+> deferred until the first track that needs lab files (SQL or Python).
+
 | # | Feature | Why | Notes |
 |---|---|---|---|
 | P2.1 | **Site-wide search across lessons** | "Where was that `icacls` command?" The catalog search only matches track titles. | [Pagefind](https://pagefind.app) indexes the built HTML at build time and searches in the browser. No server, no account. |

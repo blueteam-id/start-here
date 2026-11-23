@@ -1,0 +1,87 @@
+---
+// Shared shell for plain reading pages (Start here, Glossary, Privacy):
+// a narrow column, a heading, an intro line, and readable defaults for
+// whatever the page puts in its slot. Same look as the Contributing page.
+interface Props {
+  heading: string;
+  intro?: string;
+  /** Include this page in site search. */
+  searchable?: boolean;
+}
+
+const { heading, intro, searchable = false } = Astro.props;
+---
+
+<div class="prose-page" data-pagefind-body={searchable ? '' : undefined}>
+  <h1 class="prose-page__heading">{heading}</h1>
+  {intro && <p class="prose-page__intro">{intro}</p>}
+  <slot />
+</div>
+
+<style>
+  .prose-page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    color: var(--text);
+  }
+
+  .prose-page__heading {
+    margin: 0 0 1rem;
+    font-size: 1.75rem;
+  }
+
+  .prose-page__intro,
+  .prose-page :global(p),
+  .prose-page :global(li),
+  .prose-page :global(dd) {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .prose-page :global(h2) {
+    margin: 2.25rem 0 0.75rem;
+    font-size: 1.2rem;
+  }
+
+  .prose-page :global(h3) {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  .prose-page :global(ul),
+  .prose-page :global(ol) {
+    padding-left: 1.25rem;
+  }
+
+  .prose-page :global(li) {
+    margin-bottom: 0.4rem;
+  }
+
+  .prose-page :global(a) {
+    color: var(--blue);
+  }
+
+  .prose-page :global(strong) {
+    color: var(--text);
+  }
+
+  .prose-page :global(code) {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.85em;
+  }
+
+  @media (max-width: 480px) {
+    .prose-page {
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .prose-page__heading {
+      font-size: 1.4rem;
+    }
+  }
+</style>

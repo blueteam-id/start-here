@@ -16,6 +16,8 @@ resources:
     url: 'https://docs.gitlab.com/topics/git/'
 ---
 
+import Callout from '../../../components/Callout.astro';
+
 ## Git the tool, GitHub and GitLab the platforms
 
 Everything in Git Fundamentals ran on your own machine, with no internet needed. **GitHub** and **GitLab** are hosted platforms built around Git. They keep a copy of your repository on their servers, add a web interface, and add collaboration features:
@@ -48,7 +50,11 @@ From the web interface, create a new repository:
 - Set it to **public**. See the note below for why.
 - Choose to initialize it with a README. That is the simplest way to start with a repository that already has one commit.
 
-**Why public, just this once.** For real work, private by default is the right habit. This practice repository is the exception, for a practical reason: on GitHub's free plan, branch protection rules (Lesson 3) are only enforced on **public** repositories. A private repository would let you click through the settings, but nothing would actually be enforced. The repository will only ever hold a few lines of practice notes, so being public costs nothing. The rule that comes with it: never put anything real in it, no passwords, no work files, nothing personal. (On GitLab, protected branches also work on private projects in the free tier, so GitLab users can keep it private.)
+<Callout type="note" title="Why public, just this once">
+
+For real work, private by default is the right habit. This practice repository is the exception, for a practical reason: on GitHub's free plan, branch protection rules (Lesson 3) are only enforced on **public** repositories. A private repository would let you click through the settings, but nothing would actually be enforced. The repository will only ever hold a few lines of practice notes, so being public costs nothing. The rule that comes with it: never put anything real in it, no passwords, no work files, nothing personal. (On GitLab, protected branches also work on private projects in the free tier, so GitLab users can keep it private.)
+
+</Callout>
 
 You do not need to understand every option on that screen yet. The rest of the track covers what matters, one piece at a time.
 

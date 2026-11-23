@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProsePage from '../../components/ProsePage.astro';
+import { CATALOG_TRACKS } from '../../data/catalog';
+import { CONTRIBUTION_EMAIL } from '../../lib/site';
+
+const liveSlugs = CATALOG_TRACKS.filter((t) => t.status === 'live').map((t) => t.slug);
+---
+
+<BaseLayout
+  title="Privacy and your progress"
+  description="No accounts, no cookies, no analytics. Your lesson progress stays in your own browser."
+>
+  <ProsePage
+    heading="Privacy and your progress"
+    intro="Short version: no accounts, no cookies, no analytics, no tracking scripts. Your progress stays in your own browser."
+  >
+    <h2>What this site collects</h2>
+    <ul>
+      <li><strong>No accounts.</strong> There is nothing to sign up for and nothing to log in to.</li>
+      <li><strong>No cookies</strong> and <strong>no analytics or tracking scripts</strong>, from us or from anyone else.</li>
+      <li>
+        The site is plain static files. Like any website, the server that sends them may keep
+        standard web server logs (an address, the page requested, and the time). Those are not
+        linked to you as a person.
+      </li>
+    </ul>
+
+    <h2>Where your progress lives</h2>
+    <p>
+      When you press <strong>Mark complete</strong>, or pick an OS tab in a code block, the site
+      saves that choice in your browser's <code>localStorage</code>. It never leaves your device.
+      That also means:
+    </p>
+    <ul>
+      <li>Another browser, another device, or a private window will not see it.</li>
+      <li>Clearing your browser's site data removes it.</li>
+    </ul>
+    <p>To move it, or keep a backup, use the tools below.</p>
+
+    <h2>Move or back up your progress</h2>
+    <div class="progress-tools" data-progress-tools data-track-slugs={JSON.stringify(liveSlugs)}>
+      <h3>1. Copy your progress code</h3>
+      <p>This code lists the lessons you finished. It contains nothing else.</p>
+      <label class="progress-tools__label" for="progress-export">Your progress code</label>
+      <textarea id="progress-export" class="progress-tools__box" rows="3" readonly data-progress-export></textarea>
+      <button type="button" class="progress-tools__button" data-progress-copy>Copy progress code</button>
+
+      <h3>2. Paste it on the other browser</h3>
+      <p>
+        Open this page on the other browser or device, paste the code here, and load it. Lessons
+        already marked done there stay done.
+      </p>
+      <label class="progress-tools__label" for="progress-import">Paste a progress code</label>
+      <textarea id="progress-import" class="progress-tools__box" rows="3" data-progress-import></textarea>
+      <button type="button" class="progress-tools__button" data-progress-load>Load progress</button>
+
+      <h3>Start over</h3>
+      <p>Removes all progress and your OS choice from this browser. This cannot be undone.</p>
+      <button type="button" class="progress-tools__button progress-tools__button--danger" data-progress-reset>
+        Reset my progress
+      </button>
+
+      <p class="progress-tools__status" role="status" aria-live="polite" data-progress-status></p>
+    </div>
+
+    <h2>Questions</h2>
+    <p>
+      Ask in the Discord, or email <a href={`mailto:${CONTRIBUTION_EMAIL}`}>{CONTRIBUTION_EMAIL}</a>.
+    </p>
+  </ProsePage>
+</BaseLayout>
+
+<script>
+  import { wireProgressTools } from '../../scripts/progressTools.client';
+
+  document.querySelectorAll<HTMLElement>('[data-progress-tools]').forEach((root) => {
+    const slugs = JSON.parse(root.getAttribute('data-track-slugs') ?? '[]') as string[];
+    wireProgressTools(root, slugs);
+  });
+</script>
+
+<style>
+  .progress-tools {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.25rem 1.25rem 1.25rem;
+  }
+
+  .progress-tools__label {
+    display: block;
+    margin: 0.5rem 0 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .progress-tools__box {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+  }
+
+  .progress-tools__button {
+    appearance: none;
+    margin-top: 0.6rem;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+  .progress-tools__button:hover {
+    border-color: var(--blue);
+  }
+
+  .progress-tools__button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .progress-tools__button--danger:hover {
+    border-color: var(--yellow);
+  }
+
+  .progress-tools__status {
+    margin: 1rem 0 0;
+    color: var(--blue);
+    font-weight: 600;
+  }
+</style>

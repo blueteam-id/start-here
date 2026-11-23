@@ -36,7 +36,7 @@ const firstLesson = orderedLessons[0];
 const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
 ---
 
-<div class="track-landing" data-track-landing data-track-slug={track.slug}>
+<div class="track-landing" data-track-landing data-track-slug={track.slug} data-pagefind-body data-pagefind-meta={`track:${track.data.title}`}>
   <div class="track-landing__intro">
     <span class="track-landing__icon">{track.data.icon}</span>
     <div class="track-landing__title-row">

@@ -1,0 +1,178 @@
+---
+// Header search: a magnifier icon button plus the dialog it opens. The
+// button is a real link to /search/, so search still works without
+// JavaScript; with JavaScript it opens the dialog instead (see
+// src/scripts/searchDialog.client.ts).
+import '../styles/search.css';
+---
+
+<a class="search-trigger" href="/search/" data-search-trigger aria-label="Search lessons" title="Search (press /)">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="7"></circle>
+    <line x1="20.5" y1="20.5" x2="16.2" y2="16.2"></line>
+  </svg>
+</a>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search lessons">
+  <div class="search-dialog__panel">
+    <div class="search-dialog__top">
+      <span class="search-dialog__title">Search lessons</span>
+      <button type="button" class="search-dialog__close" data-search-close aria-label="Close search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="site-search search-dialog__body" data-search-mount></div>
+    <p class="search-dialog__unavailable" data-search-unavailable hidden>
+      Search is created when the site is built, so it is not available in development mode. Run
+      <code>npm run build</code> and <code>npm run preview</code> to try it.
+    </p>
+    <p class="search-dialog__hint">
+      <kbd>/</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd> to open, <kbd>Esc</kbd> to close
+    </p>
+  </div>
+</dialog>
+
+<script>
+  import { wireSearchDialog } from '../scripts/searchDialog.client';
+
+  const trigger = document.querySelector<HTMLAnchorElement>('[data-search-trigger]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+  if (trigger && dialog && typeof dialog.showModal === 'function') {
+    wireSearchDialog(trigger, dialog);
+  }
+</script>
+
+<style>
+  .search-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: transparent;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .search-trigger:hover,
+  .search-trigger:focus-visible {
+    color: var(--text);
+    border-color: var(--blue);
+    background: var(--bg-card);
+  }
+
+  .search-dialog {
+    width: min(42rem, calc(100vw - 2rem));
+    max-height: min(80vh, 44rem);
+    margin: 10vh auto auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 0.85rem;
+    background: var(--bg-elev);
+    color: var(--text);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+    overflow: hidden;
+  }
+
+  .search-dialog::backdrop {
+    background: rgb(5 8 15 / 0.7);
+    backdrop-filter: blur(2px);
+  }
+
+  .search-dialog__panel {
+    display: flex;
+    flex-direction: column;
+    max-height: min(80vh, 44rem);
+  }
+
+  .search-dialog__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem 0.5rem;
+  }
+
+  .search-dialog__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .search-dialog__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+
+  .search-dialog__close:hover,
+  .search-dialog__close:focus-visible {
+    color: var(--text);
+    background: var(--bg-card);
+  }
+
+  .search-dialog__body {
+    padding: 0 1rem 0.5rem;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .search-dialog__unavailable {
+    margin: 0 1rem 1rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .search-dialog__hint {
+    margin: 0;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.1rem;
+    padding: 0.05rem 0.35rem;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 0.3rem;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .search-dialog {
+      margin-top: 1rem;
+      max-height: calc(100vh - 2rem);
+    }
+
+    .search-dialog__panel {
+      max-height: calc(100vh - 2rem);
+    }
+
+    /* Keyboard shortcuts mean little on a phone. */
+    .search-dialog__hint {
+      display: none;
+    }
+  }
+</style>

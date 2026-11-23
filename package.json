@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "audit": "node scripts/audit-dist.mjs",
     "verify": "npm run build && npm run audit",
     "preview": "astro preview",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "jsdom": "^31.0.0",
+    "pagefind": "^1.6.0",
     "vitest": "^5.1.0"
   }
 }
