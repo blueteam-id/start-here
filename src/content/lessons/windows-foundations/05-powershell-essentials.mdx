@@ -6,9 +6,9 @@ order: 5
 estimatedMinutes: 25
 prerequisites: 'Lesson 2 (Getting Oriented), for basic PowerShell navigation.'
 reflectQuestions:
-  - 'Linux pipes pass plain text. PowerShell pipes pass structured data (objects). Why does that make it easier to pick out "just the process using the most memory"?'
-  - 'If you saw a command like `powershell.exe -EncodedCommand <long text>` running on a computer, why would that be worth a closer look?'
-  - 'Run `Get-Help Get-Process -Examples`. Why is it useful that PowerShell can explain its own commands, without needing the internet?'
+  - 'Linux pipes pass text; PowerShell pipes pass objects. Why does that make it easier to find the process using the most memory?'
+  - 'Why is `powershell.exe -EncodedCommand <long text>` running on a computer worth a closer look?'
+  - 'Why is it useful that `Get-Help` works without the internet, for example on a server during an incident?'
 resources:
   - label: 'about_Pipelines (Microsoft Learn)'
     url: 'https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_pipelines'
@@ -18,34 +18,51 @@ resources:
 
 ## Verb-Noun: PowerShell's naming convention
 
-Every PowerShell cmdlet follows the same pattern: `Verb-Noun`. `Get-Process` gets processes, `Get-Service` gets services, `Stop-Process` stops a process, `Set-Location` sets your location. Once you know this, you can often guess a cmdlet's name correctly before ever looking it up, and when you can't, PowerShell documents itself:
+Every PowerShell cmdlet follows one pattern: `Verb-Noun`. `Get-Process` gets processes. `Get-Service` gets services. `Stop-Process` stops a process. `Set-Location` sets your location.
+
+Once you know the pattern, you can often guess a cmdlet's name before looking it up. When you cannot, PowerShell documents itself:
 
 ```powershell
 Get-Command -Verb Get -Noun Process*
 Get-Help Get-Process -Examples
 ```
 
-`Get-Command` searches for cmdlets by verb or noun pattern; `Get-Help` prints a cmdlet's built-in manual, including usage examples, entirely offline. There is no Linux equivalent quite this consistent: `man` pages exist, but command names themselves (`grep`, `awk`, `ls`) don't follow a predictable, guessable pattern the way `Verb-Noun` does.
+- `Get-Command` searches for cmdlets by verb or noun.
+- `Get-Help` prints a cmdlet's built-in manual, with examples, entirely offline.
+
+Linux has `man` pages, but its command names (`grep`, `awk`, `ls`) do not follow a pattern you can guess. `Verb-Noun` does.
 
 ## The pipeline: objects, not text
 
-This is the single biggest conceptual difference from the Linux shell you already know. A Linux pipe (`|`) passes **plain text** from one command to the next; the receiving command has to parse that text back apart to do anything useful with it, which is exactly why tools like `grep`, `awk`, and `cut` exist, to slice text apart again. PowerShell's pipe also uses `|`, but it passes whole **objects**, structured data with named properties, not flattened text. The receiving cmdlet can reach directly into those properties by name, no re-parsing required.
+This is the biggest difference from the Linux shell.
 
-See it directly:
+- A Linux pipe (`|`) passes **plain text** to the next command. That command has to cut the text apart again to use it. That is why tools like `grep`, `awk`, and `cut` exist.
+- A PowerShell pipe also uses `|`, but it passes whole **objects**: structured data with named properties. The next cmdlet reads those properties by name. No text cutting needed.
+
+See it for yourself:
 
 ```powershell
 Get-Process | Get-Member
 ```
 
-`Get-Member` inspects whatever just came through the pipeline and lists every property and method it has. You'll see properties like `Id`, `ProcessName`, `CPU`, and `WorkingSet` (memory usage). Because those are real properties, not just columns in printed text, you can filter and sort on them directly:
+`Get-Member` lists every property and method of whatever came through the pipeline. You will see properties like `Id`, `ProcessName`, `CPU`, and `WorkingSet` (memory use). Because these are real properties, not columns of text, you can filter and sort on them directly:
 
 ```powershell
 Get-Process | Where-Object { $_.WorkingSet -gt 100MB } | Sort-Object WorkingSet -Descending | Select-Object -First 5 ProcessName, WorkingSet
 ```
 
-Read this left to right the way you'd read a Linux pipeline: `Get-Process` gets every running process, `Where-Object` keeps only the ones using more than 100MB of memory, `Sort-Object` orders what's left by memory usage, and `Select-Object -First 5` keeps just the top five, showing only the two properties you asked for. `$_` refers to "the current object in the pipeline," the PowerShell equivalent of a loop variable. Every step worked with real memory numbers and real process names as data, not as text that had to be sliced apart first.
+Read it left to right, like a Linux pipeline:
+
+1. `Get-Process` gets every running process.
+2. `Where-Object` keeps only those using more than 100MB of memory. `$_` means "the current object in the pipeline".
+3. `Sort-Object` orders them by memory use, largest first.
+4. `Select-Object -First 5` keeps the top five, showing only the two properties you asked for.
+
+Every step worked with real numbers and names as data, not as text that had to be cut apart.
 
 ## A few everyday cmdlets
+
+Run these from your `windows-foundations` folder, where `practice.txt` from Lesson 3 lives:
 
 ```powershell
 Get-Process                    # what's running right now (like Linux's ps)
@@ -54,26 +71,28 @@ Get-Content .\practice.txt     # read a file's contents (like cat)
 Get-ChildItem -Recurse         # list files recursively (like find, roughly)
 ```
 
-Try piping `Get-Service` through a filter to find anything not running that should be:
+Now filter `Get-Service` to show services that are not running:
 
 ```powershell
 Get-Service | Where-Object { $_.Status -eq 'Stopped' } | Select-Object -First 10 Name, Status
 ```
 
-## Execution policy, and why PowerShell draws attention from attackers
+## Execution policy, and why attackers like PowerShell
 
-PowerShell has an **execution policy**, a setting controlling whether scripts (`.ps1` files) are allowed to run at all, separate from running commands interactively. Check yours:
+PowerShell has an **execution policy**: a setting that controls whether script files (`.ps1`) may run at all. It does not affect commands you type yourself. Check yours:
 
 ```powershell
 Get-ExecutionPolicy
 ```
 
-A typical default is `RemoteSigned` (local scripts run freely, downloaded scripts must be digitally signed) or more restrictive. This exists for a defensive reason worth understanding properly: PowerShell is extraordinarily powerful, it can touch the file system, the registry, the network, and other processes, all from a single interpreted command, without ever writing a traditional `.exe` file to disk. That combination, powerful and often invisible to antivirus tools looking for suspicious files, is exactly why attackers favor PowerShell for "fileless" malware: a single obfuscated or base64-encoded one-liner, often launched with a flag like `-EncodedCommand` or `-WindowStyle Hidden`, can download and run further malicious code entirely in memory.
+On Windows 10 and 11, the default is usually `Restricted`, which blocks scripts entirely. On Windows Server it is usually `RemoteSigned`: local scripts run, and downloaded scripts must be digitally signed. Your result may differ if an administrator or a program changed it.
 
-This is also why defenders don't treat "PowerShell ran" as routine: modern Windows logs PowerShell activity in detail (PowerShell's own `Script Block Logging`, separate from the Event Viewer work in the next lesson), specifically because so much real attacker activity on a Windows box runs through it. Knowing the shell this well is exactly what lets you recognize when something run through it looks wrong.
+The policy exists for a defensive reason. PowerShell is very powerful. From one command, it can touch files, the registry, the network, and other processes, without ever writing a normal `.exe` file to disk. Antivirus tools often look for suspicious files, so this makes PowerShell attractive for **fileless malware**. A single obfuscated or base64-encoded one-liner, often run with flags like `-EncodedCommand` or `-WindowStyle Hidden`, can download and run more malicious code entirely in memory.
+
+That is also why defenders never treat "PowerShell ran" as routine. Modern Windows can log PowerShell activity in detail (**Script Block Logging**, separate from the Event Viewer work in the next lesson), because so much real attacker activity runs through it. Knowing the shell well is what lets you notice when something run through it looks wrong.
 
 ### What to notice
 
-- PowerShell's pipeline passes structured objects, not text, which is why `Where-Object` and `Sort-Object` can filter and sort on real properties directly instead of needing a separate text-parsing tool.
-- `Get-Help` and `Get-Command` make PowerShell self-documenting offline; lean on them instead of guessing.
-- A long, encoded, or obfuscated PowerShell command line is one of the most common signatures of fileless malware, and it's exactly the kind of command line Event Viewer and PowerShell logging exist to capture.
+- The PowerShell pipeline passes objects, not text. That is why `Where-Object` and `Sort-Object` can work on real properties without a text-parsing tool.
+- `Get-Help` and `Get-Command` make PowerShell self-documenting, offline. Use them instead of guessing.
+- A long, encoded, or obfuscated PowerShell command line is a classic sign of fileless malware, and exactly what PowerShell logging exists to capture.

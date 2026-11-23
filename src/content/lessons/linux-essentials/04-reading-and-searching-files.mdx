@@ -3,12 +3,12 @@ title: 'Reading and Searching Files'
 track: 'linux-essentials'
 phase: 'Core Concepts'
 order: 4
-estimatedMinutes: 25
+estimatedMinutes: 30
 prerequisites: 'Lesson 3 (Navigating the Filesystem).'
 reflectQuestions:
-  - 'Imagine you are handed a real `auth.log` from a server that may be under brute-force attack, thousands of lines long. Walk through, in your own words, the `grep` command you would run first, and what a flood of matching lines would tell you about what is happening.'
-  - 'You used `grep -r` to search every file in a directory at once. If you were handed a known indicator of compromise, a suspicious filename or a short string from a malware sample, and a whole directory of logs to check, why is that recursive search more useful than opening each file by hand?'
-  - '`tail -f` lets you watch a file update in real time instead of re-running a command over and over. What kind of file on a real system would be worth watching this way during an active incident?'
+  - 'You get a huge `auth.log` from a server that may be under brute-force attack. Which `grep` would you run first, and what would many matches tell you?'
+  - 'You have one suspicious IP address and a folder full of logs. Why is `grep -r` better than opening each file?'
+  - 'Which file on a real server would you watch with `tail -f` during an active incident?'
 resources:
   - label: 'grep (Wikipedia)'
     url: 'https://en.wikipedia.org/wiki/Grep'
@@ -22,7 +22,7 @@ resources:
 cd ~/linux-essentials
 ```
 
-Every command below assumes you are sitting inside this folder. Before you search for anything, you need something to search. Create a small sample log file now:
+Every command below runs inside this folder. To search for something, you first need something to search. Create a small sample log file:
 
 ```bash
 cat > sample.log << 'EOF'
@@ -36,23 +36,23 @@ cat > sample.log << 'EOF'
 EOF
 ```
 
-That file now sits in `~/linux-essentials/sample.log`. It is small enough to read in one glance, but it is enough to make every command below runnable against something real, instead of something imaginary.
+You now have `~/linux-essentials/sample.log`. It is small enough to read at a glance, and big enough to try every command below on real data.
 
 ## cat, less, and more: reading a file
 
-For a short file, `cat` dumps the whole thing straight to your terminal:
+For a short file, `cat` prints the whole thing:
 
 ```bash
 cat sample.log
 ```
 
-That works fine for seven lines. It stops working the moment a file is thousands of lines long, a real `/var/log/auth.log` on a busy server, for instance, scrolling past faster than you can read it. For anything that long, page through it instead with `less`:
+That works for seven lines. It stops working for a file thousands of lines long, like a real `/var/log/auth.log` on a busy server: the text scrolls past faster than you can read. For long files, page through with `less`:
 
 ```bash
 less sample.log
 ```
 
-`less` opens the file one screen at a time. Use the arrow keys or Page Up/Page Down to move around, and press `q` to quit back to your prompt. You may also see `more` used the same way; it is an older, more limited paging tool, and `less` is the one worth defaulting to.
+`less` shows one screen at a time. Use the arrow keys or Page Up/Page Down to move, and press `q` to quit. You may also see `more`, an older and more limited pager. Default to `less`.
 
 ## head and tail: just the edges
 
@@ -68,40 +68,43 @@ head sample.log
 tail sample.log
 ```
 
-Both default to ten lines, and both accept `-n` to change that:
+Both show ten lines by default. Use `-n` to change that:
 
 ```bash
 head -n 3 sample.log
 tail -n 3 sample.log
 ```
 
-There is one more form of `tail` worth knowing even though you will only read about it here rather than run it live: `tail -f sample.log` follows a file, printing new lines as they are appended, instead of exiting once it reaches the end. That is the exact pattern for watching a log file update in real time, for example keeping an eye on an authentication log while an incident is actively unfolding, without having to keep re-running `tail` by hand.
+There is one more form of `tail` worth knowing: `tail -f` **follows** a file, printing new lines as they are added, instead of exiting at the end. It is how you watch a log update in real time. You will try it live at the end of this lesson.
 
 ## grep: finding things inside files
 
-This is the command that does the actual searching, and it is the one most worth being fluent in. In its plainest form, `grep` prints every line containing a given substring:
+`grep` does the actual searching, and it is the command most worth knowing well. In its simplest form, it prints every line that contains some text:
 
 ```bash
 grep "Failed password" sample.log
 ```
 
-That returns the three lines where a login attempt failed, and nothing else. This is, almost word for word, what a defender does with a real system: `auth.log` and `syslog` are exactly the kind of files you search this way for signs of a brute-force attack, a string like "Failed password" repeated many times in a short window, or for a known indicator of compromise, a filename, hash fragment, or IP address you were told to look for across a whole directory of logs.
+That returns the three failed login lines and nothing else. This is almost exactly what a defender does on a real system. Files like `auth.log` and `syslog` get searched this way for:
 
-A few flags make `grep` considerably more useful:
+- signs of a **brute-force attack**, such as "Failed password" many times in a short window,
+- a known **indicator of compromise** (IOC): a filename, part of a hash, or an IP address you were told to look for.
 
-`-i` makes the search case-insensitive, so it matches `ERROR`, `Error`, and `error` alike:
+A few flags make `grep` much more useful.
+
+`-i` ignores case, so it matches `ERROR`, `Error`, and `error`:
 
 ```bash
 grep -i "error" sample.log
 ```
 
-`-n` prints the line number alongside each match, so you know exactly where in the file it sits:
+`-n` shows the line number of each match:
 
 ```bash
 grep -n "Failed password" sample.log
 ```
 
-`-r` searches recursively through every file in a directory, which is what turns `grep` from a single-file tool into something you point at an entire folder of logs at once:
+`-r` searches every file inside a folder. This turns `grep` from a one-file tool into one you can point at a whole folder of logs:
 
 ```bash
 mkdir -p logs
@@ -109,7 +112,7 @@ cp sample.log logs/auth.log
 grep -r "Failed password" logs
 ```
 
-`-v` inverts the match, printing every line that does **not** contain the pattern, useful for filtering out noise you already understand so only the unfamiliar lines remain:
+`-v` inverts the match: it prints every line that does **not** contain the text. Use it to filter out noise you already understand, so only the unusual lines remain:
 
 ```bash
 grep -v "INFO" sample.log
@@ -117,38 +120,72 @@ grep -v "INFO" sample.log
 
 ## Pipes and redirection: chaining commands together
 
-The pipe character `|` takes the output of one command and feeds it directly into the next, instead of printing it to your screen first. You can chain `cat` and `grep` together, for instance:
+The pipe `|` sends the output of one command into the next one, instead of to your screen:
 
 ```bash
 cat sample.log | grep ERROR
 ```
 
-That particular example is a little redundant, since `grep ERROR sample.log` does the same thing on its own, but the pattern matters more than this one case: pipes let you compose small, single-purpose commands into a longer pipeline. A common defender move is counting matches rather than reading them all, by piping into `wc -l` (word count, with `-l` for lines):
+That example is a little redundant, since `grep ERROR sample.log` does the same. The pattern is what matters: pipes let you combine small, single-purpose commands. A common defender move is to count matches instead of reading them all, with `wc -l` (word count, `-l` for lines):
 
 ```bash
 grep "Failed password" sample.log | wc -l
 ```
 
-That single pipeline answers "how many failed login attempts are in this file" with one number, which scales to a multi-megabyte `auth.log` just as well as it does to your seven-line sample.
+One number answers "how many failed logins are in this file?" It works the same on a seven-line sample and on a huge `auth.log`.
 
-Redirection sends output to a file instead of the screen. `>` creates or overwrites a file:
+**Redirection** sends output to a file instead of the screen. `>` creates or overwrites a file:
 
 ```bash
 grep "Failed password" sample.log > failed-logins.txt
 cat failed-logins.txt
 ```
 
-`>>` appends to a file instead of overwriting it:
+`>>` adds to the end of a file instead of overwriting it:
 
 ```bash
 echo "Reviewed by analyst on duty" >> failed-logins.txt
 cat failed-logins.txt
 ```
 
-Both commands stay inside `~/linux-essentials`, so running them again, or getting the pattern wrong, costs you nothing.
+Both stay inside `~/linux-essentials`, so a mistake costs nothing.
+
+## Editing a file by hand: nano
+
+Redirection is great for scripts, but sometimes you just need to open a file and change a line. `nano` is a small text editor that runs inside the terminal and works on Linux, WSL, and macOS:
+
+```bash
+nano failed-logins.txt
+```
+
+Use the arrow keys to move and type as usual. Add a line at the bottom, such as `Checked again after lunch`. To save, press `Ctrl+O`, then `Enter`. To exit, press `Ctrl+X`. Check your change:
+
+```bash
+cat failed-logins.txt
+```
+
+The shortcuts are listed at the bottom of the `nano` screen, where `^` means `Ctrl`. Later tracks (Git, and the server track) will ask you to edit files, and `nano` is all you need for that.
+
+## Watching a file live: tail -f
+
+This one needs **two terminal windows**, both inside `~/linux-essentials`. In the first one, start following the log:
+
+```bash
+tail -f sample.log
+```
+
+It prints the last lines and then waits. In the second window, add a new line to the same file:
+
+```bash
+cd ~/linux-essentials
+echo "2024-01-10 08:31:00 Failed password for root from 203.0.113.9" >> sample.log
+```
+
+Look back at the first window: the new line appears there by itself. That is what watching an authentication log during an active incident looks like, just at a much smaller scale. Press `Ctrl+C` in the first window to stop following. `Ctrl+C` stops almost any command that is still running in the foreground, which is worth remembering on its own.
 
 ### What to notice
 
-- `cat` is for short files you want to see all at once; `less` is for anything long enough to need paging, and `q` is how you get back out.
-- `grep`, with `-i`, `-n`, `-r`, and `-v`, is the single most useful search tool in this lesson, and it is the literal command you reach for when searching `auth.log` or `syslog` for brute-force attempts or a known indicator of compromise.
-- Pipes and redirection let you chain commands like `grep` and `wc -l` together, turning a pile of log lines into a single, specific answer.
+- Use `cat` for short files and `less` for long ones. `q` gets you out of `less`.
+- `grep`, with `-i`, `-n`, `-r`, and `-v`, is the search tool you will use most, including on real `auth.log` and `syslog` files.
+- Pipes and redirection turn a pile of log lines into one specific answer, like a count.
+- `nano` edits a file, `tail -f` watches one live, and `Ctrl+C` stops a running command.

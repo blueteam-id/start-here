@@ -6,7 +6,7 @@ order: 1
 estimatedMinutes: 20
 reflectQuestions:
   - 'Why would a security team care who changed a line of code, and when, not just what the line now says?'
-  - 'If a company keeps its firewall rules and detection rules in Git, what happens during an investigation if that history is incomplete or missing?'
+  - 'A company keeps its firewall rules in Git. What goes wrong in an investigation if that history is missing?'
   - 'Did `git --version` print a version number for you? If not, what do you need to do before the rest of this track?'
 resources:
   - label: 'Pro Git (free, official book)'
@@ -15,19 +15,21 @@ resources:
     url: 'https://git-scm.com/doc'
 ---
 
-## What Git actually is
+## What Git is
 
-**Git** is a **version control system**: a tool that tracks every change ever made to a set of files, who made it, when, and why, and lets you move between any of those versions at will. It's **distributed**, meaning every copy of a repository (a project tracked by Git) carries the full history, not just the latest snapshot. That matters more than it sounds: there is no single central server whose loss wipes out the project's past, every clone is a complete backup of everything that happened.
+**Git** is a **version control system**. It tracks every change ever made to a set of files: what changed, who changed it, when, and why. It also lets you go back to any earlier version.
 
-Git was created in 2005 by Linus Torvalds, the same person behind the Linux kernel, specifically to manage that kernel's own development. Today it is, by a wide margin, the most widely used version control system in the world, for open source and corporate code alike.
+Git is **distributed**. Every copy of a **repository** (a project tracked by Git) holds the full history, not just the latest version. So there is no single central server whose loss would wipe out the project's past. Every copy is a complete backup.
 
-## Why a security team ends up living in Git, whether it plans to or not
+Linus Torvalds, who also created the Linux kernel, built Git in 2005 to manage the kernel's development. Today it is by far the most used version control system in the world, for open source and company code alike.
 
-- **Infrastructure as code.** Firewall rules, cloud configuration, and detection rules increasingly live as files in a Git repository rather than as settings clicked into a console somewhere. A misconfigured rule, tracked this way, carries a commit author, a timestamp, and a message explaining the change, exactly the information an investigation needs first.
-- **The software supply chain runs on Git.** Nearly all software, open source and internal, moves through Git-based workflows before it reaches production. Understanding Git well is what lets you actually follow a supply-chain security advisory instead of taking its conclusions on faith.
-- **It's a hard-to-fake audit trail.** Once a commit is shared and other people have copies of it, quietly rewriting history without anyone noticing is genuinely difficult, especially with the protections later lessons and the next track cover. That resistance to quiet tampering is exactly why Git history is trusted as a record of what happened.
+## Why security teams end up living in Git
 
-None of this requires you to be a software developer. It requires you to be comfortable reading and reasoning about a tool that, more and more, is where the evidence already lives.
+- **Infrastructure as code.** Firewall rules, cloud settings, and detection rules increasingly live as files in a Git repository, not as settings clicked into a console. When a rule is wrong, Git shows who changed it, when, and their explanation. That is exactly what an investigation needs first.
+- **The software supply chain runs on Git.** Almost all software, open source and internal, passes through Git before it reaches production. Knowing Git lets you follow a supply-chain security advisory yourself, instead of taking it on faith.
+- **It is a hard-to-fake audit trail.** Once other people have copies of a commit, quietly rewriting history is very hard to do without someone noticing, especially with the protections covered later. That is why Git history is trusted as a record of what happened.
+
+You do not need to be a software developer for any of this. You need to be comfortable reading a tool that, more and more, is where the evidence lives.
 
 ## Installing and checking your setup
 
@@ -37,7 +39,7 @@ Open a terminal and check whether Git is already installed:
 git --version
 ```
 
-If that printed a version number, you're set. If it didn't, install Git from the official [git-scm.com downloads page](https://git-scm.com/downloads), which has installers for Windows, macOS, and Linux, then run the command above again to confirm.
+If that prints a version number, you are set. If not, install Git from the official [git-scm.com downloads page](https://git-scm.com/downloads), which has installers for Windows, macOS, and Linux. Then run the command again to confirm.
 
 **On Windows, use Git Bash for this track.** The Git for Windows installer also installs **Git Bash**, a small bash terminal. Open it from the Start menu and run every command in this track there. Git itself works the same in PowerShell, but the shell around it does not: in Windows PowerShell, `echo "text" > file.txt` saves the file in an encoding (UTF-16) that Git treats as binary, so `git diff` would show "Binary files differ" instead of the changed lines. Git Bash avoids that, and the commands then match macOS and Linux exactly.
 
@@ -68,17 +70,16 @@ git config --global init.defaultBranch
 
 ## Creating your practice space
 
-Just like the other hands-on tracks, you'll reuse one dedicated folder for every exercise in this track:
+As in the other hands-on tracks, you will reuse one folder for every exercise:
 
 ```bash
-mkdir git-fundamentals
-cd git-fundamentals
+mkdir -p ~/git-fundamentals && cd ~/git-fundamentals
 ```
 
-From here on, whenever a lesson says "in your terminal," assume it means from inside this folder unless it says otherwise.
+`~` is your home folder, so the practice folder always ends up in the same place, no matter where your terminal opened. `-p` means "no error if it already exists", so this line is safe to run again on another day. From here on, "in your terminal" means from inside this folder unless a lesson says otherwise. Every later lesson starts by going back into it.
 
 ### What to notice
 
 - Every commit is permanently labeled with a name and email, set once with `git config --global`. That is why the name should be real, and why the email should be one you are happy to make public, such as a `noreply` address.
-- Because Git is distributed, every clone is a full copy of the project's history, not just its latest state.
-- Infrastructure-as-code and detection-as-code are why security work increasingly means reading Git history directly, not just reading a dashboard built on top of it.
+- Because Git is distributed, every copy of a repository holds the full history, not just the latest state.
+- Infrastructure as code and detection as code are why security work increasingly means reading Git history directly, not just a dashboard built on top of it.

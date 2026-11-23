@@ -6,9 +6,9 @@ order: 4
 estimatedMinutes: 25
 prerequisites: 'Lesson 3, for a repository with some branch and merge history already in it.'
 reflectQuestions:
-  - 'If you already pushed a bad commit and other people might have it too, why is rewriting history a worse idea than adding a new commit that undoes it?'
-  - 'Quietly erasing a mistake from the record can look a lot like covering something up, even when nobody intended that. Why would a defender want the record kept instead?'
-  - 'When would you reach for `git stash` instead of just committing your half-finished work?'
+  - 'Other people may already have your bad commit. Why is adding a fixing commit better than rewriting history?'
+  - 'Why would a defender want a mistake kept visible in the record instead of quietly erased?'
+  - 'When would you use `git stash` instead of committing half-finished work?'
 resources:
   - label: 'git-revert (official reference)'
     url: 'https://git-scm.com/docs/git-revert'
@@ -16,14 +16,22 @@ resources:
     url: 'https://git-scm.com/docs/git-reset'
 ---
 
-## Four different ways to undo, and why they're not interchangeable
+## Back to the practice folder
 
-Git gives you several ways to undo something, and picking the wrong one for the situation causes real problems, so it's worth knowing exactly what each one does before you need it in a hurry:
+```bash
+cd ~/git-fundamentals
+```
 
-- **`git restore`** throws away uncommitted changes to a file, back to how it looked at the last commit. Use it for a change you haven't saved yet and don't want.
-- **`git reset`** moves your branch pointer backward, which rewrites local history. Safe on commits only you have ever seen; dangerous on anything you've already shared, because it can make commits other people already have simply vanish from your side of the story.
-- **`git revert`** creates a brand-new commit that undoes an earlier one, leaving both the mistake and the fix fully visible in history. Safe to use on shared, already-pushed history.
-- **`git stash`** temporarily shelves uncommitted changes without committing them, so you can switch tasks and come back later.
+Every command below runs inside this folder, in the repository you created in Lesson 2.
+
+## Four ways to undo, and why they are not interchangeable
+
+Git has several ways to undo something. Picking the wrong one causes real problems, so learn what each does before you need it in a hurry:
+
+- **`git restore`** throws away **uncommitted** changes to a file, back to the last commit. Use it for a change you have not saved yet and do not want.
+- **`git reset`** moves your branch pointer backward, which **rewrites** local history. It is safe on commits only you have seen. It is dangerous on anything you have shared, because commits other people already have can vanish from your side of the story.
+- **`git revert`** creates a **new commit** that undoes an earlier one. The mistake and the fix both stay visible. It is safe on shared, already-pushed history.
+- **`git stash`** temporarily **shelves** uncommitted changes without committing them, so you can switch tasks and come back later.
 
 ## Try `git restore` on an unwanted change
 
@@ -33,11 +41,11 @@ git restore notes.txt
 cat notes.txt
 ```
 
-That line is gone, and nothing was ever committed, so there's nothing to undo later.
+The line is gone. It was never committed, so there is nothing to undo later.
 
 ## Why `git revert`, not `git reset`, on anything shared
 
-Commit a genuine mistake first:
+First, commit a real mistake:
 
 ```bash
 echo "This line is wrong and needs undoing." >> notes.txt
@@ -54,9 +62,9 @@ git log --oneline
 
 `--no-edit` tells Git to use its standard message ("Revert ...") for the new commit. Without it, Git opens a text editor so you can write the message yourself. That editor is often **Vim**, which confuses almost everyone the first time. If you ever land in a screen full of `~` lines and cannot type or leave, press `Esc`, then type `:wq` and press `Enter` to save and exit (or `:q!` to exit without saving).
 
-Your history now shows **both** commits: the mistake, and a new commit that explicitly undoes it. Nothing was erased. Compare that to what `git reset` would have done instead, moving the branch pointer backward and making the mistaken commit disappear from the visible history entirely.
+Your history now shows **both** commits: the mistake, and a new commit that undoes it. Nothing was erased. `git reset` would have moved the branch pointer back instead, and the mistaken commit would have disappeared from the visible history.
 
-This distinction matters more than it might seem. A Git history with commits quietly missing, especially on a branch other people already pulled from, looks a lot like someone covering their tracks, even when the intent was completely innocent. This is exactly why force-pushing and history rewrites are commonly blocked outright on shared, protected branches: `git revert` keeps the record honest, "this was wrong, and here is the fix," both still visible, the same instinct behind never clearing an audit log instead of just addressing what it shows.
+This matters more than it seems. A history with commits quietly missing, especially on a branch others already pulled, looks a lot like someone covering their tracks, even when nobody meant harm. That is why force-pushing and history rewrites are often blocked on shared, protected branches. `git revert` keeps the record honest: "this was wrong, and here is the fix", both visible. It is the same instinct as never clearing an audit log to hide a problem.
 
 ## git stash for "I need to switch away right now"
 
@@ -66,16 +74,16 @@ git stash
 git status
 ```
 
-Your change is shelved, and `notes.txt` is back to its last committed state. Bring it back whenever you're ready:
+Your change is shelved, and `notes.txt` is back to its last committed state. Bring the change back when you are ready:
 
 ```bash
 git stash pop
 ```
 
-`git stash list` shows everything you've stashed if you ever shelve more than one thing at once.
+If you ever shelve more than one thing, `git stash list` shows them all.
 
 ### What to notice
 
-- `git restore` undoes what was never committed. `git revert` undoes what was committed and shared. They solve different problems; using the wrong one in the wrong situation is how real history gets lost.
-- A history with an honest mistake-and-fix pair, both visible, is more trustworthy than one where the mistake was quietly made to disappear.
-- `git stash` is for "not now, but don't lose this," not for genuinely finished work, which should be committed instead.
+- `git restore` undoes what was never committed. `git revert` undoes what was committed and shared. Using the wrong one is how real history gets lost.
+- A history with an honest mistake-and-fix pair, both visible, is more trustworthy than one where the mistake quietly disappeared.
+- `git stash` means "not now, but do not lose this". Finished work should be committed instead.

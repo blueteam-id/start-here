@@ -7,7 +7,7 @@ estimatedMinutes: 25
 reflectQuestions:
   - 'Which of the six lessons changed how you think about working on a Linux system the most, and why?'
   - 'Write down one question this track raised that it did not answer. That question is a good first post in the Discord.'
-  - 'Explain to a friend, in three or four sentences and without jargon, what you did in the combined exercise below and why each step mattered.'
+  - 'Explain the exercise below to a friend in three or four simple sentences. Why did each step matter?'
 resources:
   - label: 'The Missing Semester of Your CS Education (free MIT course on the shell and tools)'
     url: 'https://missing.csail.mit.edu/'
@@ -17,34 +17,34 @@ resources:
 
 ## What you now know
 
-Six lessons ago you had never opened a terminal with intent. Here is the short version of the ground you have covered since:
+Six lessons ago, you had never opened a terminal on purpose. Here is what you covered since:
 
-1. **What Is Linux, and Why It's Everywhere.** Linux is the kernel, a distro bundles it with tools and a package manager, and the two move on different update schedules. More importantly, Linux is what actually runs the servers, cloud workloads, and containers a blue teamer spends a career around.
-2. **Getting Oriented in the Shell.** A shell sits between you and the kernel, the prompt tells you who and where you are before you read a single word of the line, and `pwd`, `ls`, and `cd` are the first three commands anyone runs after landing on an unfamiliar system.
-3. **Navigating the Filesystem.** Absolute paths always mean the same place, relative paths depend on where you are standing, dotfiles are a convention rather than a security boundary, and `rm` has no undo, which is exactly why every exercise stayed inside `~/linux-essentials`.
-4. **Reading and Searching Files.** `cat`, `less`, `head`, and `tail` get you to the part of a file you care about, and `grep`, with `-i`, `-n`, `-r`, and `-v`, is the single most useful search tool for picking a real signal out of a pile of log lines.
-5. **Permissions and Ownership.** The `ls -l` permission string breaks into type, owner, group, and other, `chmod` changes those bits symbolically or numerically, and a world-writable file is one of the first things a real pentest report flags.
-6. **Processes and Installing Software.** `ps` and `top` show you what is running and how hard it is working, `kill` asks a process to stop (politely, or as a last resort with `-9`), and package managers track what is installed on a system well enough to make an unexplained package worth investigating.
+1. **What Is Linux, and Why It's Everywhere.** Linux is the kernel. A distro bundles it with tools and a package manager, and the two are updated on different schedules. Linux runs most of the servers, cloud workloads, and containers a defender works with.
+2. **Getting Oriented in the Shell.** The shell sits between you and the kernel. The prompt tells you who and where you are, and whether you are root. `pwd`, `ls`, and `cd` are the first commands on any unfamiliar system, and `man` and `--help` are there when you forget an option.
+3. **Navigating the Filesystem.** Absolute paths always mean the same place; relative paths depend on where you are. `/etc`, `/var/log`, and `/tmp` are worth knowing by heart. Dotfiles are a convention, not a security boundary. `rm` has no undo.
+4. **Reading and Searching Files.** `cat`, `less`, `head`, and `tail` get you to the part of a file you need. `grep` finds the signal in a pile of log lines, `nano` edits a file, and `tail -f` watches one live.
+5. **Permissions and Ownership.** The permission string has type, owner, group, and other. `chmod` changes it symbolically or with numbers. `id` and `/etc/passwd` show who exists on the system. A world-writable file is one of the first things a pentest report flags.
+6. **Processes and Installing Software.** `ps` and `top` show what is running. `kill` asks a process to stop (politely, or with `-9` as a last resort). Package managers track what is installed, so an unexplained package stands out.
 
-Those six ideas, read a prompt, move around confidently, search text fast, read and fix permissions, and keep an eye on processes and packages, are the daily reflexes of anyone who works on Linux systems for a living. Everything else you will learn later builds on top of them.
+Reading a prompt, moving around, searching text, fixing permissions, and watching processes and packages: these are the daily reflexes of anyone who works on Linux systems. Everything later builds on them.
 
 ## Hands-on: triage a suspicious file
 
-This last exercise does not teach anything new. It chains together commands from across the whole track into one small scenario: a file shows up that should not be trusted yet, and you work through it the way you would on a real system, end to end.
+This exercise teaches nothing new. It chains commands from the whole track into one small scenario: a file shows up that you should not trust yet, and you work through it as you would on a real system.
 
-Get back to your practice folder first. Everything below happens inside it, and nothing here touches anything outside it:
+Go back to your practice folder first. Everything below happens inside it:
 
 ```bash
 cd ~/linux-essentials
 ```
 
-A file arrives. Create a stand-in for it, and imagine for a moment that this is something you just received rather than something you just typed:
+A file arrives. Create a stand-in, and imagine you received it rather than typed it:
 
 ```bash
 touch incoming-attachment.sh
 ```
 
-Now imagine whatever process dropped that file also left it wide open, which happens more often than you would like on real systems. Reproduce that deliberately, so you have something worth catching:
+Imagine that whatever dropped the file also left it wide open. That happens on real systems more often than you would like. Reproduce it on purpose, so there is something to catch:
 
 ```bash
 chmod 777 incoming-attachment.sh
@@ -56,18 +56,18 @@ Check it the way you would check any file you were handed:
 ls -l incoming-attachment.sh
 ```
 
-You should see something like `-rwxrwxrwx 1 you you 0 ... incoming-attachment.sh`. Read that permission string the way Lesson 5 taught you: owner, group, and other can all read, write, and execute this file. A `777` on a file you did not create yourself, and have no reason to trust yet, is exactly the kind of finding that gets flagged, world-writable and world-executable, open to being rewritten by literally anyone on the system. You just caught it.
+You should see something like `-rwxrwxrwx 1 you you 0 ... incoming-attachment.sh`. Read it the way Lesson 5 taught you: owner, group, and other can all read, write, and execute it. A `777` on a file you have no reason to trust is exactly the kind of finding that gets flagged. Anyone on the system could rewrite it or run it. You just caught it.
 
-Fix it. This file has no reason to be executable or writable by anyone but you, so bring it back down to a plain, sane default:
+Fix it. This file has no reason to be executable, or writable by anyone but you. Set it back to a sane default:
 
 ```bash
 chmod 644 incoming-attachment.sh
 ls -l incoming-attachment.sh
 ```
 
-That second `ls -l` should now show `-rw-r--r--`: owner can read and write, everyone else can only read. That one command, run after you actually looked at the file instead of assuming it was fine, is the whole habit in miniature.
+The second `ls -l` should show `-rw-r--r--`: you can read and write, everyone else can only read. Looking at the file before trusting it, then fixing it, is the whole habit in small.
 
-The last piece ties in Lesson 4. Suppose there is a log recording what just happened to that file. Create a small one:
+The last step uses Lesson 4. Suppose a log recorded what just happened to the file. Create a small one:
 
 ```bash
 cat > triage.log << 'EOF'
@@ -78,18 +78,18 @@ cat > triage.log << 'EOF'
 EOF
 ```
 
-Now search it for the line that actually matters, the way you would search a real `auth.log` or `syslog` for a known marker:
+Now search it for the line that matters, the way you would search a real `auth.log` or `syslog` for a known marker:
 
 ```bash
 grep "ALERT" triage.log
 ```
 
-That single line is the one that would start a real investigation: something made this file world-writable, and whatever read this log flagged it. You just walked the whole path: create, inspect, catch a bad default, fix it, and confirm the story from the log. Five lessons' worth of commands, one small scenario, nothing outside `~/linux-essentials` touched or at risk the entire time.
+That one line is what would start a real investigation: something made this file world-writable, and the log caught it. You walked the whole path: receive, inspect, catch a bad default, fix it, and confirm the story in the log. Several lessons of commands, one small scenario, and nothing outside `~/linux-essentials` touched.
 
 ## Where to go from here
 
-This track deliberately stopped at foundation depth. Shells, paths, permissions, processes, and package managers are each topics people spend entire careers getting deeper into, system administration, kernel internals, package security, process forensics. Stopping here is the point: you now have the map, the vocabulary, and enough hands-on muscle memory to not be lost the first time a real server asks something of you.
+This track stopped at foundation depth on purpose. Shells, paths, permissions, processes, and package managers are each topics people spend whole careers on: system administration, kernel internals, package security, process forensics. You now have the map, the vocabulary, and enough practice not to feel lost the first time a real server asks something of you.
 
-If a command did not behave the way a lesson said it would, or if something in this track made you want to go deeper right now, **bring it to the community Discord** using the Join Discord button at the top of the page. That is where the harder questions get worked through, where people compare notes across different distros and setups, and where a beginner question is always welcome. The one open question you wrote down in the reflection below is a perfectly good place to start that conversation.
+If a command did not behave the way a lesson said, or you want to go deeper now, **bring it to the community Discord** with the Join Discord button at the top of the page. That is where harder questions get worked through, where people compare notes across distros and setups, and where beginner questions are always welcome. The question you write down in the reflection below is a good way to start.
 
-When you are ready, the next tracks in the program build directly on what you just practiced here: **Networking Fundamentals** picks up once a machine needs to talk to another one, and later tracks will ask you to read logs, check permissions, and watch processes on systems that are not a safe sandbox anymore. The habits you built inside `~/linux-essentials` are the ones that carry over.
+When you are ready, the next tracks build on what you practiced here. **Networking Fundamentals** picks up once a machine needs to talk to another one. Later tracks ask you to read logs, check permissions, and watch processes on systems that are no longer a safe sandbox. The habits you built in `~/linux-essentials` are the ones that carry over.

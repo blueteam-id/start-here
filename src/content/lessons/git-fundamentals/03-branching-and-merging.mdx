@@ -7,8 +7,8 @@ estimatedMinutes: 25
 prerequisites: 'Lesson 2, for a repository with at least one commit.'
 reflectQuestions:
   - 'Why is it safer to try a risky change on a branch than directly on main?'
-  - 'If two people both edit the same line of a firewall config on separate branches, why should a human carefully choose which version is correct, instead of a tool just picking one automatically?'
-  - 'You just resolved a merge conflict by hand. Why does that moment deserve the same care as writing the code the first time?'
+  - 'Two people edit the same line of a firewall config on separate branches. Why should a human choose the final version, not a tool?'
+  - 'Why does resolving a merge conflict deserve the same care as writing the change in the first place?'
 resources:
   - label: 'git-branch (official reference)'
     url: 'https://git-scm.com/docs/git-branch'
@@ -16,9 +16,17 @@ resources:
     url: 'https://git-scm.com/docs/git-merge'
 ---
 
-## What a branch actually is
+## Back to the practice folder
 
-A **branch** is a lightweight, movable pointer to a commit, not a separate copy of your files. Creating a branch is instant and cheap, exactly because it isn't copying anything, it's just a new named pointer sitting alongside `main`. See your current branch:
+```bash
+cd ~/git-fundamentals
+```
+
+Every command below runs inside this folder, in the repository you created in Lesson 2.
+
+## What a branch is
+
+A **branch** is a lightweight, movable pointer to a commit. It is not a separate copy of your files. That is why creating one is instant: Git copies nothing, it just adds a new named pointer next to `main`. See your current branch:
 
 ```bash
 git branch
@@ -36,13 +44,15 @@ Now create and switch to a new branch:
 git switch -c feature-notes
 ```
 
-`-c` creates the branch; `switch` moves you onto it. You're now working on `feature-notes`, completely isolated from `main`, anything you commit here doesn't touch `main` until you explicitly merge it.
+`switch` moves you to a branch, and `-c` creates it first. You are now on `feature-notes`, isolated from `main`. Nothing you commit here touches `main` until you merge it.
 
 ## Why branch instead of editing directly
 
-This isolation is the entire point. You can experiment, make a mess, and commit half-finished work on a branch without ever putting `main` at risk. This is why "never edit directly on `main`, always branch first" is close to a universal rule in professional software and security engineering alike: `main` is often what's actually deployed, or what detection rules are actually built from, so keeping it stable matters more than keeping any one branch tidy.
+That isolation is the whole point. On a branch, you can experiment, make a mess, and commit half-finished work without putting `main` at risk.
 
-Make a change here to prove the isolation:
+That is why "always branch first, never edit `main` directly" is close to a universal rule in software and security engineering. `main` is often what is deployed, or what detection rules are built from. Keeping it stable matters more than keeping any one branch tidy.
+
+Make a change here to see the isolation:
 
 ```bash
 echo "A note added on a branch." >> notes.txt
@@ -52,7 +62,7 @@ git switch main
 cat notes.txt
 ```
 
-Your `main` branch's `notes.txt` doesn't have that new line, it only exists on `feature-notes` until you merge it.
+On `main`, `notes.txt` does not have the new line. It only exists on `feature-notes` until you merge it.
 
 ## Merging branches together
 
@@ -62,11 +72,12 @@ Bring the branch's work into `main`:
 git merge feature-notes
 ```
 
-If `main` hadn't changed since you branched, Git performs a **fast-forward merge**: it just moves the `main` pointer forward, no new commit needed. If both branches had new commits, Git creates a dedicated **merge commit** that joins both histories together instead.
+- If `main` had not changed since you branched, Git does a **fast-forward merge**: it just moves the `main` pointer forward. No new commit is needed.
+- If both branches had new commits, Git creates a **merge commit** that joins the two histories.
 
-## When Git can't decide for you: merge conflicts
+## When Git cannot decide for you: merge conflicts
 
-A **conflict** happens when two branches changed the exact same lines differently, and Git genuinely cannot guess which version you want. Create one deliberately:
+A **conflict** happens when two branches changed the same lines in different ways. Git cannot guess which version you want. Create one on purpose:
 
 ```bash
 git switch -c conflict-demo
@@ -105,10 +116,10 @@ git add conflict.txt
 git commit -m "Resolve conflict.txt merge"
 ```
 
-Resolving a conflict is a real editorial decision, not a mechanical one. In a firewall rule or a detection rule, two well-intentioned changes merged carelessly could silently cancel each other out, or reopen something a previous change had closed. Treat a conflict as a moment that deserves the same scrutiny as writing the rule in the first place, not an obstacle to clear as fast as possible.
+Resolving a conflict is a real decision, not a mechanical step. In a firewall or detection rule, two good changes merged carelessly can cancel each other out, or reopen something an earlier change had closed. Give a conflict the same care as writing the rule in the first place. It is not an obstacle to clear as fast as possible.
 
 ### What to notice
 
-- A branch costs almost nothing to create precisely because it's just a pointer, which is exactly what makes "always branch first" practical advice rather than a burden.
-- A fast-forward merge just moves a pointer; a real merge commit records that two separate histories joined, which is itself useful information later.
-- A merge conflict is Git refusing to guess. Resolving it carefully, not quickly, is what keeps that refusal useful.
+- A branch is just a pointer, so it costs almost nothing. That is what makes "always branch first" practical.
+- A fast-forward merge only moves a pointer. A merge commit records that two histories joined, which is useful information later.
+- A merge conflict is Git refusing to guess. Resolve it carefully, not quickly.

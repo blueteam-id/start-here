@@ -4,7 +4,7 @@ category: 'OS & Linux/Windows'
 order: 1
 status: 'live'
 summary: 'Shell navigation, permissions, core commands such as grep and chmod, hands-on.'
-estimatedMinutes: 160
+estimatedMinutes: 180
 lessonCount: 7
 author: 'Wahyu N'
 reviewer: 'Wahyu N'

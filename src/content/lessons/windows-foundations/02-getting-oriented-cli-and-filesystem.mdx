@@ -6,9 +6,9 @@ order: 2
 estimatedMinutes: 25
 prerequisites: 'Lesson 1 (What Is Windows, and Why It Matters), so you have a Windows environment ready.'
 reflectQuestions:
-  - 'If you found a strange new file inside `AppData\Local\Temp`, is that alone proof something is wrong? What else would you want to know about it?'
-  - 'A script can run through either PowerShell or cmd.exe. Why might it matter, during an investigation, which one it actually ran through?'
-  - 'You created one `windows-foundations` folder to practice in. Why is it a good habit to always practice in that same folder instead of random locations?'
+  - 'You find a strange new file in `AppData\Local\Temp`. Is that proof something is wrong? What else would you want to know?'
+  - 'During an investigation, why might it matter whether a script ran through PowerShell or cmd.exe?'
+  - 'Why is it a good habit to always practice in the same `windows-foundations` folder?'
 resources:
   - label: 'About PowerShell (Microsoft Learn)'
     url: 'https://learn.microsoft.com/powershell/scripting/overview'
@@ -18,19 +18,22 @@ resources:
 
 ## Two command lines, one Windows
 
-Windows actually ships with two different command-line shells, and knowing which is which matters. **Command Prompt** (`cmd.exe`) is the older of the two, dating back to Windows NT, and it's still around mostly for backward compatibility with old scripts and tools. **PowerShell** is the modern shell Microsoft has built on since 2006, and it's where this track will spend almost all of its time, for a reason that will matter a lot in Lesson 4: PowerShell commands pass structured data to each other, not just plain text.
+Windows ships with two different command-line shells:
 
-To open PowerShell, right-click the Start button and choose **Terminal** (Windows 11) or search for **Windows PowerShell** (Windows 10). You'll land on a prompt that looks like this:
+- **Command Prompt** (`cmd.exe`) is the older one, from the Windows NT days. It is still there mostly so old scripts and tools keep working.
+- **PowerShell** is the modern shell, which Microsoft has built on since 2006. This track uses it almost all the time. One reason matters a lot in Lesson 5: PowerShell commands pass **structured data** to each other, not just plain text.
+
+To open PowerShell, right-click the Start button and choose **Terminal** (Windows 11), or search for **Windows PowerShell** (Windows 10). You will see a prompt like this:
 
 ```powershell
 PS C:\Users\alex>
 ```
 
-Read it the way you learned to read a Linux prompt: `PS` marks this as PowerShell rather than cmd, and `C:\Users\alex` is your **current directory**, equivalent to the `pwd` of a Linux shell but shown to you automatically on every line. There's no username or hostname baked into the default PowerShell prompt the way a typical Linux one shows both; if you need to know who or where you are on a multi-user box, you'll ask for it explicitly, which later lessons cover.
+Read it like a Linux prompt. `PS` means this is PowerShell, not cmd. `C:\Users\alex` is your **current directory**. It plays the role of `pwd` in Linux, but PowerShell shows it on every line. The default prompt does not show your username or the machine name, unlike a typical Linux prompt. When you need those, you ask for them; Lesson 3 shows how.
 
 ## Finding your way around
 
-Three commands answer the same first questions a Linux shell does. In PowerShell, each is technically a **cmdlet** (pronounced "command-let") with a full name, but they also ship with short aliases that will feel immediately familiar if you've touched a Linux shell before:
+Three commands answer the same first questions as in a Linux shell. In PowerShell, each is a **cmdlet** (say "command-let") with a full name. Each also has short **aliases** that will feel familiar if you have used Linux:
 
 ```powershell
 Get-Location    # full cmdlet name; alias: pwd
@@ -38,39 +41,45 @@ Get-ChildItem   # full cmdlet name; alias: dir, or ls
 Set-Location    # full cmdlet name; alias: cd
 ```
 
-Try the aliases directly:
+Try the aliases:
 
 ```powershell
 pwd
 dir
 ```
 
-`pwd` prints your current directory, same as Linux. `dir` lists what's in it, with name, size, and last-modified timestamp for each entry, plus a `Mode` column at the start of each line that hints at type and attributes (`d` for directory, among others) in a rougher, less detailed way than Linux's permission string, more on that properly in Lesson 3.
+`pwd` prints your current directory, like on Linux. `dir` lists what is in it: name, size, and last-modified time for each entry. The `Mode` column at the start of each line hints at type and attributes (`d` for directory, among others). It is much less detailed than the Linux permission string. Lesson 3 covers Windows permissions properly.
 
 ## The shape of the Windows file system
 
-Where Linux has one single filesystem rooted at `/`, Windows organizes storage around **drive letters**: `C:` is almost always the main system drive, with others (`D:`, `E:`, etc.) for additional disks, USB drives, or network shares. Inside `C:\`, a few folders matter enough to recognize on sight:
+Linux has one filesystem starting at `/`. Windows organizes storage around **drive letters**. `C:` is almost always the main system drive. Other letters (`D:`, `E:`, and so on) are extra disks, USB drives, or network shares.
 
-- `C:\Windows`: the operating system itself: the kernel, system DLLs, and built-in tools. Almost nothing here should ever need direct editing.
-- `C:\Program Files` (and `C:\Program Files (x86)` for older 32-bit software): where installed applications live.
-- `C:\Users\<username>`: your personal space, the rough equivalent of a Linux user's home directory, containing `Desktop`, `Documents`, `Downloads`, and a couple of folders worth knowing by name even though they're normally hidden: `AppData\Local` and `AppData\Roaming`, where applications quietly store their own settings and cached data.
-- `C:\ProgramData`: shared application data, similar in spirit to `AppData` but for all users on the machine rather than just one.
+A few folders inside `C:\` are worth recognizing on sight:
 
-That `AppData\Local\Temp` folder, often reached by typing `%TEMP%` instead of the full path, deserves a specific callout: it's one of the single most common places malware drops itself after a phishing download or a malicious script runs, precisely because an ordinary user already has full write access to it without needing any special permission. Knowing that folder by name, and knowing to check it during triage, is a small habit that pays off constantly.
+- `C:\Windows`: the operating system itself, including the kernel, system DLLs, and built-in tools. You should almost never need to edit anything here.
+- `C:\Program Files` (and `C:\Program Files (x86)` for older 32-bit software): installed applications.
+- `C:\Users\<username>`: your personal space, like a Linux home folder. It contains `Desktop`, `Documents`, and `Downloads`. It also contains two normally hidden folders worth knowing by name, `AppData\Local` and `AppData\Roaming`, where applications store their settings and cached data.
+- `C:\ProgramData`: shared application data, like `AppData` but for all users on the machine.
+
+One folder deserves special attention: `AppData\Local\Temp`, often reached by typing `%TEMP%`. It is one of the most common places malware drops itself after a phishing download or a malicious script. The reason is simple: an ordinary user can already write there, with no special permission. Knowing this folder, and checking it during triage, is a small habit that pays off often.
 
 ## Creating your practice space
 
-Just like the Linux track, you'll reuse one dedicated folder for every hands-on exercise from here on, so nothing you do risks touching a real file that matters. Create it now:
+As in the Linux track, you will reuse one folder for every exercise, so you never touch a real file that matters. Create it now:
 
 ```powershell
-New-Item -ItemType Directory -Path "$HOME\windows-foundations"
+New-Item -ItemType Directory -Path "$HOME\windows-foundations" -Force
 Set-Location "$HOME\windows-foundations"
 ```
 
-`New-Item -ItemType Directory` creates a new folder (PowerShell's more explicit equivalent of `mkdir`, which also works as an alias). `$HOME` is a built-in variable PowerShell expands to your user profile folder, `C:\Users\<you>`, so this works no matter who's logged in. From here on, whenever a lesson says "in your terminal," assume it means from inside `windows-foundations` unless it says otherwise.
+- `New-Item -ItemType Directory` creates a folder. It is PowerShell's more explicit version of `mkdir` (which also works as an alias).
+- `-Force` means "no error if it already exists", so these two lines are safe to run again on another day.
+- `$HOME` is a built-in variable for your user profile folder, `C:\Users\<you>`, so this works for anyone logged in.
+
+From now on, when a lesson says "in your terminal", it means from inside `windows-foundations` unless it says otherwise.
 
 ### What to notice
 
-- PowerShell and cmd.exe can both run the same box at the same time; a process or script's logs will usually tell you which one launched it, and that's a real detail worth noticing during an investigation, not just trivia.
-- `%TEMP%` (`AppData\Local\Temp`) is writable by an ordinary user and is one of the first places to check for a dropped file during triage.
-- You now have a standing `windows-foundations` folder for every hands-on exercise in this track, the same habit the Linux track built, adapted to where Windows actually expects you to work.
+- PowerShell and cmd.exe can both run on the same machine at the same time. Logs usually show which one launched a script or process, and that detail matters during an investigation.
+- `%TEMP%` (`AppData\Local\Temp`) is writable by any ordinary user. It is one of the first places to check for a dropped file.
+- You now have a `windows-foundations` folder for every exercise in this track, the same habit the Linux track built.

@@ -5,9 +5,9 @@ phase: 'Orientation'
 order: 1
 estimatedMinutes: 20
 reflectQuestions:
-  - 'If someone told you "this company has no Windows computers at all," would you believe them right away? What would you check first?'
-  - 'One stolen Windows account can sometimes affect every computer in a company, not just one. Why is that more dangerous than one stolen account on a single Linux server?'
-  - 'What did `systeminfo` show you about your own computer? Which details would be useful to share if you asked someone for help with it?'
+  - 'Someone says "this company has no Windows computers at all". Would you believe them? What would you check first?'
+  - 'Why can one stolen Windows domain account be worse than one stolen account on a single Linux server?'
+  - 'What did `systeminfo` show about your computer? Which details would you share when asking for help?'
 resources:
   - label: 'Windows Server editions and documentation (Microsoft Learn)'
     url: 'https://learn.microsoft.com/windows-server/'
@@ -17,34 +17,42 @@ resources:
 
 ## Before you start: getting access to Windows
 
-Unlike the Linux Essentials track, where Windows users could reach for WSL, there is no built-in way to run Windows from inside macOS or native Linux. If you already use Windows day to day, you're set, skip ahead. If you don't, you have a few free options:
+In Linux Essentials, Windows users could use WSL. There is no built-in equivalent the other way: macOS and Linux cannot run Windows on their own. If you already use Windows every day, you are set; skip ahead. If not, you have a few free options:
 
-- **A free evaluation VM.** Microsoft publishes time-limited (usually 90-day), free Windows 11 development VM images for VirtualBox, VMware, and Hyper-V through its official Windows Dev Center downloads. This is the most common way to follow this track without owning a Windows machine.
-- **Dual boot or a spare machine.** If you have an old laptop lying around, installing Windows on it works just as well, and you keep it afterward.
-- **A cloud free tier.** Several major cloud providers offer a free-tier Windows VM for a limited time, useful if you'd rather not install anything locally at all.
+- **A free evaluation VM.** Microsoft's [Evaluation Center](https://www.microsoft.com/evalcenter) offers a free 90-day **Windows 11 Enterprise evaluation** download. Install it in a VM with VirtualBox, VMware, UTM, or Hyper-V (the Computing Basics track's virtualization lesson explains what those are). This is the most common way to follow this track without owning a Windows machine. Microsoft has also offered ready-made developer VM images in the past, but those downloads have not always been available; the evaluation download is the dependable option.
+- **On an Apple Silicon Mac (M1 or later),** you need the **ARM** version of Windows 11, not the usual x86_64 one. This is the architecture rule from Computing Basics Lesson 1 in practice: a VM uses the same processor architecture as its host. UTM and Parallels both run Windows 11 for ARM, and every command in this track works the same on it.
+- **Dual boot or a spare machine.** An old laptop with Windows installed works just as well, and you keep it afterward.
+- **A cloud free tier.** Several cloud providers offer a free Windows VM for a limited time, if you would rather not install anything locally.
 
-Whichever option you pick, everything in this track uses only tools that already ship with a stock Windows 10 or 11 install, nothing extra to download once you have Windows itself running.
+Whichever you choose, this track only uses tools that ship with a normal Windows 10 or 11 install. Once Windows runs, there is nothing else to download.
 
-## What "Windows" actually refers to
+## What "Windows" refers to
 
-**Windows** is Microsoft's family of operating systems, and like "Linux," the name covers more ground than it first appears to. Modern Windows, from Windows XP onward, is built on the **Windows NT kernel**, a design that replaced the much older, far less robust DOS-based line (Windows 95, 98, ME) that defined the 1990s. Everything you'll touch in this track, Windows 10, Windows 11, and every edition of Windows Server, shares that same NT kernel underneath, which is why skills here carry across all of them even though the interfaces look different.
+**Windows** is Microsoft's family of operating systems. Like "Linux", the name covers more than it first seems.
 
-Windows also splits into two product lines that matter for a defender to keep straight:
+Modern Windows is built on the **Windows NT kernel**. Windows XP was the first home version built on it, replacing the older and much less robust DOS-based line (Windows 95, 98, and ME). Windows 10, Windows 11, and every Windows Server edition share the same NT kernel. That is why skills from this track carry across all of them, even though they look different.
 
-- **Desktop editions** (Windows 10, Windows 11) are what sits on employee laptops and desktops, the machines a phishing email or a malicious USB drive most often lands on first.
-- **Windows Server editions** run the infrastructure behind the desktops: file servers, database servers, and, critically, **domain controllers**, the servers that run **Active Directory**.
+Windows also comes in two product lines, and a defender should keep them apart:
 
-That second point is worth sitting with. Active Directory is the directory service that manages user accounts, permissions, and policy across an entire corporate network, and it is overwhelmingly the backbone of how businesses run Windows at scale. A single compromised domain administrator account in Active Directory can hand an attacker control over every Windows machine in the company, which is a different order of consequence than compromising one ordinary laptop. This is why, in real incident response, so much attention goes toward Windows specifically: not because Windows is less secure than other operating systems, but because the blast radius of a Windows compromise, through Active Directory, so often reaches further.
+- **Desktop editions** (Windows 10 and 11) run on employee laptops and desktops. These are the machines a phishing email or a malicious USB drive usually reaches first.
+- **Windows Server editions** run the infrastructure behind those desktops: file servers, database servers, and, most importantly, **domain controllers**, the servers that run **Active Directory**.
 
-## Why Windows is where defenders spend most of their time
+**Active Directory** manages user accounts, permissions, and policies across a whole company network. Most businesses use it to run Windows at scale. One stolen domain administrator account can give an attacker control of every Windows machine in the company. That is a far bigger problem than one stolen laptop.
 
-Windows has dominated the corporate desktop for decades, and that dominance is exactly why it shows up constantly in security work: it's simply what most employees are sitting in front of, which makes it the most common first foothold in almost every real intrusion. Phishing attachments, malicious macros, and drive-by downloads are overwhelmingly built to run on Windows, because that's where the largest number of targets are. Ransomware operators, in particular, build their tooling around Windows first, since Windows is also what most backup and file-server infrastructure runs on in a typical business.
+This is why incident response pays so much attention to Windows. Windows is not less secure than other systems. The **blast radius** of a Windows compromise, through Active Directory, often reaches much further. Lesson 4 explains Active Directory in plain terms.
 
-None of this means Windows is inherently weaker. It means a defender who only knows Linux is missing the operating system they will encounter the most in day-to-day work: the helpdesk ticket about a strange popup, the laptop that needs triage after a phishing click, the server that just started behaving oddly. Fluency here is not optional background, it's one of the two operating-system skillsets (alongside Linux) that nearly every blue team role assumes you already have.
+## Why defenders spend so much time on Windows
+
+Windows has dominated company desktops for decades. Most employees sit in front of it, so it is the most common first foothold in real intrusions:
+
+- Phishing attachments, malicious macros, and drive-by downloads are mostly built for Windows, because that is where most targets are.
+- Ransomware groups build their tools for Windows first, because the backup and file servers in a typical business also run Windows.
+
+This does not mean Windows is weaker. It means a defender who only knows Linux is missing the system they will meet most: the helpdesk ticket about a strange popup, the laptop that needs triage after a phishing click, the server that suddenly behaves oddly. Nearly every blue team role expects you to know both Windows and Linux.
 
 ## A quick look under the hood
 
-Open the Start menu, type `winver`, and press Enter. This opens a small dialog reporting your exact Windows edition and build number, information that matters more than it looks: a specific build number tells you exactly which security patches should already be present, which is often the first thing a vulnerability advisory or a support article will ask you to check.
+Open the Start menu, type `winver`, and press Enter. A small window shows your exact Windows edition and **build number**. The build number tells you which security patches should already be installed. Vulnerability advisories and support articles often ask for it first.
 
 For a fuller picture, open a terminal (right-click the Start button and choose **Terminal**, or search for **PowerShell**) and run:
 
@@ -52,10 +60,10 @@ For a fuller picture, open a terminal (right-click the Start button and choose *
 systeminfo
 ```
 
-This prints a long report: OS name and version, install date, system manufacturer and model, total physical memory, and more. Skim it slowly. You'll see the same edition and build information `winver` showed you, plus hardware details that matter during triage, for instance confirming whether a machine is a physical desktop or a virtual machine, which changes what kind of investigation makes sense.
+This prints a long report: OS name and version, install date, manufacturer and model, total memory, and more. Read it slowly. You will see the same edition and build as `winver`, plus hardware details that matter during triage. For example, it shows whether the machine is physical or a virtual machine, which changes how you investigate it.
 
 ### What to notice
 
-- Desktop Windows and Windows Server share the same NT kernel, but Server's role running Active Directory is what gives a single compromised Windows account the potential to affect an entire company, not just one machine.
-- `winver` and `systeminfo` are two of the fastest ways to get a precise build number, the same information most patch advisories and troubleshooting guides ask for first.
-- If you had to set up a VM or dual-boot for this track, you now have a disposable Windows environment, exactly the kind of thing worth keeping around for later, more hands-on security learning.
+- Desktop Windows and Windows Server share the NT kernel. Active Directory, running on servers, is why one compromised account can affect a whole company.
+- `winver` and `systeminfo` give you the exact build number, which patch advisories and troubleshooting guides ask for first.
+- If you set up a VM or a spare machine for this track, keep it. A disposable Windows environment is useful for later security practice.

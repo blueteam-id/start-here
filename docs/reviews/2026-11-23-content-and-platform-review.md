@@ -57,6 +57,15 @@ Severity labels used below:
 
 ### 1.3 Should fix
 
+> **Status 2026-11-23:** all "Accuracy and consistency" items below are
+> fixed, including the Linux gaps (Linux lesson times went up, track total
+> now 180 min). Reflect questions: Linux L6 Q1 and Windows L5 Q3 rewritten;
+> Linux L1 questions rewritten as part of the readability sample.
+> Readability: all Linux, Windows, Git and GitHub/GitLab lessons rewritten
+> in plain style; every code block is byte-for-byte unchanged. Average
+> sentence length now 14.3 (Linux), 15.9 (Windows), 15.5 (Git), 17.2
+> (GitHub/GitLab). Computing Basics (19.0) was left as is.
+
 **Accuracy and consistency**
 
 - **Stale cross-references.** Windows L2 line 21 says the object pipeline

@@ -6,9 +6,9 @@ order: 2
 estimatedMinutes: 25
 prerequisites: 'Lesson 1, for your practice folder and your Git identity.'
 reflectQuestions:
-  - 'Why does Git split "save this change" into two steps, staging and then committing, instead of just one?'
-  - 'If you were investigating a suspicious change to a config file, would `git log` or `git diff` answer "who changed it and when"? Which one answers "exactly what changed"?'
-  - 'What would a commit message like "fix stuff" tell a future investigator, compared to one that explains what was wrong and why the fix works?'
+  - 'Why does Git split "save this change" into two steps, staging and committing?'
+  - 'You are investigating a suspicious change to a config file. Which command answers "who and when", and which answers "exactly what changed"?'
+  - 'What does a commit message like "fix stuff" tell a future investigator? What would a better one say?'
 resources:
   - label: 'git-commit (official reference)'
     url: 'https://git-scm.com/docs/git-commit'
@@ -18,24 +18,33 @@ resources:
 
 ## Turning a folder into a repository: git init
 
-A plain folder becomes a Git repository the moment you run:
+A plain folder becomes a Git repository the moment you run `git init` inside it. Go to your practice folder first, then run it:
 
 ```bash
+cd ~/git-fundamentals
 git init
 ```
 
-inside it, from your `git-fundamentals` practice folder. This creates a hidden `.git` folder holding the entire history you're about to build, every commit, every version of every file. Deleting that one hidden folder is the one way to truly lose everything Git has tracked, worth knowing before you ever run a cleanup command carelessly.
+The `cd` matters. `git init` turns whatever folder you are standing in into a repository, and you do not want that to be your home folder by accident.
+
+This creates a hidden `.git` folder. It holds the entire history you are about to build: every commit, every version of every file. Deleting that one folder is how you truly lose everything Git has tracked. Remember that before running any cleanup command carelessly.
 
 ## The three places a change can be
 
-Git thinks about a file in three states: the **working directory** (what you see and edit normally), the **staging area** (changes you've marked as ready to save), and the **repository** (changes you've actually committed, permanently). Create a file and watch it move through them:
+Git sees a file in one of three places:
+
+- the **working directory**: the files you see and edit normally,
+- the **staging area**: changes you have marked as ready to save,
+- the **repository**: changes you have committed, permanently.
+
+Create a file and watch it move through them:
 
 ```bash
 echo "Practice notes for Git Fundamentals" > notes.txt
 git status
 ```
 
-`git status` reports `notes.txt` as **untracked**, Git sees it exists but isn't tracking it yet.
+`git status` reports `notes.txt` as **untracked**: Git sees the file, but is not tracking it yet.
 
 ## Staging and committing: git add, git commit
 
@@ -44,15 +53,22 @@ git add notes.txt
 git status
 ```
 
-The file now shows as staged, ready to be saved. Commit it:
+The file now shows as staged, ready to save. Commit it:
 
 ```bash
 git commit -m "Add practice notes"
 ```
 
-A **commit** is a permanent, immutable snapshot: the exact state of every staged file, plus metadata, your name and email from Lesson 1, a timestamp, a message, and a link back to the commit before it. That metadata is the whole reason Lesson 1 insisted on a real identity: it's attached to every single commit you ever make, forever.
+A **commit** is a permanent snapshot that cannot be changed. It records the exact state of every staged file, plus:
 
-Write commit messages as a short, clear summary of what changed and why, not "fix" or "update". A future reader, possibly you, possibly someone investigating an incident, has only that message and the diff to go on.
+- your name and email from Lesson 1,
+- a timestamp,
+- a message,
+- a link to the commit before it.
+
+That metadata is why Lesson 1 asked for a real name: it is attached to every commit you ever make.
+
+Write commit messages as a short, clear summary of what changed and why. Avoid "fix" or "update". A future reader, maybe you, maybe someone investigating an incident, has only the message and the diff to go on.
 
 ## Reading history: git log
 
@@ -68,7 +84,7 @@ The shorter view is often more useful day to day:
 git log --oneline
 ```
 
-This is literally the command you'd reach for during an investigation into "who touched this file, and when": `git log --follow -- notes.txt` shows every commit that ever touched that one file, even across a rename.
+For "who touched this file, and when?" during an investigation, `git log --follow -- notes.txt` shows every commit that changed that one file, even across a rename.
 
 ## Seeing exactly what changed: git diff
 
@@ -79,7 +95,7 @@ echo "A second line." >> notes.txt
 git diff
 ```
 
-`git diff` shows the exact lines added and removed, marked with `+` and `-`. This is the same mechanism underneath code review and configuration-drift detection tools: a human or a tool reading a diff is how unauthorized or unexpected changes actually get caught, not by re-reading the whole file from scratch every time.
+`git diff` shows the exact lines added (`+`) and removed (`-`). Code review and configuration-drift tools are built on the same idea. Unexpected or unauthorized changes get caught by someone, or something, reading a diff, not by rereading the whole file every time.
 
 Stage and commit this change too, then look at your history:
 
@@ -89,10 +105,10 @@ git commit -m "Add a second line to practice notes"
 git log --oneline
 ```
 
-You should see two commits now, oldest at the bottom.
+You should see two commits, with the oldest at the bottom.
 
 ### What to notice
 
-- Staging exists so you can build a commit deliberately, file by file or change by change, instead of being forced to save everything in the working directory at once.
-- `git log` answers "who, and when." `git diff` answers "exactly what." Real investigations usually need both.
-- A clear commit message is written for a reader who has no other context, which, during an incident, is exactly the position you'll be in yourself.
+- Staging lets you build a commit on purpose, file by file or change by change, instead of saving everything at once.
+- `git log` answers "who, and when". `git diff` answers "exactly what". Real investigations usually need both.
+- Write commit messages for a reader with no other context. During an incident, that reader may be you.

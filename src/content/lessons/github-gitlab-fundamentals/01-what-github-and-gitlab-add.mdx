@@ -6,9 +6,9 @@ order: 1
 estimatedMinutes: 20
 prerequisites: 'The Git Fundamentals track, or solid comfort with git init, add, commit, branch, and merge.'
 reflectQuestions:
-  - 'Git itself runs entirely on your own machine. What does GitHub or GitLab actually add on top of that?'
-  - 'If almost all of a company''s source code lives on one platform, why does who can log into that platform matter as much as who can walk into the building?'
-  - 'Why would turning on two-factor authentication on your new account matter, even for a throwaway practice account?'
+  - 'Git runs entirely on your own machine. What does GitHub or GitLab add on top of that?'
+  - 'Most of a company''s code lives on one platform. Why does who can log in there matter as much as who can enter the building?'
+  - 'Why turn on two-factor authentication even for a throwaway practice account?'
 resources:
   - label: 'About GitHub (GitHub Docs)'
     url: 'https://docs.github.com/get-started/start-your-journey/about-github-and-git'
@@ -18,18 +18,27 @@ resources:
 
 ## Git the tool, GitHub and GitLab the platforms
 
-Everything in the Git Fundamentals track ran entirely on your own machine, no internet connection required. **GitHub** and **GitLab** are hosted platforms built around Git: they store a copy of your repository on their servers, add a web interface, and layer collaboration features on top, pull requests (GitHub's term) or merge requests (GitLab's term, same idea), issues for tracking work, access control, and built-in CI/CD. This track uses GitHub for its screenshots and exact menu names, since it's the more widely used of the two, but every concept here applies to GitLab the same way, just under slightly different labels, noted as they come up.
+Everything in Git Fundamentals ran on your own machine, with no internet needed. **GitHub** and **GitLab** are hosted platforms built around Git. They keep a copy of your repository on their servers, add a web interface, and add collaboration features:
 
-## Why a security team can't avoid these platforms
+- **pull requests** (GitHub's term) or **merge requests** (GitLab's term, same idea),
+- **issues** for tracking work,
+- **access control**,
+- built-in **CI/CD** (automation).
 
-- **They're the front door to the software supply chain.** Nearly all source code, open source and corporate, is hosted on one of these two platforms. Understanding how code actually moves through them, who can change what, and how, is understanding how software actually gets built today.
-- **Access to the platform is access to the crown jewels.** Deciding who can read, write, or administer a repository is identity and access management applied directly to a company's source code and, as Lesson 4 covers, its secrets. A compromised account with write access is a direct path to tampering with code everyone else trusts.
-- **Automation runs here, with real permissions attached.** CI/CD pipelines, covered properly in Lesson 5, execute automatically and often hold meaningful access. That combination, automatic execution plus real permissions, is exactly why these platforms are treated as serious security surface, not just developer convenience.
-- **Untrusted contributions are a normal, expected part of the workflow**, which is powerful for open source and also means a pull request from someone you don't know is a realistic way for a problem, intentional or accidental, to show up. Lesson 2 covers the specific risk this creates for CI.
+This track uses GitHub for exact menu names, because it is the more widely used of the two. Every idea applies to GitLab too, under slightly different labels, noted as they come up.
+
+## Why a security team cannot avoid these platforms
+
+- **They are the front door to the software supply chain.** Nearly all source code, open source and company code, lives on one of these two platforms. Knowing how code moves through them, and who can change what, is knowing how software gets built today.
+- **Access to the platform is access to the crown jewels.** Deciding who can read, write, or administer a repository is identity and access management for a company's source code and, as Lesson 4 covers, its secrets. A compromised account with write access can tamper with code everyone else trusts.
+- **Automation runs here, with real permissions.** CI/CD pipelines (Lesson 5) run automatically and often hold real access. Automatic execution plus real permissions is why these platforms count as serious attack surface, not just a developer convenience.
+- **Contributions from strangers are normal.** That is powerful for open source. It also means a pull request from someone you do not know is a realistic way for a problem, deliberate or accidental, to arrive. Lesson 2 covers the specific risk for CI.
 
 ## Getting set up
 
-If you don't already have one, create a free account at [github.com](https://github.com) (or [gitlab.com](https://gitlab.com), the free tier covers everything this track needs). The moment you have an account, turn on **two-factor authentication** in its security settings. This matters even for a brand-new practice account, because the habit is the point: the same account security you build here is exactly what protects a real account with real write access to real projects later.
+If you do not have an account yet, create a free one at [github.com](https://github.com) (or [gitlab.com](https://gitlab.com); the free tier covers everything in this track).
+
+As soon as you have an account, turn on **two-factor authentication (2FA)** in its security settings. This matters even for a brand-new practice account, because the habit is the point. The same account security protects a real account with write access to real projects later.
 
 ## Hands-on: create a practice repository
 
@@ -37,14 +46,14 @@ From the web interface, create a new repository:
 
 - Name it something like `git-practice`.
 - Set it to **public**. See the note below for why.
-- Choose to initialize it with a README, the simplest way to end up with a repository that already has one commit.
+- Choose to initialize it with a README. That is the simplest way to start with a repository that already has one commit.
 
 **Why public, just this once.** For real work, private by default is the right habit. This practice repository is the exception, for a practical reason: on GitHub's free plan, branch protection rules (Lesson 3) are only enforced on **public** repositories. A private repository would let you click through the settings, but nothing would actually be enforced. The repository will only ever hold a few lines of practice notes, so being public costs nothing. The rule that comes with it: never put anything real in it, no passwords, no work files, nothing personal. (On GitLab, protected branches also work on private projects in the free tier, so GitLab users can keep it private.)
 
-You don't need to understand every option on that screen yet, the rest of this track walks through what matters, one piece at a time.
+You do not need to understand every option on that screen yet. The rest of the track covers what matters, one piece at a time.
 
 ### What to notice
 
-- GitHub and GitLab add hosting, a web UI, review workflows, access control, and CI on top of plain Git, they don't replace anything from the Git Fundamentals track, they build on it.
-- Platform account security (2FA, a strong unique password or a passkey) is repository security, because the account is the thing standing between an attacker and write access to the code.
-- For real work, a private-by-default habit costs nothing and avoids ever having to notice, after the fact, that something should not have been public. A public repository is fine only when you have decided, on purpose, that everything in it can be seen by anyone.
+- GitHub and GitLab add hosting, a web UI, review workflows, access control, and CI on top of plain Git. They build on Git Fundamentals; they do not replace it.
+- Account security (2FA, a strong unique password or a passkey) is repository security. The account is what stands between an attacker and write access to the code.
+- For real work, private by default costs nothing and saves you from discovering later that something should not have been public. Make a repository public only when you have decided, on purpose, that anyone may see everything in it.

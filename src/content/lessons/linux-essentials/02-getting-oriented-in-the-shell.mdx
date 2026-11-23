@@ -3,12 +3,12 @@ title: 'Getting Oriented in the Shell'
 track: 'linux-essentials'
 phase: 'Orientation'
 order: 2
-estimatedMinutes: 20
+estimatedMinutes: 25
 prerequisites: 'Lesson 1 (What Is Linux, and Why It''s Everywhere), so you know what a distro is.'
 reflectQuestions:
-  - 'Imagine you are handed SSH access to an unfamiliar server in the middle of an incident, with no documentation and no one around to ask. What are the very first few commands you would run, and why those specifically?'
-  - 'The `$` and `#` prompt symbols carry real information before you even read a word of the line. Why would a security team want every analyst trained to notice that difference at a glance?'
-  - 'You now have a `~/linux-essentials` folder you will reuse across the rest of this track. Why might it matter, from a habit-forming point of view, to always practice inside the same folder rather than scattering test files wherever you happen to be?'
+  - 'You get SSH access to an unknown server during an incident. Which three commands would you run first, and why?'
+  - 'Why should every analyst check for `$` or `#` in the prompt before pressing Enter?'
+  - 'Why is it a good habit to practice in one fixed folder instead of wherever your terminal opens?'
 resources:
   - label: 'The Linux Command Line (free book, William Shotts)'
     url: 'https://linuxcommand.org/tlcl.php'
@@ -18,78 +18,87 @@ resources:
 
 ## Before you start: getting a terminal
 
-Lesson 1 was mostly reading. This lesson is the first one where you actually sit at a keyboard and type, so you need a terminal open and a shell waiting for you.
+Lesson 1 was mostly reading. In this lesson you start typing, so you need a terminal open.
 
-If you are on macOS or native Linux, you already have one: open Terminal (macOS) or whatever terminal application your distro ships with. Nothing else to install.
+**On macOS or native Linux,** you already have one. Open the Terminal app (macOS) or your distro's terminal application. Nothing to install.
 
-If you are on Windows, install the Windows Subsystem for Linux (WSL), which gives you a real Linux environment running alongside Windows rather than an imitation of one. Open PowerShell as Administrator (right-click it, "Run as administrator") and run:
+**On Windows,** install the **Windows Subsystem for Linux (WSL)**. It gives you a real Linux environment running alongside Windows, not an imitation. Open PowerShell as Administrator (right-click it, then "Run as administrator") and run:
 
 ```powershell
 wsl --install
 ```
 
-Follow the prompts, restart if asked, and you will end up with a Ubuntu terminal you can open like any other application. Full details and troubleshooting live at [Microsoft's WSL install docs](https://learn.microsoft.com/windows/wsl/install).
+Follow the prompts and restart if asked. You end up with an Ubuntu terminal that you open like any other app. Full details and troubleshooting are in [Microsoft's WSL install docs](https://learn.microsoft.com/windows/wsl/install).
 
-This is the only time this track will stop to explain the Windows path. From here on, whenever a lesson says "open your terminal" or "in your terminal," it means macOS Terminal, native Linux, or WSL. One detail worth knowing upfront: macOS has defaulted to **zsh** rather than bash since macOS Catalina (2019), while native Linux and WSL default to bash. Every command taught in this track works identically in either shell, so this will not trip you up hands-on, but it does change one thing you are about to learn: the prompt symbol.
+This is the only time this track explains the Windows setup. From now on, "your terminal" means macOS Terminal, native Linux, or WSL.
 
-## What a shell actually is
+One detail before you start: macOS uses the **zsh** shell by default (since 2019), while Linux and WSL use **bash**. Every command in this track works the same in both. The only visible difference is the prompt symbol, explained below.
 
-A **shell** is a program whose entire job is to sit between you and the operating system: it reads the line of text you type, figures out what you mean, and asks the kernel to do it. When people say "the command line" or "the terminal," they usually mean this same thing: a shell, waiting for input, inside a terminal window. The shell you will use throughout this track is called **bash**, the most common default on Linux and the one WSL gives you. If you are on macOS, your default shell is zsh instead; everything below reads the same way, with one small difference in the prompt symbol noted below.
+## What a shell is
 
-The line where you type is called the **prompt**, and it is worth learning to read instead of skimming past. A typical prompt looks something like this:
+A **shell** is a program that reads the line you type, works out what you mean, and asks the kernel to do it. "The command line" and "the terminal" usually mean the same thing: a shell waiting for input inside a terminal window. This track uses **bash**, the default on Linux and WSL. On macOS, zsh reads everything below the same way.
+
+The line where you type is the **prompt**. Learn to read it instead of skipping over it. A typical prompt looks like this:
 
 ```bash
 alex@webserver01:~/linux-essentials$
 ```
 
-Break it into pieces:
+Piece by piece:
 
 - `alex` is the **username** you are logged in as.
-- `webserver01` is the **hostname**, the name of the machine you are on. This matters a lot once you are routinely connected to several servers at once; it is easy to run a command on the wrong one if you stop checking this.
-- `~/linux-essentials` is your **current directory** (more on that word in a moment), with `~` as shorthand for your home directory.
-- The final symbol is the one habit worth building immediately: in bash, a `$` means you are an ordinary user, and a `#` means you are logged in as **root**, the Linux superuser who can do absolutely anything on the system, including destroy it. In zsh, macOS's default shell, the ordinary-user symbol is `%` instead of `$`, but it means exactly the same thing, and `#` still means root in both shells. Some distros also color the root prompt red for the same reason. Get used to glancing at that one character before you hit enter on anything.
+- `webserver01` is the **hostname**, the name of the machine. When you are connected to several servers at once, this is how you avoid running a command on the wrong one.
+- `~/linux-essentials` is your **current directory**. `~` is short for your home directory.
+- The last symbol tells you how powerful you are right now. In bash, `$` means an ordinary user. `#` means **root**, the superuser who can do anything, including destroy the system. In zsh (macOS), the ordinary-user symbol is `%` instead of `$`. `#` means root in both. Some distros also color the root prompt red.
+
+Build one habit now: glance at that last character before you press Enter.
 
 ## Creating your practice space
 
-Rather than running commands wherever your terminal happens to open, this track gives you one dedicated folder to work in. Create it now and move into it:
+This track uses one dedicated folder for all hands-on work. Create it and move into it:
 
 ```bash
 mkdir -p ~/linux-essentials && cd ~/linux-essentials
 ```
 
-`mkdir` makes a new directory (folder); `-p` tells it not to complain if the folder already exists, and to create any missing parent folders along the way. The `&&` just means "and then do this next, but only if the first part succeeded."
+- `mkdir` makes a new directory (folder).
+- `-p` means "no error if it already exists, and create any missing parent folders".
+- `&&` means "then run the next command, but only if the first one worked".
 
-Every hands-on exercise from here through the rest of this track happens inside `~/linux-essentials`. That gives you a sandbox you can fill with test files, break, and clean up without any risk of touching something that actually matters on your system. Whenever a later lesson tells you to run a command, assume it means "from inside `~/linux-essentials`" unless it says otherwise.
+Every exercise in this track happens inside `~/linux-essentials`. You can fill it with test files, break things, and clean up without touching anything that matters. When a later lesson says "run this", it means from inside this folder unless it says otherwise.
 
-## Finding out where you are: pwd
+## Where am I? pwd
 
-The first question to answer on any unfamiliar system is simply "where am I right now?" The answer comes from:
+On any unfamiliar system, the first question is "where am I?"
 
 ```bash
 pwd
 ```
 
-`pwd` stands for **print working directory**, and that is exactly what it does: it prints the full path of the directory your shell is currently sitting in. Right now, having just run the `cd` above, it should print something ending in `/linux-essentials`.
+`pwd` means **print working directory**. It prints the full path of the folder your shell is in. After the `cd` above, it should end in `/linux-essentials`.
 
-## Seeing what is there: ls
+## What is here? ls
 
-Once you know where you are, the next question is "what is actually in here?" That is `ls` (list):
+The next question is "what is in here?" That is `ls` (list):
 
 ```bash
 ls
 ```
 
-Your `linux-essentials` folder is empty right now, so this prints nothing. Add the `-la` flags to get a much richer view:
+Your folder is empty, so this prints nothing. Add two flags for a richer view:
 
 ```bash
 ls -la
 ```
 
-`-l` switches to the "long" format: one entry per line, with permissions, owner, size, and modification date instead of just a bare name. `-a` tells `ls` to also show **hidden** entries, files and folders whose name starts with a dot, which plain `ls` leaves out by default. You should see at least two entries you did not create: `.` (this directory itself) and `..` (its parent). That permissions column at the start of each line, a string like `drwxr-xr-x`, is something you will learn to read properly in a later lesson on permissions; for now, just notice that it is there and that it carries real information about who can do what to each file.
+- `-l` is the "long" format: one entry per line, with permissions, owner, size, and date.
+- `-a` also shows **hidden** entries, whose names start with a dot. Plain `ls` leaves them out.
+
+You should see two entries you did not create: `.` (this directory) and `..` (its parent). The column at the start of each line, something like `drwxr-xr-x`, shows who may do what to each file. You will learn to read it in Lesson 5.
 
 ## Moving around: cd
 
-`cd` (change directory) is how you move between folders, and it is worth knowing a few shortcuts beyond the plain `cd ~/linux-essentials` you already used above.
+`cd` (change directory) moves you between folders. Try these, reading the comments as you go:
 
 ```bash
 mkdir notes
@@ -110,14 +119,47 @@ cd -          # the dash jumps you back to whichever directory you were just in
 pwd
 ```
 
-The distinction between the two kinds of path matters: a **relative** path (`notes`, `../notes`, `./notes`) is interpreted starting from wherever you currently are, so the same command can land you somewhere completely different depending on your starting point. An **absolute** path (anything starting with `/`, or with `~` which the shell expands to your home directory) always means the same location no matter where you ran it from. When precision matters, prefer absolute paths; when you are just hopping around nearby folders, relative paths save typing.
+There are two kinds of path:
 
-## Why this is worth drilling into muscle memory
+- A **relative** path (`notes`, `../notes`, `./notes`) starts from where you are now. The same command can land you in different places depending on where you start.
+- An **absolute** path (starting with `/`, or with `~`) always means the same place.
 
-`pwd`, `ls`, and `cd` look almost too simple to spend a whole lesson on, but they are, without exaggeration, the first three commands nearly every security analyst runs after landing a shell on an unfamiliar server. Whether that shell arrives through a planned SSH login or through a foothold gained mid-incident on a compromised box, the very first questions are always the same ones you just practiced answering: where am I, what is here, and how do I get to where I actually need to look. An analyst who has to stop and think about basic navigation is burning attention that should be going toward the actual investigation, the suspicious process, the strange file, the log entry that does not add up. Fluency here is not a side skill; it is what frees up your focus for the part of the job that actually requires thinking.
+When precision matters, use absolute paths. For short hops between nearby folders, relative paths save typing.
+
+## Getting help without leaving the terminal
+
+Nobody remembers every flag. What experienced people do remember is how to look things up. Two ways work almost everywhere:
+
+```bash
+man ls
+```
+
+`man` opens the **manual page** for a command: what it does, and every option it accepts. It opens in the same pager as `less` (Lesson 4): use the arrow keys to scroll, `/` to search for a word, and `q` to quit.
+
+```bash
+ls --help
+```
+
+Most Linux commands also print a shorter summary with `--help`. On macOS, many built-in commands do not support `--help` and print an error instead; use `man` there.
+
+When you are not sure whether something is a real program or a shell shortcut, ask the shell:
+
+```bash
+type cd
+type ls
+```
+
+On a server you have never seen before, `man` and `--help` are often the only documentation available. Reading them is a skill, not a sign that you are behind.
+
+## Why this is worth practicing
+
+`pwd`, `ls`, and `cd` look almost too simple for a whole lesson. But they are the first three commands nearly every analyst runs on an unfamiliar server. That is true whether the shell came from a planned SSH login or from a foothold during an incident. The first questions are always the same: where am I, what is here, and how do I get where I need to look.
+
+If basic navigation takes your attention, you have less left for the real work: the suspicious process, the strange file, the log entry that does not fit. Making these commands automatic frees your attention for the investigation.
 
 ### What to notice
 
-- The `$` versus `#` prompt distinction is not cosmetic. Running the wrong command as root, on the wrong machine, is one of the most common ways incidents get worse rather than better.
-- `ls -la` just gave you a first glimpse of file permissions. You will come back to read that permissions column properly, and the `.` and `..` entries, in a later lesson.
-- You now have a standing `~/linux-essentials` folder. You do not need to clean it up between lessons; later lessons will tell you when to add to it or remove something specific.
+- `$` versus `#` is not cosmetic. Running the wrong command as root, on the wrong machine, is a common way incidents get worse.
+- `ls -la` gave you a first look at file permissions. Lesson 5 explains how to read them.
+- Your `~/linux-essentials` folder stays for the whole track. You do not need to clean it between lessons; later lessons say when to add or remove something.
+- When you forget an option, `man` and `--help` are always there.
