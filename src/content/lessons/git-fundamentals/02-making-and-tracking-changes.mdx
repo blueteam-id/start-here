@@ -60,7 +60,9 @@ Write commit messages as a short, clear summary of what changed and why, not "fi
 git log
 ```
 
-Each entry shows the commit's unique hash, author, date, and message. The shorter view is often more useful day to day:
+Each entry shows the commit's unique hash, author, date, and message. When the output is longer than your screen, Git shows it one page at a time and your prompt seems to disappear. Use the arrow keys to scroll, and press `q` to quit back to your prompt. The same applies to `git diff` and `git show` later on.
+
+The shorter view is often more useful day to day:
 
 ```bash
 git log --oneline

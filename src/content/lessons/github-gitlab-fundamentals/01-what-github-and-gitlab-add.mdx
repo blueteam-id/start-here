@@ -36,8 +36,10 @@ If you don't already have one, create a free account at [github.com](https://git
 From the web interface, create a new repository:
 
 - Name it something like `git-practice`.
-- Set it to **private** (you can always make it public later; there's no reason for practice work to be public by default).
+- Set it to **public**. See the note below for why.
 - Choose to initialize it with a README, the simplest way to end up with a repository that already has one commit.
+
+**Why public, just this once.** For real work, private by default is the right habit. This practice repository is the exception, for a practical reason: on GitHub's free plan, branch protection rules (Lesson 3) are only enforced on **public** repositories. A private repository would let you click through the settings, but nothing would actually be enforced. The repository will only ever hold a few lines of practice notes, so being public costs nothing. The rule that comes with it: never put anything real in it, no passwords, no work files, nothing personal. (On GitLab, protected branches also work on private projects in the free tier, so GitLab users can keep it private.)
 
 You don't need to understand every option on that screen yet, the rest of this track walks through what matters, one piece at a time.
 
@@ -45,4 +47,4 @@ You don't need to understand every option on that screen yet, the rest of this t
 
 - GitHub and GitLab add hosting, a web UI, review workflows, access control, and CI on top of plain Git, they don't replace anything from the Git Fundamentals track, they build on it.
 - Platform account security (2FA, a strong unique password or a passkey) is repository security, because the account is the thing standing between an attacker and write access to the code.
-- A private-by-default habit for new repositories costs nothing and avoids ever having to notice, after the fact, that something should not have been public.
+- For real work, a private-by-default habit costs nothing and avoids ever having to notice, after the fact, that something should not have been public. A public repository is fine only when you have decided, on purpose, that everything in it can be seen by anyone.

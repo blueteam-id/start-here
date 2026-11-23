@@ -46,11 +46,13 @@ Those four ideas, understand what the platform adds, use forks and pull requests
 This last exercise chains together the whole track into one small scenario: reviewing your own practice repository the way you'd do a quick security pass on any project you'd just been handed access to.
 
 1. Open your practice repository's **Settings → Collaborators** (or **Members** on GitLab) and check who has access, and at what level. On a solo practice repo it should just be you, which is itself worth confirming rather than assuming.
-2. Open **Settings → Branches** and confirm whether `main` has any protection rule. If not, add one now requiring at least one approval before merge, the same rule described in Lesson 3.
+2. Open **Settings → Branches** (or **Settings → Rules → Rulesets**) and confirm whether `main` has any protection rule. If not, add one now that requires a pull request before merging, with required approvals set to **0**, as Lesson 3 explained. On a real team you would require at least one approval; on a solo repository that would stop you from ever merging, because you cannot approve your own pull request.
 3. Open the **Settings → Secrets** page one more time from Lesson 4, and confirm it's empty, exactly as a brand-new practice repository should be.
-4. Finally, make one more small change the right way: branch, commit, push, open a pull request, and merge it, so your repository's history ends on a clean example of the full workflow this track taught.
+4. Finally, make one more small change the right way: branch, commit, push, open a pull request, and merge it, so your repository's history ends on a clean example of the full workflow this track taught. Start from an up-to-date `main`, since Lesson 3's pull request was merged on the website, not on your machine:
 
 ```bash
+git switch main
+git pull
 git switch -c wrap-up-check
 echo "GitHub/GitLab Fundamentals complete." >> notes.txt
 git add notes.txt

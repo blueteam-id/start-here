@@ -24,7 +24,13 @@ A **branch** is a lightweight, movable pointer to a commit, not a separate copy 
 git branch
 ```
 
-You should see `main` (or `master` on older setups), the default branch Git created automatically. Create and switch to a new one:
+You should see `main`, the default branch Git created automatically (Lesson 1 set that name with `init.defaultBranch`). If you see `master` instead, your repository was created before that setting existed. Rename the branch once, and everything below works as written:
+
+```bash
+git branch -m master main
+```
+
+Now create and switch to a new branch:
 
 ```bash
 git switch -c feature-notes
@@ -84,7 +90,15 @@ Branch version of this line.
 >>>>>>> conflict-demo
 ```
 
-Open `conflict.txt`, decide what the final content should actually be (keep one version, the other, or something that combines both), delete the `<<<<<<<`, `=======`, and `>>>>>>>` markers, then finish the merge:
+To fix it, you need to edit the file. If you have never edited a file from the terminal, `nano` is the simplest editor and works on macOS, Linux, WSL, and Git Bash:
+
+```bash
+nano conflict.txt
+```
+
+Move around with the arrow keys and type as usual. To save, press `Ctrl+O`, then `Enter`. To exit, press `Ctrl+X`. (On Windows you can also run `notepad conflict.txt` from Git Bash, edit, save, and close the window.)
+
+Decide what the final content should actually be: keep one version, the other, or something that combines both. Delete the `<<<<<<<`, `=======`, and `>>>>>>>` marker lines, save, then finish the merge:
 
 ```bash
 git add conflict.txt

@@ -39,18 +39,31 @@ git --version
 
 If that printed a version number, you're set. If it didn't, install Git from the official [git-scm.com downloads page](https://git-scm.com/downloads), which has installers for Windows, macOS, and Linux, then run the command above again to confirm.
 
-Now tell Git who you are. Every commit you make will be permanently stamped with this name and email, it's literally the "who" in the audit trail described above, so use your real identity rather than something generic:
+**On Windows, use Git Bash for this track.** The Git for Windows installer also installs **Git Bash**, a small bash terminal. Open it from the Start menu and run every command in this track there. Git itself works the same in PowerShell, but the shell around it does not: in Windows PowerShell, `echo "text" > file.txt` saves the file in an encoding (UTF-16) that Git treats as binary, so `git diff` would show "Binary files differ" instead of the changed lines. Git Bash avoids that, and the commands then match macOS and Linux exactly.
+
+Now tell Git who you are. Every commit you make is permanently stamped with this name and email. It is the "who" in the audit trail described above.
 
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
-`--global` applies this to every repository on your machine, not just one. You can check it worked:
+Use your real name. For the email, think about where your commits will end up. In the next track you push commits to GitHub, and anyone who can see a repository can read the email in its commits. If you do not want your personal address public forever, use the private `noreply` address GitHub gives every account (on GitHub: **Settings → Emails**, it looks like `12345678+yourname@users.noreply.github.com`). GitLab offers the same thing under **Edit profile → Commit email**. This is a small privacy habit worth having before your first push, not after.
+
+Set one more thing while you are here:
+
+```bash
+git config --global init.defaultBranch main
+```
+
+When Git creates a new repository, it also creates a first branch. Many installs still name that branch `master` by default. This track, GitHub, and GitLab all use `main`, and later commands like `git switch main` only work if the names match. This line makes every new repository start on `main`.
+
+`--global` applies these settings to every repository on your machine, not just one. Check that they worked:
 
 ```bash
 git config --global user.name
 git config --global user.email
+git config --global init.defaultBranch
 ```
 
 ## Creating your practice space
@@ -66,6 +79,6 @@ From here on, whenever a lesson says "in your terminal," assume it means from in
 
 ### What to notice
 
-- Every commit is permanently labeled with a name and email, set once with `git config --global`, which is exactly why that identity should be real rather than a placeholder.
+- Every commit is permanently labeled with a name and email, set once with `git config --global`. That is why the name should be real, and why the email should be one you are happy to make public, such as a `noreply` address.
 - Because Git is distributed, every clone is a full copy of the project's history, not just its latest state.
 - Infrastructure-as-code and detection-as-code are why security work increasingly means reading Git history directly, not just reading a dashboard built on top of it.

@@ -26,6 +26,17 @@ Three logs matter most for everyday defensive work:
 - **System**: events logged by Windows itself and its drivers (a service failing to start, a disk reporting errors).
 - **Security**: logon attempts, privilege use, and other audit-relevant events. This is the one a defender opens first during almost any investigation.
 
+### Before you start: this lesson needs an administrator prompt
+
+The Security log holds sensitive information, so Windows only lets administrators read it. This is the UAC idea from Lesson 3 in action. For this lesson:
+
+- **Event Viewer:** if your account is an administrator (you checked with `whoami /groups` in Lesson 3), Event Viewer can open the Security log for you.
+- **PowerShell:** a normal prompt is not enough, even on an administrator account. Right-click the Start button and choose **Terminal (Admin)** on Windows 11, or **Windows PowerShell (Admin)** on Windows 10, then click **Yes** on the UAC prompt. The window title now starts with "Administrator".
+
+If a command below fails with "Attempted to perform an unauthorized operation", your prompt is not elevated. Close it and open an admin one. If your account is a standard user, you cannot read the Security log at all; you can still follow along by replacing `Security` with `System` in the commands, which shows the same structure with different events.
+
+Everything in this lesson only **reads** logs. Close the admin window when you finish, so you are not left running with more privilege than you need.
+
 Open Event Viewer now (search for it in the Start menu) and expand **Windows Logs** in the left pane to see all three. Click **Security** and you'll see a long list of entries, each with a timestamp and an Event ID in its own column.
 
 ## Event IDs worth recognizing on sight

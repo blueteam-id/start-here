@@ -48,9 +48,11 @@ git commit -m "Accidentally commit an incorrect note"
 Now undo it the safe way:
 
 ```bash
-git revert HEAD
+git revert --no-edit HEAD
 git log --oneline
 ```
+
+`--no-edit` tells Git to use its standard message ("Revert ...") for the new commit. Without it, Git opens a text editor so you can write the message yourself. That editor is often **Vim**, which confuses almost everyone the first time. If you ever land in a screen full of `~` lines and cannot type or leave, press `Esc`, then type `:wq` and press `Enter` to save and exit (or `:q!` to exit without saving).
 
 Your history now shows **both** commits: the mistake, and a new commit that explicitly undoes it. Nothing was erased. Compare that to what `git reset` would have done instead, moving the branch pointer backward and making the mistaken commit disappear from the visible history entirely.
 

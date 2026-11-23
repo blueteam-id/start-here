@@ -47,6 +47,10 @@ A few habits keep review doing its actual job:
 
 On the repository's **Settings → Branches** page, you can add a protection rule for `main` that requires, for example, at least one approving review before merge, passing CI checks before merge, and no direct pushes, everyone, including repository admins, has to go through a pull request. This turns the "always branch, always review" habit from Git Fundamentals into an enforced policy instead of something that depends on everyone remembering to do it.
 
+GitHub currently offers two screens for this: a classic **branch protection rule**, and newer **rulesets** (under **Settings → Rules → Rulesets**). They do the same job for this track; use whichever your repository page shows. On GitLab, the equivalent is **Settings → Repository → Protected branches**.
+
+One thing to know before you try it on your solo practice repository: **you cannot approve your own pull request.** A rule that requires one approval works on a team, because someone else reviews. On a repository where you are the only person, it would block every merge. So for practice, require a pull request before merging but set the required approvals to **0**. You still get the important part, no direct pushes to `main`, without locking yourself out. You will set this up in the wrap-up lesson.
+
 Merge your own pull request now through the web UI, then look at your repository's commit history, it reads exactly like `git log`, because that's what it is.
 
 ### What to notice
