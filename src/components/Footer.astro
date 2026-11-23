@@ -55,9 +55,22 @@ const SOCIAL_ICONS: Record<string, string> = {
   </div>
 
   <div class="site-footer__bottom">
-    <p>Made with love, our contribution back to the cybersecurity community. Keep the spirit of sharing alive.</p>
+    <div class="site-footer__bottom-inner">
+      <p>Made with love, our contribution back to the cybersecurity community. Keep the spirit of sharing alive.</p>
+      <p class="site-footer__stats" data-site-stats hidden>
+        <span data-site-stats-text></span>
+        <a href="/privacy/#visit-counter" class="site-footer__stats-info">How this is counted</a>
+      </p>
+    </div>
   </div>
 </footer>
+
+<script>
+  import { renderSiteStats } from '../scripts/siteStats.client';
+
+  const stats = document.querySelector<HTMLElement>('[data-site-stats]');
+  if (stats) void renderSiteStats(stats);
+</script>
 
 <style>
   .site-footer {
@@ -165,11 +178,38 @@ const SOCIAL_ICONS: Record<string, string> = {
     padding: 1rem 1.25rem;
   }
 
-  .site-footer__bottom p {
+  .site-footer__bottom-inner {
     max-width: 72rem;
     margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+  }
+
+  .site-footer__bottom p {
+    margin: 0;
     color: var(--text-dim);
     font-size: 0.8rem;
+  }
+
+  .site-footer__stats {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .site-footer__stats-info {
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    color: var(--text-dim);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 2px;
+  }
+
+  .site-footer__stats-info:hover,
+  .site-footer__stats-info:focus-visible {
+    color: var(--text);
   }
 
   @media (max-width: 720px) {

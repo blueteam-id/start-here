@@ -20,10 +20,26 @@ const liveSlugs = CATALOG_TRACKS.filter((t) => t.status === 'live').map((t) => t
       <li><strong>No accounts.</strong> There is nothing to sign up for and nothing to log in to.</li>
       <li><strong>No cookies</strong> and <strong>no analytics or tracking scripts</strong>, from us or from anyone else.</li>
       <li>
-        The site is plain static files. Like any website, the server that sends them may keep
-        standard web server logs (an address, the page requested, and the time). Those are not
-        linked to you as a person.
+        The site is plain static files. Like any website, the server that sends them keeps
+        standard web server logs (an address, the browser name, the page requested, and the
+        time). Those are not linked to you as a person. The only thing we make from them is the
+        visit counter below.
       </li>
+    </ul>
+
+    <h2 id="visit-counter">The visit counter</h2>
+    <p>
+      The footer shows how many page views and visits the site has had. It is counted on the
+      server, from those same standard logs, about once an hour. Nothing runs in your browser to
+      do it.
+    </p>
+    <ul>
+      <li>A <strong>page view</strong> is one page loaded by a person. Search engines and other bots are left out.</li>
+      <li>
+        A <strong>visit</strong> is one browser on one day. To tell browsers apart, the counter
+        uses the address and browser name from the log, in memory only, for that day's count.
+      </li>
+      <li>Only the daily totals are kept. No addresses, no browser details, no cookies.</li>
     </ul>
 
     <h2>Where your progress lives</h2>
