@@ -1,0 +1,30 @@
+---
+// Mentions another track by slug inside lesson prose, e.g.
+// <TrackLink slug="networking-fundamentals" />. A live track renders as a
+// link; a coming-soon track renders its name plus "(coming soon)". Because
+// the status comes from src/data/catalog.ts, a lesson never goes stale when
+// a track goes live. An unknown slug fails the build instead of shipping a
+// broken mention.
+//
+// No styles on purpose: components used only inside MDX lesson bodies do
+// not get their scoped styles registered (see LessonView.astro), so this
+// relies on the lesson content's normal link and bold styling.
+import { CATALOG_TRACKS } from '../data/catalog';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const track = CATALOG_TRACKS.find((t) => t.slug === slug);
+if (!track) {
+  throw new Error(`TrackLink: unknown track slug "${slug}"`);
+}
+const isLive = track.status === 'live';
+---
+
+{isLive ? (
+  <a href={`/tracks/${track.slug}/`}><strong>{track.title}</strong></a>
+) : (
+  <Fragment><strong>{track.title}</strong> (coming soon)</Fragment>
+)}

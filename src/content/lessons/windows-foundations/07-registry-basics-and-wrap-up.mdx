@@ -16,6 +16,8 @@ resources:
     url: 'https://learn.microsoft.com/sysinternals/downloads/autoruns'
 ---
 
+import TrackLink from '../../../components/TrackLink.astro';
+
 ## What the registry is
 
 The **registry** is a database where Windows stores configuration: hardware settings, installed-software data, user preferences, and, most important for defenders, the settings that decide **what runs automatically**.
@@ -134,7 +136,7 @@ If you want to go deeper now, or a command did not behave the way a lesson said,
 
 When you are ready, two tracks build most directly on this one:
 
-- **Security Concepts** covers the defensive vocabulary this track kept touching: the CIA triad, and threat versus vulnerability versus risk.
-- **Networking Fundamentals** picks up once a machine needs to talk to another one.
+- <TrackLink slug="security-concepts" /> covers the defensive vocabulary this track kept touching: the CIA triad, and threat versus vulnerability versus risk.
+- <TrackLink slug="networking-fundamentals" /> picks up once a machine needs to talk to another one.
 
 The habits you built here, checking permissions, reading logs, and inspecting autorun entries, carry over directly.

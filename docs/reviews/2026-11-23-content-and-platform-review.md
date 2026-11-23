@@ -200,6 +200,13 @@ These are additions that fit the "foundation, no gimmicks" principle.
 
 Priority 1: small changes, big effect for learners
 
+> **Status 2026-11-23:** P1.1 to P1.7 implemented. Notes: the copy button
+> only appears on shell/PowerShell blocks (not sample output); OS tabs also
+> support Left/Right arrow keys; progress shows on track cards (home and
+> catalog) and the track page ("Continue: <next lesson>"), not as a separate
+> homepage section; drift is guarded by `src/content/catalogSync.test.ts`;
+> a site-wide `:focus-visible` outline was added with the skip links.
+
 | # | Feature | Why | Notes |
 |---|---|---|---|
 | P1.1 | **Copy button on code blocks** | Beginners mistype long commands (PowerShell pipelines especially). The design spec already lists "copyable code blocks". | Tiny vanilla script; copy only the command lines, not `#` comments if possible. |

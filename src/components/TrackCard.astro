@@ -31,8 +31,22 @@ const pillLabel = isLive ? 'FOUNDATION' : 'Coming soon';
     <span>{track.lessonCount} lessons</span>
     {track.handsOn && <span class="track-card__hands-on">Hands-on</span>}
     {track.needsVM && <span class="track-card__vm">Needs a VM</span>}
+    {isLive && (
+      <span
+        class="track-card__progress"
+        data-track-progress={track.slug}
+        data-lesson-count={track.lessonCount}
+        hidden
+      ></span>
+    )}
   </div>
 </Tag>
+
+<script>
+  import { renderCardProgress } from '../scripts/trackProgress.client';
+
+  renderCardProgress(document);
+</script>
 
 <style>
   .track-card {
@@ -126,5 +140,10 @@ const pillLabel = isLive ? 'FOUNDATION' : 'Coming soon';
 
   .track-card__vm {
     color: var(--yellow);
+  }
+
+  .track-card__progress {
+    color: var(--blue);
+    font-weight: 600;
   }
 </style>

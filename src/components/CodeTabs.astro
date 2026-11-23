@@ -24,6 +24,7 @@ const supplied = OS_TABS.filter((os) => Astro.slots.has(os.id));
         role="tab"
         data-tab={os.id}
         aria-selected={index === 0 ? 'true' : 'false'}
+        tabindex={index === 0 ? 0 : -1}
       >
         {os.label}
       </button>
@@ -37,11 +38,10 @@ const supplied = OS_TABS.filter((os) => Astro.slots.has(os.id));
 </div>
 
 <script>
-  import { wireCodeTabs } from '../scripts/codeTabs.client';
+  import { wireCodeTabGroups } from '../scripts/codeTabs.client';
 
-  document.querySelectorAll('[data-code-tabs]').forEach((root) => {
-    wireCodeTabs(root as HTMLElement);
-  });
+  // One call for every group on the page, so they switch together.
+  wireCodeTabGroups([...document.querySelectorAll<HTMLElement>('[data-code-tabs]')]);
 </script>
 
 <style>

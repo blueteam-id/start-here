@@ -36,7 +36,7 @@ const firstLesson = orderedLessons[0];
 const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
 ---
 
-<div class="track-landing">
+<div class="track-landing" data-track-landing data-track-slug={track.slug}>
   <div class="track-landing__intro">
     <span class="track-landing__icon">{track.data.icon}</span>
     <div class="track-landing__title-row">
@@ -67,23 +67,34 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
     </div>
   )}
 
+  <p class="track-landing__progress" data-track-summary hidden></p>
+
   {firstLesson && (
-    <a class="track-landing__start" href={lessonHref(firstLesson)}>
+    <a class="track-landing__start" href={lessonHref(firstLesson)} data-track-start>
       Start track
     </a>
   )}
 
   <ol class="track-landing__lessons">
     {orderedLessons.map((lesson) => (
-      <li class="track-landing__lesson">
+      <li class="track-landing__lesson" data-lesson-row={lessonSlugWithoutTrackPrefix(lesson)}>
         <a href={lessonHref(lesson)}>
-          <span class="track-landing__lesson-title">{lesson.data.title}</span>
+          <span class="track-landing__lesson-title">
+            <span class="track-landing__checkmark" data-lesson-checkmark aria-hidden="true"></span>
+            <span data-lesson-title>{lesson.data.title}</span>
+          </span>
           <span class="track-landing__lesson-phase">{lesson.data.phase}</span>
         </a>
       </li>
     ))}
   </ol>
 </div>
+
+<script>
+  import { renderTrackLanding } from '../../scripts/trackProgress.client';
+
+  document.querySelectorAll<HTMLElement>('[data-track-landing]').forEach((root) => renderTrackLanding(root));
+</script>
 
 <style>
   .track-landing {
@@ -215,6 +226,23 @@ const hoursLabel = Math.round((track.data.estimatedMinutes / 60) * 10) / 10;
 
   .track-landing__lesson-title {
     font-size: 0.95rem;
+  }
+
+  .track-landing__checkmark {
+    display: inline-block;
+    width: 1.1em;
+    color: var(--blue);
+  }
+
+  .track-landing__lesson[data-complete] .track-landing__lesson-title {
+    color: var(--text-dim);
+  }
+
+  .track-landing__progress {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    color: var(--blue);
+    font-weight: 600;
   }
 
   .track-landing__lesson-phase {

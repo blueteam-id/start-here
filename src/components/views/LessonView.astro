@@ -12,7 +12,8 @@ import PrerequisitesCallout from '../PrerequisitesCallout.astro';
 import ReflectSection from '../ReflectSection.astro';
 import GoFurtherSection from '../GoFurtherSection.astro';
 import { getProgress } from '../../lib/progress';
-import { DISCORD_INVITE_URL } from '../Header.astro';
+import { DISCORD_INVITE_URL } from '../../lib/site';
+import { reportEmailUrl, reportIssueUrl } from '../../lib/report';
 // Imported and rendered (hidden, below) purely so Astro registers
 // CodeTabs.astro's scoped CSS for this page. Astro only adds a component's
 // styles to a page's stylesheet when that component's render() actually
@@ -59,8 +60,15 @@ const progress = getProgress(track.slug);
 
 const currentIndex = orderedLessons.findIndex((entry) => entry.slug === lesson.slug);
 const nextLesson = currentIndex >= 0 ? orderedLessons[currentIndex + 1] : undefined;
+const prevLesson = currentIndex > 0 ? orderedLessons[currentIndex - 1] : undefined;
 const trackHref = `/tracks/${track.slug}/`;
 const nextHref = nextLesson ? `/tracks/${track.slug}/${shortSlug(nextLesson)}/` : undefined;
+const prevHref = prevLesson ? `/tracks/${track.slug}/${shortSlug(prevLesson)}/` : undefined;
+
+const pageUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
+const reportContext = { trackTitle: track.data.title, lessonTitle: lesson.data.title, pageUrl };
+const reportIssueHref = reportIssueUrl(reportContext);
+const reportEmailHref = reportEmailUrl(reportContext);
 
 // `Content` is normally a real Astro component factory produced by
 // `render(lesson)` (and must be rendered via `<Content />` so Astro wires
@@ -73,6 +81,7 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
 ---
 
 <div class="lesson-view" data-lesson-view data-track-slug={track.slug} data-lesson-slug={currentSlug}>
+  <a class="skip-link" href="#lesson-content">Skip to lesson</a>
   <LessonSidebar
     trackTitle={track.data.title}
     trackSlug={track.slug}
@@ -81,7 +90,7 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     progress={progress}
   />
 
-  <div class="lesson-view__main">
+  <div class="lesson-view__main" id="lesson-content" tabindex="-1">
     <nav class="lesson-view__breadcrumb" aria-label="Breadcrumb">
       <a href={trackHref}>{track.data.title}</a>
       <span aria-hidden="true">/</span>
@@ -99,7 +108,7 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
 
     {lesson.data.prerequisites && <PrerequisitesCallout text={lesson.data.prerequisites} />}
 
-    <article class="lesson-view__content">
+    <article class="lesson-view__content" data-lesson-content>
       {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
       <div style="display:none" aria-hidden="true"><CodeTabs /></div>
     </article>
@@ -113,19 +122,39 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     <ReflectSection questions={reflectQuestions} />
     <GoFurtherSection resources={resources} />
 
+    <p class="lesson-view__report">
+      Spotted a mistake, or a command that did not work for you?{' '}
+      <a href={reportIssueHref} target="_blank" rel="noopener noreferrer" data-report-issue>Report it on GitHub</a>{' '}
+      or <a href={reportEmailHref} data-report-email>by email</a>.
+    </p>
+
     <footer class="lesson-view__footer">
+      <div class="lesson-view__footer-side">
+        {prevHref && (
+          <a class="lesson-view__prev" href={prevHref} rel="prev">
+            <span aria-hidden="true">← </span>Previous lesson
+          </a>
+        )}
+      </div>
       <button type="button" class="lesson-view__mark-complete" data-mark-complete aria-pressed="false">
         Mark complete
       </button>
-      {nextHref && (
-        <a class="lesson-view__next" href={nextHref}>Next lesson</a>
-      )}
+      <div class="lesson-view__footer-side lesson-view__footer-side--end">
+        {nextHref ? (
+          <a class="lesson-view__next" href={nextHref} rel="next">
+            Next lesson<span aria-hidden="true"> →</span>
+          </a>
+        ) : (
+          <a class="lesson-view__next" href={trackHref}>Back to track</a>
+        )}
+      </div>
     </footer>
   </div>
 </div>
 
 <script>
   import { wireMarkComplete } from '../../scripts/markComplete.client';
+  import { wireCopyButtons } from '../../scripts/copyCode.client';
 
   document.querySelectorAll<HTMLElement>('[data-lesson-view]').forEach((root) => {
     const trackSlug = root.getAttribute('data-track-slug');
@@ -133,6 +162,8 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     if (trackSlug && lessonSlug) {
       wireMarkComplete(root, trackSlug, lessonSlug);
     }
+    const content = root.querySelector<HTMLElement>('[data-lesson-content]');
+    if (content) wireCopyButtons(content);
   });
 </script>
 
@@ -267,6 +298,36 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     opacity: 0.9;
   }
 
+  .lesson-view__footer-side {
+    flex: 1 1 0;
+    min-width: 8rem;
+  }
+
+  .lesson-view__footer-side--end {
+    text-align: right;
+  }
+
+  .lesson-view__main:focus {
+    outline: none;
+  }
+
+  .lesson-view__report {
+    margin: 1.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .lesson-view__report a {
+    color: var(--blue);
+    text-decoration: none;
+  }
+
+  .lesson-view__report a:hover,
+  .lesson-view__report a:focus-visible {
+    text-decoration: underline;
+  }
+
+  .lesson-view__prev,
   .lesson-view__next {
     color: var(--blue);
     font-weight: 600;
@@ -274,6 +335,8 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
     font-size: 0.9rem;
   }
 
+  .lesson-view__prev:hover,
+  .lesson-view__prev:focus-visible,
   .lesson-view__next:hover,
   .lesson-view__next:focus-visible {
     opacity: 0.9;
@@ -285,5 +348,62 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
       padding: 1.5rem 1rem 3rem;
       gap: 1.25rem;
     }
+
+    /* Phone: full-width "Mark complete" on top, previous/next side by side. */
+    .lesson-view__footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .lesson-view__mark-complete {
+      grid-column: 1 / -1;
+      order: -1;
+    }
+
+    .lesson-view__footer-side {
+      min-width: 0;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Copy buttons are added by copyCode.client.ts after render, so these
+     styles must be global: Astro's scoped styles never reach them. */
+  .code-block {
+    position: relative;
+  }
+
+  .code-block__copy {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    appearance: none;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    cursor: pointer;
+    opacity: 0.85;
+  }
+
+  .code-block__copy:hover,
+  .code-block__copy:focus-visible {
+    color: var(--text);
+    opacity: 1;
+  }
+
+  /* Lesson code blocks get breathing room; Shiki's default has none. */
+  .lesson-view__content pre {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.4rem;
+  }
+
+  /* Leave room so the button never covers the end of the first line. */
+  .lesson-view__content .code-block pre {
+    padding-right: 4.75rem;
   }
 </style>

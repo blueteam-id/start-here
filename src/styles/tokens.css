@@ -21,3 +21,29 @@ code,
 pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+/* Keyboard focus is always visible, site-wide. Components may refine it,
+   but should not remove it. */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* "Skip to content" links: hidden until focused with the keyboard. */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 100;
+  background: var(--blue);
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0.35rem;
+  padding: 0.5rem 0.9rem;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+}
+

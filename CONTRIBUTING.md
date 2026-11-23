@@ -82,6 +82,14 @@ Two mechanical rules on top of the schema:
   work identically across macOS/Linux/WSL. Only use the `<CodeTabs>`
   component (see `src/components/CodeTabs.astro`) when the commands
   genuinely differ per OS (e.g. package managers).
+- **Mentioning another track:** use `<TrackLink slug="networking-fundamentals" />`
+  (see `src/components/TrackLink.astro`) instead of writing the title in
+  bold. It links the track when it is live and adds "(coming soon)" when it
+  is not, so the lesson never goes out of date when a track launches.
+- **Catalog and track entry stay in sync:** a test
+  (`src/content/catalogSync.test.ts`) fails if `catalog.ts` and a track's
+  `index.md` disagree, or if `lessonCount` / `estimatedMinutes` do not match
+  the track's actual lessons.
 
 Everything else about how a track or lesson should read (structure, tone,
 the cybersecurity tie-in, hands-on safety) is in the Content standard
