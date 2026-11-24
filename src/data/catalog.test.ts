@@ -5,7 +5,7 @@ test('there are exactly 13 tracks', () => {
   expect(CATALOG_TRACKS).toHaveLength(13);
 });
 
-test('exactly five tracks are live, the rest are coming-soon', () => {
+test('all 13 tracks are live, in catalog order', () => {
   const live = CATALOG_TRACKS.filter((t) => t.status === 'live');
   expect(live.map((t) => t.slug)).toEqual([
     'computing-basics',
@@ -13,6 +13,14 @@ test('exactly five tracks are live, the rest are coming-soon', () => {
     'windows-foundations',
     'git-fundamentals',
     'github-gitlab-fundamentals',
+    'networking-fundamentals',
+    'how-the-web-really-works',
+    'servers-and-services',
+    'programming-basics-python',
+    'sql-basics',
+    'security-concepts',
+    'ai-fundamentals',
+    'how-llms-actually-work',
   ]);
 });
 

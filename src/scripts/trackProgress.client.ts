@@ -65,3 +65,32 @@ export function renderTrackLanding(root: HTMLElement, store?: ProgressStore | nu
   if (nextLink) start.href = nextLink.href;
   if (nextTitle) start.textContent = `Continue: ${nextTitle}`;
 }
+
+/**
+ * On the homepage roadmap: marks each track node as done or in progress,
+ * and, once the learner has started anything, highlights the first
+ * unfinished track on the main path as "Next". First-time visitors see the
+ * map unchanged, with "Start here" on the first track.
+ */
+export function renderRoadmapProgress(root: ParentNode, store?: ProgressStore | null): void {
+  renderCardProgress(root, store);
+
+  const nodes = [...root.querySelectorAll<HTMLElement>('[data-roadmap-node]')];
+  let anyStarted = false;
+  for (const node of nodes) {
+    const slug = node.getAttribute('data-roadmap-node') ?? '';
+    const total = Number(node.getAttribute('data-lesson-count') ?? '0');
+    const done = Math.min(doneCount(getProgress(slug, store)), total);
+    node.removeAttribute('data-state');
+    node.removeAttribute('data-next');
+    if (done > 0) anyStarted = true;
+    if (total > 0 && done >= total) node.setAttribute('data-state', 'done');
+    else if (done > 0) node.setAttribute('data-state', 'progress');
+  }
+
+  if (!anyStarted) return;
+  const next = nodes.find(
+    (node) => node.hasAttribute('data-main-path') && node.getAttribute('data-state') !== 'done',
+  );
+  next?.setAttribute('data-next', '');
+}

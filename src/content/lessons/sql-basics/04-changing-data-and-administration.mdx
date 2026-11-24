@@ -1,0 +1,118 @@
+---
+title: 'Changing Data, and Basic Administration'
+track: 'sql-basics'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lesson 3. Have your untouched company-original.db copy from Lesson 1 ready.'
+reflectQuestions:
+  - 'Why is `DELETE FROM alerts;` without a WHERE one of the most dangerous lines in SQL?'
+  - 'Why should a website''s database account be allowed to read and write its own tables, but not create users or delete tables?'
+  - 'In your own words: why does building a query by gluing user input into text lead to SQL injection?'
+resources:
+  - label: 'SQL Injection Prevention Cheat Sheet (OWASP)'
+    url: 'https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html'
+  - label: 'SQLite: transactions'
+    url: 'https://www.sqlite.org/lang_transaction.html'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Changing data: INSERT, UPDATE, DELETE
+
+Three statements change data:
+
+```sql
+INSERT INTO alerts (ts, severity, rule, user_id, device_id, details)
+VALUES ('2026-11-22 09:00:00', 'medium', 'Analyst note', 11, NULL, 'Investigating rina''s account.');
+
+UPDATE users SET active = 0 WHERE username = 'rina';
+
+DELETE FROM alerts WHERE severity = 'low';
+```
+
+- `INSERT` adds a row. Columns not listed get their default (here, `id` is chosen automatically).
+- `UPDATE` changes values in rows that match the `WHERE`.
+- `DELETE` removes rows that match the `WHERE`.
+
+A single quote inside text is written twice: `'rina''s'` means `rina's`.
+
+<Callout type="warning" title="Always check your WHERE first">
+
+`UPDATE` and `DELETE` without a `WHERE` change or remove **every row** in the table. Before running one, run the same `WHERE` as a `SELECT` and look at exactly which rows it matches. It is the same habit as running `ls *.log` before `rm *.log` in Linux Essentials.
+
+</Callout>
+
+## Transactions: all or nothing
+
+A **transaction** groups changes so that either all of them happen, or none do. In SQL:
+
+- `BEGIN` starts a transaction,
+- `COMMIT` makes the changes permanent,
+- `ROLLBACK` throws them all away.
+
+DB Browser for SQLite does this for you: every change you make waits in an open transaction until you click **Write Changes** (commit) or **Revert Changes** (rollback). Nothing touches the file until you write.
+
+## Hands-on: change data, then undo it
+
+Make sure you have the `company-original.db` copy from Lesson 1. Then, in the **Execute SQL** tab of your practice `company.db`:
+
+**1. Look before you change.** Which rows would the `DELETE` above remove?
+
+```sql
+SELECT id, ts, severity, rule FROM alerts WHERE severity = 'low';
+```
+
+Two rows: alert `1` and alert `6`.
+
+**2. Run the three changes** from the top of this lesson (all three statements together), then check them:
+
+```sql
+SELECT username, active FROM users WHERE username = 'rina';
+SELECT id, severity, rule FROM alerts ORDER BY id;
+```
+
+Rina is now `active = 0` (disabled), the two low alerts are gone, and a new medium alert is at the end.
+
+**3. Undo it all.** Click **Revert Changes** in the toolbar and confirm. Run the two `SELECT` queries again: everything is back. That was a rollback.
+
+If you ever click **Write Changes** by mistake, the original copy saves you: close the database, delete `company.db`, and copy `company-original.db` again.
+
+## Basic administration
+
+Running a database for real involves a few more jobs:
+
+- **Backups.** For SQLite, a backup is a copy of the file, like your `company-original.db`. Server databases have their own backup tools. A backup you have never tried to restore is only a hope.
+- **Accounts and privileges.** Server databases such as MariaDB, MySQL, and PostgreSQL have their own user accounts and `GRANT` rules for who may read, change, or administer which tables. SQLite has none: whoever can open the file can do anything, so the file's permissions (Linux and Windows tracks) are the protection. Servers & Services sets up a MariaDB account with least privilege.
+- **Least privilege again.** A website's database account should read and write its own tables, and nothing else. If the site is broken into, that limit is what keeps the damage small.
+
+## SQL injection
+
+**SQL injection** happens when a program builds a query by gluing user input into SQL text. Imagine a login form that does this:
+
+```python
+query = "SELECT * FROM users WHERE username = '" + typed_name + "'"
+```
+
+If someone types `rina`, the query is fine. If someone types `' OR '1'='1`, the query becomes:
+
+```sql
+SELECT * FROM users WHERE username = '' OR '1'='1'
+```
+
+`'1'='1'` is always true, so the query matches **every user**. The attacker's input stopped being data and became part of the command. Depending on the program, injection can leak, change, or delete whole databases.
+
+The fix is to never glue input into SQL. Use **parameterized queries**, where the input travels separately and is always treated as data:
+
+```python
+cursor.execute("SELECT * FROM users WHERE username = ?", (typed_name,))
+```
+
+The `?` is a placeholder. Whatever the user types, even `' OR '1'='1`, is searched for as a username, never run as SQL. This connects back to Python Lesson 2: unchecked input is where many vulnerabilities begin.
+
+### What to notice
+
+- `INSERT`, `UPDATE`, and `DELETE` change data. Run the `WHERE` as a `SELECT` first.
+- A transaction is all or nothing; in DB Browser, Write Changes commits and Revert Changes rolls back.
+- Server databases have accounts and privileges; give each application only what it needs.
+- SQL injection is input turned into commands. Parameterized queries keep input as data.

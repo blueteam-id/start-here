@@ -1,0 +1,169 @@
+---
+title: 'Why Python, and Your First Script'
+track: 'programming-basics-python'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 30
+reflectQuestions:
+  - 'Think of one boring check you did by hand in an earlier track. How could a script help?'
+  - 'Why is it risky to run a Python script someone sent you without reading it first?'
+resources:
+  - label: 'Python downloads (python.org)'
+    url: 'https://www.python.org/downloads/'
+  - label: 'The Python Tutorial (official, free)'
+    url: 'https://docs.python.org/3/tutorial/'
+  - label: 'Automate the Boring Stuff with Python (free to read online)'
+    url: 'https://automatetheboringstuff.com/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Why Python, for a defender
+
+**Python** is a programming language designed to be easy to read. It is the most common language for security tools, automation scripts, and data analysis. Defenders use it to:
+
+- search and summarize logs faster than by hand,
+- glue tools together (take the output of one, feed it to another),
+- read and understand scripts found during an incident.
+
+This track will not make you a software developer. It will make you comfortable reading and writing short scripts, which is what most security jobs ask for.
+
+## Before you start: Python 3
+
+Check whether Python 3 is already installed:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+python3 --version
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+python3 --version
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+py --version
+```
+
+  </Fragment>
+</CodeTabs>
+
+If it prints `Python 3.` followed by a version number, you are set. If not:
+
+- **macOS**: running `python3` the first time may offer to install the "command line developer tools". Accept, wait for it to finish, and try again. Or install from [python.org/downloads](https://www.python.org/downloads/).
+- **Linux**: Python 3 is almost always installed. If not, ask in the Discord which package your distribution uses.
+- **Windows**: download the installer from [python.org/downloads](https://www.python.org/downloads/). On the first screen, tick **Add python.exe to PATH**, then install. Close and reopen PowerShell, and run `py --version` again.
+
+<Callout type="windows" title="Windows users: type py, not python">
+
+On Windows, use `py` everywhere this track says `python3`. Typing `python` may open the Microsoft Store instead of running Python. `py` is the Python launcher that the python.org installer adds.
+
+</Callout>
+
+## Your practice folder
+
+Every file in this track goes into one folder:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+mkdir -p ~/programming-basics-python && cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+mkdir -p ~/programming-basics-python && cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+New-Item -ItemType Directory -Path "$HOME\programming-basics-python" -Force
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+Every later lesson starts by going back into this folder.
+
+## The interactive prompt
+
+Python has an interactive mode, often called the **REPL**: you type a line, Python runs it right away and shows the result. Start it with `python3` (Windows: `py`). The prompt changes to `>>>`. Try these, one per line:
+
+```python
+2 + 3
+10 * 60 * 60
+print("Hello from Python")
+len("blueteam")
+```
+
+`10 * 60 * 60` is the number of seconds in ten hours. `len` counts the characters in a piece of text. Leave the REPL with `exit()`.
+
+## Your first script
+
+A **script** is Python saved in a file, so you can run it again. Create `hello.py` in your practice folder with any plain-text editor: `nano hello.py` on macOS and Linux (Linux Essentials Lesson 4), or `notepad hello.py` on Windows. Type:
+
+```python
+print("Hello from my first script")
+name = "defender"
+print("Ready to automate the boring stuff,", name)
+```
+
+Save it, then run it:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+python3 hello.py
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+python3 hello.py
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+py hello.py
+```
+
+  </Fragment>
+</CodeTabs>
+
+```text
+Hello from my first script
+Ready to automate the boring stuff, defender
+```
+
+<Callout type="stuck">
+
+- `No such file or directory` or `can't open file`: you are not in the practice folder. Run the folder command above again.
+- `SyntaxError`: compare your file with the example character by character. Quotes and brackets must come in pairs.
+- In Notepad, make sure the file is saved as `hello.py`, not `hello.py.txt`: choose "All files" as the type when saving.
+
+</Callout>
+
+### What to notice
+
+- Python runs one line at a time in the REPL, or a whole file as a script.
+- On Windows, the command is `py`; on macOS and Linux, `python3`.
+- A script is just a text file. Read any script before you run it: it can do anything you can do.

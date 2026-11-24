@@ -1,0 +1,178 @@
+---
+title: 'Crypto Basics: Hashing, Encryption, and Certificates'
+track: 'security-concepts'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for confidentiality and integrity. The bytes lesson in Computing Basics helps.'
+reflectQuestions:
+  - 'Why should a website store a hash of your password instead of the password itself?'
+  - 'Someone says a secret is "encrypted in base64". What is wrong with that sentence?'
+  - 'Why does verifying a download''s hash protect you even if the website itself was hacked? When does it not?'
+resources:
+  - label: 'What is encryption? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/ssl/what-is-encryption/'
+  - label: 'What is an SSL certificate? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/'
+  - label: 'Cryptographic hash function (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Cryptographic_hash_function'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+import LabFile from '../../../components/LabFile.astro';
+
+## Three tools that are often confused
+
+**Cryptography** is the maths that protects data. Beginners (and many headlines) mix up three very different tools:
+
+| Tool | Can you get the original back? | What it protects |
+| --- | --- | --- |
+| **Encoding** (e.g. base64) | Yes, anyone can | Nothing. It only changes the format. |
+| **Hashing** (e.g. SHA-256) | No | Integrity: proves data has not changed |
+| **Encryption** (e.g. AES) | Yes, with the key | Confidentiality: only key holders can read it |
+
+## Hashing: a fingerprint for data
+
+A **hash function** turns any amount of data into a short, fixed-length fingerprint. SHA-256 always gives 64 hex characters, whether the input is one letter or a whole movie. A good hash has three properties:
+
+- The same input always gives the same hash.
+- Changing even one bit of the input changes the hash completely.
+- You cannot work backward from the hash to the input.
+
+That makes hashes perfect for **integrity**. If the hash of a file today matches the hash from yesterday, the file has not changed. It is also why websites store a **hash of your password**, not the password: when you log in, they hash what you typed and compare. A stolen database of hashes is much less useful to an attacker than a list of passwords. (Real systems use special slow password hashes, but the idea is the same.)
+
+## Encryption: locking data with a key
+
+**Encryption** scrambles data so only someone with the right **key** can unscramble (**decrypt**) it. Two kinds:
+
+- **Symmetric** encryption uses **one key** to lock and unlock, like a house key. It is fast, so it protects large amounts of data, such as an encrypted disk. The hard part is sharing the key safely.
+- **Asymmetric** (public-key) encryption uses a **key pair**. The **public key** can be shared with anyone; the **private key** never leaves its owner. Data locked with the public key can only be opened with the private key. The private key can also **sign** data, and anyone with the public key can check the signature.
+
+Real systems use both: asymmetric to agree on a key safely, then symmetric for speed.
+
+## Certificates: proving who a website is
+
+When you open an `https://` website, your browser and the site use **TLS** to encrypt the connection. But encryption alone is not enough: you also need to know you are talking to the real site, not an impostor.
+
+That is the job of a **certificate**. It contains the site's name and public key, signed by a **certificate authority** (CA) that your browser already trusts. If the signature checks out and the name matches, the browser shows the padlock. A warning about the certificate means one of those checks failed. Do not click through it on a site you care about.
+
+## Hands-on: hashes and encoding on your own machine
+
+Create a practice folder and a small file:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+mkdir -p ~/security-concepts && cd ~/security-concepts
+echo "Meet at 10:00" > note.txt
+shasum -a 256 note.txt
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+mkdir -p ~/security-concepts && cd ~/security-concepts
+echo "Meet at 10:00" > note.txt
+sha256sum note.txt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+New-Item -ItemType Directory -Path "$HOME\security-concepts" -Force
+Set-Location "$HOME\security-concepts"
+Set-Content -Path note.txt -Value "Meet at 10:00"
+Get-FileHash note.txt -Algorithm SHA256
+```
+
+  </Fragment>
+</CodeTabs>
+
+Now change **one character**, `10:00` to `10:01`, and hash again:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+echo "Meet at 10:01" > note.txt
+shasum -a 256 note.txt
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+echo "Meet at 10:01" > note.txt
+sha256sum note.txt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Content -Path note.txt -Value "Meet at 10:01"
+Get-FileHash note.txt -Algorithm SHA256
+```
+
+  </Fragment>
+</CodeTabs>
+
+The two hashes share nothing recognizable, even though one character changed. That is what makes tampering easy to detect. (Windows and macOS/Linux may give different hashes for the "same" text, because they save line endings differently: the bytes really are different.)
+
+Next, see that **base64 is not encryption**. Encode a fake password, then decode it, with no key at all:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+echo -n "password123" | base64
+echo "cGFzc3dvcmQxMjM=" | base64 --decode; echo
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+echo -n "password123" | base64
+echo "cGFzc3dvcmQxMjM=" | base64 --decode; echo
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("password123"))
+[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("cGFzc3dvcmQxMjM="))
+```
+
+  </Fragment>
+</CodeTabs>
+
+Anyone can reverse it. Attackers use base64 to hide commands from a quick glance (remember `-EncodedCommand` in Windows Foundations), but it protects nothing.
+
+## Hands-on: verify a download
+
+This site shows a SHA-256 next to every lab file. Download this sample log (you will use it again in the Python track):
+
+<LabFile path="labs/programming-basics-python/auth.log" label="Sample SSH log (auth.log)" />
+
+Hash the downloaded file with the command for your OS (the file is usually in your `Downloads` folder), and compare the result with the hash shown above. If they match, the file arrived exactly as published.
+
+<Callout type="note" title="What a matching hash does not prove">
+
+A hash proves the file matches the published hash. If an attacker could change both the file and the hash on the same page, the check would still pass. That is why important software is also **signed** with the publisher's private key, and why hashes are often published somewhere separate from the download.
+
+</Callout>
+
+Finally, open any `https://` site you use, click the padlock (or the icon next to the address), and find the certificate details: **who it was issued to**, **who issued it**, and **when it expires**.
+
+### What to notice
+
+- Encoding hides nothing, hashing proves integrity, and encryption protects confidentiality with a key.
+- One changed character gives a completely different hash. That is how tampering gets caught.
+- Public keys can be shared; private keys never can. Certificates tie a website's name to its public key.
+- Verifying a download's hash is a small habit that catches corrupted and tampered files.

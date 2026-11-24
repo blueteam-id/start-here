@@ -222,8 +222,8 @@ Priority 2: medium effort, still static
 > **Status 2026-11-23:** P2.1 (Pagefind search at `/search/`), P2.2
 > (`/start/`), P2.3 (`/glossary/`, 41 terms), P2.5 (`<Callout>`), P2.6
 > (` ```text ` output blocks), P2.7 and P2.8 (`/privacy/` with progress
-> copy, paste, and reset) implemented. P2.4 (lab file downloads) is
-> deferred until the first track that needs lab files (SQL or Python).
+> copy, paste, and reset) implemented. P2.4 (lab file downloads) was built
+> on 2026-11-24 with the SQL and Python tracks (`<LabFile>`).
 
 | # | Feature | Why | Notes |
 |---|---|---|---|

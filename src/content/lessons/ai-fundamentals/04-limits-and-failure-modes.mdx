@@ -1,0 +1,97 @@
+---
+title: 'Limits and Failure Modes'
+track: 'ai-fundamentals'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lessons 2 and 3, for training data and anomaly detection.'
+reflectQuestions:
+  - 'Why can a detector with 99% accuracy still be useless to a security team?'
+  - 'Your team can only investigate 20 alerts a day. Would you rather raise precision or recall? What do you give up?'
+  - 'How could an attacker who can add data to a model''s training set make it miss their malware?'
+resources:
+  - label: 'Precision and recall (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Precision_and_recall'
+  - label: 'Base rate fallacy (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Base_rate_fallacy'
+  - label: 'NIST AI Risk Management Framework'
+    url: 'https://www.nist.gov/itl/ai-risk-management-framework'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Four outcomes for every alert
+
+Whenever a detector decides "malicious" or "benign", there are four possible outcomes:
+
+| | Really malicious | Really benign |
+| --- | --- | --- |
+| **Detector says malicious** | **True positive (TP)**: caught it | **False positive (FP)**: false alarm |
+| **Detector says benign** | **False negative (FN)**: missed it | **True negative (TN)**: correctly ignored |
+
+This table is called a **confusion matrix**. Two numbers summarize it:
+
+- **Precision** = TP ÷ (TP + FP). Of all the alerts, how many were real? Low precision means analysts waste time on false alarms.
+- **Recall** = TP ÷ (TP + FN). Of all the real attacks, how many were caught? Low recall means attacks slip through.
+
+Improving one often hurts the other. Make the detector more sensitive and recall goes up, but so do false alarms.
+
+## The base rate problem
+
+Attacks are **rare** compared with normal activity. That changes everything.
+
+Imagine 10,000 normal logins and 10 malicious ones in a day. A detector catches 9 of the 10 attacks (recall 90%) and wrongly flags just 1% of normal logins. That sounds excellent. Now count:
+
+- True positives: **9**.
+- False positives: 1% of 10,000 = **100**.
+- Precision: 9 ÷ (9 + 100) = **about 8%**.
+
+More than 9 out of 10 alerts are false alarms, from a detector that looked great on paper. This is the **base rate fallacy**, and it is the main reason for **alert fatigue**: analysts who see mostly false alarms start to ignore alerts, including the real ones.
+
+It also explains why "99% accuracy" means little. A detector that says "benign" to **everything** would be 99.9% accurate on that day, and catch nothing.
+
+## Other ways models fail
+
+- **Bias**: a model repeats the patterns in its training data, including unfair or unrepresentative ones. A detector trained mostly on one company's traffic may misjudge another's.
+- **Data poisoning**: an attacker who can influence the training data can teach the model wrong lessons, for example to treat their malware as clean.
+- **Adversarial examples**: small, deliberate changes to an input that flip the model's answer, such as padding a malicious file with harmless-looking content until a classifier calls it clean.
+- **Drift** (Lesson 2): the world changes and the model slowly stops matching it.
+
+## Hands-on: measure a detector
+
+An AI-based alerting tool ran for one week. Afterwards, analysts checked everything and filled in this confusion matrix:
+
+| | Really malicious | Really benign |
+| --- | --- | --- |
+| **Tool said malicious** | 40 | 160 |
+| **Tool said benign** | 10 | 9,790 |
+
+On paper, work out:
+
+1. How many alerts did the tool raise in total?
+2. Its **precision**.
+3. Its **recall**.
+4. If your team can only investigate 50 alerts a week, roughly how many real attacks would you expect to find, if you picked alerts at random?
+
+<details>
+<summary>Check your answers</summary>
+
+1. Alerts = TP + FP = 40 + 160 = **200**.
+2. Precision = 40 ÷ 200 = **20%**. Four out of five alerts are false alarms.
+3. Recall = 40 ÷ (40 + 10) = **80%**. One in five real attacks was missed.
+4. At 20% precision, 50 random alerts contain about **10** real attacks, out of 40 that were caught. Better ranking of alerts, or better precision, matters as much as catching more.
+
+</details>
+
+<Callout type="tip" title="Questions to ask about any detector">
+
+What is its precision and recall **on data like ours**? How many alerts per day would it raise for us? How was it tested, and how is it kept up to date? A vendor who only quotes "accuracy" has not answered the question.
+
+</Callout>
+
+### What to notice
+
+- Every detector has true and false positives and negatives. Precision is "alerts that were real"; recall is "attacks that were caught".
+- Because attacks are rare, even a small false-alarm rate can bury the real alerts.
+- "Accuracy" is misleading on rare events. Ask for precision and recall on your kind of data.
+- Models can also be biased, poisoned, fooled with crafted inputs, or left behind by drift.

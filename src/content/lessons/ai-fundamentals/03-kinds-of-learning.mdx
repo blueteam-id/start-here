@@ -1,0 +1,91 @@
+---
+title: 'Kinds of Learning, and Where Security Uses Them'
+track: 'ai-fundamentals'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 2, for features, labels, and training.'
+reflectQuestions:
+  - 'Why is anomaly detection useful for attacks nobody has seen before, and why does it also raise many false alarms?'
+  - 'Labeled security data is rare and expensive. How does that push security teams toward unsupervised methods?'
+resources:
+  - label: 'Machine Learning Crash Course (Google, free)'
+    url: 'https://developers.google.com/machine-learning/crash-course'
+  - label: 'Anomaly detection (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Anomaly_detection'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Supervised learning: learning from answers
+
+**Supervised learning** uses labeled examples, like the spam emails in Lesson 2. The model learns to map inputs to the known answers. Two common jobs:
+
+- **Classification**: pick a category. Spam or not spam; malware or clean; phishing site or real site.
+- **Regression**: predict a number. How many alerts will we get tomorrow? How risky is this login, from 0 to 100?
+
+Supervised learning is powerful but needs **labels**, and in security, good labels are expensive: someone has to confirm that each sample really was malicious.
+
+## Unsupervised learning: finding structure without answers
+
+**Unsupervised learning** gets data **without** labels and looks for structure on its own:
+
+- **Clustering**: group similar things. For example, group thousands of malware files into families that behave alike.
+- **Anomaly detection**: learn what "normal" looks like, then flag what does not fit. For example, a user who always logs in from Jakarta between 8 and 6 suddenly logs in from another continent at 3 a.m.
+
+Anomaly detection can catch attacks nobody has seen before, because it does not need examples of them. Its weakness: **unusual is not the same as malicious**. A user on holiday is unusual too. That makes anomaly detection prone to false alarms (Lesson 4).
+
+## Reinforcement learning: learning by trial and reward
+
+**Reinforcement learning** learns by acting and getting rewards or penalties, like training a pet. It is famous for games and robotics. In security it appears mostly in research, for example in automated testing; you will meet it far less than the other two.
+
+## Generative models
+
+**Generative models** learn the patterns of their training data well enough to **produce new examples**: text, images, code. Large language models are the best-known kind. In security they summarize incidents, explain code and logs, and draft reports. Attackers use them too, for convincing phishing in any language. The next track explains how they work.
+
+## Where security tools use each kind
+
+| Security use | Usual kind of learning |
+| --- | --- |
+| Spam and phishing filters | Supervised classification |
+| Malware detection from file features | Supervised classification |
+| User and entity behavior analytics (UEBA): unusual logins, unusual data access | Unsupervised anomaly detection |
+| Grouping malware samples into families | Unsupervised clustering |
+| Risk score for each login | Supervised regression (or a mix) |
+| Writing incident summaries, explaining a script | Generative (LLMs) |
+
+## Hands-on: match the use case
+
+For each situation, decide which kind of learning fits best, and why. Write your answers, then compare.
+
+1. You have 50,000 URLs, each marked by analysts as "phishing" or "legitimate". You want to check new URLs automatically.
+2. You have a year of login records and no idea which were attacks. You want to know when something odd happens.
+3. You have 20,000 malware files and want to know which ones are basically the same program.
+4. You want a short, readable summary of a long incident ticket.
+5. You want to estimate, for each laptop, how likely it is to be infected, as a number from 0 to 100, using past confirmed infections.
+6. A user downloads 30 GB from the file server at night, which they have never done before.
+
+<details>
+<summary>Compare your answers</summary>
+
+1. **Supervised classification.** You have labels and want a category.
+2. **Unsupervised anomaly detection.** No labels; learn normal, flag the odd.
+3. **Unsupervised clustering.** Group similar files without labels.
+4. **Generative** (an LLM).
+5. **Supervised regression.** Labeled history, a number as output.
+6. **Anomaly detection** would flag it. Whether it is malicious still needs a person: it could be an attacker, or a legitimate backup. Remember the large download in the SQL track's investigation.
+
+</details>
+
+<Callout type="tip">
+
+Knowing the kind of learning tells you what a tool can and cannot do. A supervised malware classifier is only as good as the malware it was trained on; an anomaly detector will catch new things but also flag your colleague's unusual Friday.
+
+</Callout>
+
+### What to notice
+
+- Supervised learning learns from labeled answers: classification picks a category, regression predicts a number.
+- Unsupervised learning finds structure without labels: clustering groups, anomaly detection flags the unusual.
+- Unusual is not the same as malicious; anomaly detection needs people to judge what it finds.
+- Generative models produce new content, for defenders and for attackers.

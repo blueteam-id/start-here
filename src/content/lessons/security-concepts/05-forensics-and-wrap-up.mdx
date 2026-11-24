@@ -1,0 +1,180 @@
+---
+title: 'A First Taste of Forensics, and Wrap-up'
+track: 'security-concepts'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+prerequisites: 'Lessons 1 to 4, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the four earlier lessons changed how you think about security the most, and why?'
+  - 'Why should an investigator hash evidence files as soon as they collect them?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response'
+    url: 'https://csrc.nist.gov/pubs/sp/800/86/final'
+  - label: 'Order of volatility (RFC 3227: Guidelines for Evidence Collection and Archiving)'
+    url: 'https://www.rfc-editor.org/rfc/rfc3227'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What forensics is
+
+**Digital forensics** is working out what happened on a system, in a way others can check and trust. A few ideas sit at its core:
+
+- **Timeline**: put events in order. Most investigations are a story told in timestamps: when the machine started, who logged in, which files changed, which alerts fired.
+- **Order of volatility**: collect the most fragile evidence first. RAM disappears at power-off (Computing Basics), network connections change every second, and files on disk last longest. Pulling the plug too early can destroy the best evidence.
+- **Integrity of evidence**: hash every file you collect, right away (Lesson 3). A matching hash later proves nothing was changed.
+- **Chain of custody**: write down who collected what, when, how, and who held it since. Without it, evidence can be challenged.
+
+## What you now know
+
+1. **What security protects.** Confidentiality, integrity, and availability, plus authentication, authorization, and accounting.
+2. **Threat, vulnerability, risk.** Risk is likelihood times impact. CVE names a bug, CVSS scores it in general, and exploited bugs come first.
+3. **Crypto basics.** Encoding hides nothing, hashing proves integrity, encryption protects confidentiality, and certificates prove a site's identity.
+4. **Ethics, law, recon.** Permission first, in writing, with a scope. Report what you find by accident. Passive recon reads only what is public.
+
+## Hands-on: build a small timeline of your own computer
+
+This exercise chains the track into one small investigation, on your own machine only. You will collect three kinds of events, save them as evidence files, hash them, and write a short custody note.
+
+Go to your practice folder from Lesson 3 and make an `evidence` folder:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+mkdir -p ~/security-concepts/evidence && cd ~/security-concepts/evidence
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+mkdir -p ~/security-concepts/evidence && cd ~/security-concepts/evidence
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+New-Item -ItemType Directory -Path "$HOME\security-concepts\evidence" -Force
+Set-Location "$HOME\security-concepts\evidence"
+```
+
+  </Fragment>
+</CodeTabs>
+
+**1. When did the machine last start, and who logged in?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+sysctl -n kern.boottime > boot.txt
+last | head -n 15 > logins.txt
+cat boot.txt logins.txt
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+uptime -s > boot.txt
+last -n 15 > logins.txt
+cat boot.txt logins.txt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+(Get-CimInstance Win32_OperatingSystem).LastBootUpTime | Out-File boot.txt
+# Windows logs a system start (6005) and a clean shutdown (6006) in the System log
+Get-WinEvent -FilterHashtable @{LogName='System'; Id=6005,6006} -MaxEvents 15 |
+  Select-Object TimeCreated, Id, Message | Out-File logins.txt
+Get-Content boot.txt, logins.txt
+```
+
+  </Fragment>
+</CodeTabs>
+
+On Linux inside WSL, `last` may show almost nothing, because WSL does not record logins the same way. That is fine: note it, which is exactly what an investigator would do.
+
+**2. Which files changed recently in your Downloads folder?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+ls -lt ~/Downloads | head -n 10 > downloads.txt
+cat downloads.txt
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ls -lt ~/Downloads | head -n 10 > downloads.txt
+cat downloads.txt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-ChildItem "$HOME\Downloads" | Sort-Object LastWriteTime -Descending |
+  Select-Object -First 10 Name, LastWriteTime | Out-File downloads.txt
+Get-Content downloads.txt
+```
+
+  </Fragment>
+</CodeTabs>
+
+**3. Hash the evidence, right away**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+shasum -a 256 boot.txt logins.txt downloads.txt > hashes.txt
+cat hashes.txt
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+sha256sum boot.txt logins.txt downloads.txt > hashes.txt
+cat hashes.txt
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-FileHash boot.txt, logins.txt, downloads.txt -Algorithm SHA256 | Out-File hashes.txt
+Get-Content hashes.txt
+```
+
+  </Fragment>
+</CodeTabs>
+
+**4. Write the timeline and a custody note**
+
+In a text file (or on paper), put the events in time order: the boot time, the logins, and the downloads with their times. Add a short custody note at the top: your name, the date and time you collected the files, the commands you used, and that the hashes are in `hashes.txt`.
+
+You just did a tiny version of real incident response: collected evidence in order, protected its integrity with hashes, documented custody, and turned raw output into a timeline. All on a machine you own.
+
+## Where to go from here
+
+This track was a first taste. Incident response, forensics, threat intelligence, and secure design are each full careers. You now have the vocabulary they all share.
+
+Bring your questions to the **community Discord** with the Join Discord button at the top of the page. The question you write in the reflection below is a good first post.
+
+Next steps from here:
+
+- <TrackLink slug="how-the-web-really-works" /> applies these ideas to websites: certificates, cookies, and sessions.
+- <TrackLink slug="servers-and-services" /> gives you a lab server you own, where active techniques are fair game.
+- <TrackLink slug="how-llms-actually-work" /> covers the newest attack surface: AI features.

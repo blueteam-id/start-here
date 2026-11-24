@@ -1,0 +1,128 @@
+---
+title: 'Asking Questions: SELECT and WHERE'
+track: 'sql-basics'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for the practice database open in DB Browser for SQLite.'
+reflectQuestions:
+  - 'Why is `WHERE success = 0 ORDER BY ts DESC LIMIT 5` the shape of almost every first log search?'
+  - 'Your query compares times written as text, like `ts >= ''2026-11-22 00:00:00''`. Why does that only work because of how the dates are written?'
+resources:
+  - label: 'SQLite: SELECT'
+    url: 'https://www.sqlite.org/lang_select.html'
+  - label: 'SQLBolt lessons 1 to 5 (free, interactive)'
+    url: 'https://sqlbolt.com/lesson/select_queries_introduction'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+Open `company.db` in DB Browser for SQLite and go to the **Execute SQL** tab. Run each query below, one at a time, and compare with the results shown.
+
+## Choosing columns
+
+`SELECT *` returns every column. Name the columns you want instead, separated by commas:
+
+```sql
+SELECT username, full_name, department FROM users;
+```
+
+Fewer columns make results easier to read, and on big tables, faster.
+
+## Filtering rows with WHERE
+
+`WHERE` keeps only the rows that match a condition:
+
+```sql
+SELECT username, full_name, department
+FROM users
+WHERE department = 'Finance';
+```
+
+```text
+username  full_name      department
+budi      Budi Santoso   Finance
+gita      Gita Permata   Finance
+rina      Rina Maharani  Finance
+```
+
+Text goes in **single quotes**. Numbers do not. Conditions you will use:
+
+| Condition | Meaning |
+| --- | --- |
+| `=`, `!=` | equal, not equal |
+| `>`, `<`, `>=`, `<=` | greater, smaller |
+| `AND`, `OR`, `NOT` | combine conditions |
+| `LIKE '203.0.113.%'` | text pattern; `%` means "anything" |
+| `IS NULL`, `IS NOT NULL` | the value is empty, or not |
+
+## Sorting and limiting
+
+`ORDER BY` sorts; `DESC` means newest or biggest first. `LIMIT` keeps only the first few rows:
+
+```sql
+SELECT ts, user_id, source_ip
+FROM logins
+WHERE success = 0
+ORDER BY ts DESC
+LIMIT 5;
+```
+
+```text
+ts                   user_id  source_ip
+2026-11-22 02:07:14  11       203.0.113.50
+2026-11-22 01:59:09  6        203.0.113.50
+2026-11-22 01:58:08  1        203.0.113.50
+2026-11-22 01:57:07  11       203.0.113.50
+2026-11-22 01:56:06  9        203.0.113.50
+```
+
+"The five most recent failed logins" is one of the first questions in almost any investigation. All five come from the same outside address, against different users.
+
+## Patterns and time ranges
+
+Did anything from that address **succeed**? `LIKE` matches the whole `203.0.113.` range:
+
+```sql
+SELECT *
+FROM logins
+WHERE source_ip LIKE '203.0.113.%' AND success = 1;
+```
+
+One row: login `28`, user `11`, at `2026-11-22 02:07:39`, with no device (`device_id` is empty, meaning a remote VPN login). Lesson 3 shows how to turn user `11` into a name.
+
+Times in this database are written as text in the form `YYYY-MM-DD HH:MM:SS`. Because the biggest unit comes first, sorting and comparing them as text gives the right order. So a time range is just two comparisons:
+
+```sql
+SELECT ts, user_id, source_ip, success
+FROM logins
+WHERE ts >= '2026-11-22 00:00:00' AND ts < '2026-11-22 06:00:00'
+ORDER BY ts;
+```
+
+That is everything that happened between midnight and 6 a.m. on the night of the 22nd.
+
+## Empty values: NULL
+
+Some columns can be empty. In SQL, empty is called `NULL`, and it needs its own test: `= NULL` never matches. Find the remote logins (no device):
+
+```sql
+SELECT ts, user_id, source_ip
+FROM logins
+WHERE device_id IS NULL AND success = 1;
+```
+
+<Callout type="stuck">
+
+- `no such column`: check the spelling. Column names are listed in the **Database Structure** tab.
+- `no such table`: you may have opened `company.sql` or a different file. Open `company.db`.
+- Zero rows when you expected some: text comparisons are exact. `'finance'` does not match `'Finance'`.
+
+</Callout>
+
+### What to notice
+
+- `SELECT columns FROM table WHERE condition ORDER BY column LIMIT n` is the shape of most questions.
+- Text needs single quotes; `%` in `LIKE` matches anything.
+- Times written biggest-unit-first sort and compare correctly as text.
+- Empty values are `NULL` and need `IS NULL`, not `= NULL`.

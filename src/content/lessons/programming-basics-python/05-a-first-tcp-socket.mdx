@@ -1,0 +1,186 @@
+---
+title: 'Talking to the Network: a First TCP Socket'
+track: 'programming-basics-python'
+phase: 'Core Concepts'
+order: 5
+estimatedMinutes: 30
+prerequisites: 'Lesson 4, and Networking Fundamentals Lesson 3 for ports and listening.'
+reflectQuestions:
+  - 'Your server listens on 127.0.0.1. What would change if it listened on 0.0.0.0 instead?'
+  - 'A reverse shell is "a client that connects out and takes orders". Why do firewalls that only block incoming connections miss it?'
+resources:
+  - label: 'socket: low-level networking interface (Python documentation)'
+    url: 'https://docs.python.org/3/library/socket.html'
+  - label: 'Socket Programming HOWTO (Python documentation)'
+    url: 'https://docs.python.org/3/howto/sockets.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Back to the practice folder
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+## Sockets: a program's end of a connection
+
+Networking Fundamentals showed listening ports and established connections from the outside. Now you build both sides yourself.
+
+A **socket** is a program's end of a network connection. The pattern for TCP is always the same:
+
+- The **server** creates a socket, **binds** it to an address and port, **listens**, and **accepts** connections.
+- The **client** creates a socket and **connects** to the server's address and port.
+- Then both sides **send** and **receive** bytes, and **close** when done.
+
+Networks carry **bytes**, not Python text. `.encode()` turns text into bytes for sending, and `.decode()` turns received bytes back into text.
+
+## The server
+
+Create `server.py`. It listens on port 9000 of `127.0.0.1` only, so nothing outside your computer can reach it. For each connection, it reads a message and sends it back in capital letters:
+
+```python
+import socket
+
+HOST = "127.0.0.1"  # this machine only, never the network
+PORT = 9000
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind((HOST, PORT))
+server.listen()
+print(f"Listening on {HOST}:{PORT} ... (press Ctrl+C to stop)")
+
+while True:
+    conn, address = server.accept()
+    print(f"Connection from {address[0]}:{address[1]}")
+    data = conn.recv(1024)
+    message = data.decode()
+    print(f"Received: {message}")
+    conn.sendall(message.upper().encode())
+    conn.close()
+```
+
+New pieces:
+
+- `import socket` loads Python's built-in networking module.
+- `AF_INET` means IPv4, and `SOCK_STREAM` means TCP.
+- `SO_REUSEADDR` lets you restart the server right away without waiting for the old port to be released.
+- `while True:` loops forever, handling one connection after another, until you press `Ctrl+C`.
+- `recv(1024)` reads up to 1024 bytes.
+
+## The client
+
+Create `client.py`:
+
+```python
+import socket
+
+HOST = "127.0.0.1"
+PORT = 9000
+
+message = input("Message to send: ")
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((HOST, PORT))
+client.sendall(message.encode())
+reply = client.recv(1024).decode()
+client.close()
+
+print(f"Server replied: {reply}")
+```
+
+## Hands-on: run both sides
+
+This needs **two terminal windows**, both in your practice folder.
+
+**Window 1**: start the server (`python3 server.py`, or `py server.py` on Windows):
+
+```text
+Listening on 127.0.0.1:9000 ... (press Ctrl+C to stop)
+```
+
+**Window 2**: run the client (`python3 client.py`, or `py client.py`), and type a message:
+
+```text
+Message to send: hello from the client
+Server replied: HELLO FROM THE CLIENT
+```
+
+Window 1 now shows the connection, including the client's **ephemeral port** (Networking Lesson 3):
+
+```text
+Connection from 127.0.0.1:52144
+Received: hello from the client
+```
+
+Run the client a few more times; each connection gets a new ephemeral port.
+
+**See your own listener.** While the server runs, use window 2 to list listening ports, as in Networking Fundamentals:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+lsof -nP -iTCP:9000 -sTCP:LISTEN
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ss -tln | grep 9000
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetTCPConnection -State Listen -LocalPort 9000
+```
+
+  </Fragment>
+</CodeTabs>
+
+There it is: `127.0.0.1:9000`, owned by Python. Stop the server with `Ctrl+C` in window 1.
+
+<Callout type="stuck">
+
+- `ConnectionRefusedError` in the client: the server is not running, or it stopped. Start it in window 1 first.
+- `OSError: [Errno 48] Address already in use` (or a similar "already in use" message): another copy of the server is still running. Close the other window, or pick another port, such as 9001, in both files.
+
+</Callout>
+
+## Why defenders care
+
+You just wrote, in about 30 lines, the core of every network program. That includes malicious ones. A **reverse shell** is essentially your client turned around: a program on a compromised machine that **connects out** to the attacker, then reads commands from that connection and runs them. Outgoing connections are allowed by most firewalls, which is why defenders watch for unusual processes holding unusual outgoing connections (Linux Essentials Lesson 6).
+
+This track does not teach how to build one, and you do not need to. Knowing the shape of it is what lets you recognize it.
+
+### What to notice
+
+- A TCP server binds, listens, and accepts; a client connects. Both send and receive bytes.
+- `.encode()` turns text into bytes for the network, `.decode()` turns them back.
+- Binding to `127.0.0.1` keeps a test server off the network. `0.0.0.0` would open it to everyone who can reach you.
+- Malware uses the same few lines of networking code. Recognizing the pattern matters more than writing it.

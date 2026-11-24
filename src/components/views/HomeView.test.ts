@@ -10,7 +10,9 @@ test('the tracks teaser only links to live tracks, never a coming-soon one', asy
   expect(html).toContain('href="/tracks/windows-foundations/"');
   expect(html).toContain('href="/tracks/git-fundamentals/"');
   expect(html).toContain('href="/tracks/github-gitlab-fundamentals/"');
-  expect(html).not.toContain('href="/tracks/networking-fundamentals/"');
+  expect(html).toContain('href="/tracks/networking-fundamentals/"');
+  expect(html).toContain('href="/tracks/security-concepts/"');
+  expect(html).not.toContain('aria-disabled="true"');
   expect(html).toContain('/tracks/');
 });
 

@@ -1,0 +1,144 @@
+---
+title: 'Variables, Types, and Input'
+track: 'programming-basics-python'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 30
+prerequisites: 'Lesson 1, for Python and your practice folder.'
+reflectQuestions:
+  - 'Why does `input()` always give you text, even when someone types a number?'
+  - 'A script crashes when a user types "five" instead of 5. Why is that a security question, not just a bug?'
+resources:
+  - label: 'An informal introduction to Python (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/introduction.html'
+  - label: 'Built-in types (Python documentation)'
+    url: 'https://docs.python.org/3/library/stdtypes.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Back to the practice folder
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+## Variables
+
+A **variable** is a name for a value. You create one with `=`:
+
+```python
+username = "dewi"
+failed_logins = 3
+```
+
+From then on, `username` means `"dewi"`. Variable names use letters, digits, and underscores, cannot start with a digit, and are case-sensitive: `Username` and `username` are different. Pick names that say what the value is.
+
+## Types
+
+Every value has a **type**. The four you need first:
+
+| Type | Example | What it is |
+| --- | --- | --- |
+| `str` (string) | `"dewi"`, `'203.0.113.50'` | Text, in quotes |
+| `int` (integer) | `3`, `443` | Whole numbers |
+| `float` | `0.75`, `99.9` | Numbers with a decimal point |
+| `bool` (boolean) | `True`, `False` | Yes or no |
+
+Try them in the REPL (`python3`, or `py` on Windows). `type()` tells you a value's type:
+
+```python
+type("dewi")
+type(443)
+type(0.75)
+type(True)
+"443" + "1"
+443 + 1
+```
+
+`"443" + "1"` gives `'4431'`: adding two strings joins them. `443 + 1` gives `444`. The quotes change everything. An IP address is a string, not a number, even though it contains digits.
+
+## f-strings: putting values into text
+
+An **f-string** starts with `f` before the quote, and puts variables inside `{}`:
+
+```python
+username = "dewi"
+failed_logins = 3
+print(f"{failed_logins} failed logins for user {username}")
+```
+
+```text
+3 failed logins for user dewi
+```
+
+## Input
+
+`input()` shows a question, waits for the user to type something and press Enter, and gives back what they typed, **always as a string**. To do maths with it, convert it with `int()`.
+
+Create `logline.py` in your practice folder:
+
+```python
+username = input("Username: ")
+failed = input("How many failed logins? ")
+failed = int(failed)
+
+print(f"INFO {failed} failed logins for user {username}")
+print(f"That is {failed * 10} seconds of an attacker's time at 10 seconds each.")
+```
+
+Run it (`python3 logline.py`, or `py logline.py` on Windows) and answer `dewi` and `5`:
+
+```text
+Username: dewi
+How many failed logins? 5
+INFO 5 failed logins for user dewi
+That is 50 seconds of an attacker's time at 10 seconds each.
+```
+
+Now run it again and type `five` instead of `5`. Python stops with an error ending in:
+
+```text
+ValueError: invalid literal for int() with base 10: 'five'
+```
+
+<Callout type="note" title="Input is untrusted">
+
+The script assumed the user would type a number. Real programs face users, and attackers, who type anything. Many vulnerabilities start exactly here: a program trusting input it never checked. Lesson 3 shows how to make decisions; checking input is one of the most important ones.
+
+</Callout>
+
+<Callout type="stuck">
+
+- `NameError: name 'usernme' is not defined`: a typo in a variable name. Python names must match exactly.
+- `IndentationError`: lines in this script must start at the very left, with no spaces before them.
+
+</Callout>
+
+### What to notice
+
+- A variable is a name for a value; its type decides what you can do with it.
+- `"443"` (a string) and `443` (an integer) behave differently. IP addresses are strings.
+- `input()` always returns a string. Convert with `int()` before doing maths.
+- Never assume input is what you expected. Unchecked input is where many security bugs begin.

@@ -1,0 +1,96 @@
+---
+title: 'Wrap-up: Trace One Page Load'
+track: 'how-the-web-really-works'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+prerequisites: 'Lessons 1 to 4, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the four lessons changed how you think about the websites you use the most, and why?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+  - 'Explain your page trace to a friend in three or four simple sentences, with no jargon.'
+resources:
+  - label: 'MDN Web Docs: HTTP'
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP'
+  - label: 'OWASP Top Ten (the most common web application risks)'
+    url: 'https://owasp.org/www-project-top-ten/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What you now know
+
+1. **From URL to page.** A URL has a scheme, host, port, path, query, and fragment; trust the domain at the right end. A page load is DNS, TCP, TLS, then many HTTP requests.
+2. **HTTP up close.** Requests have a method, path, and headers; responses have a status code, headers, and body. Server logs record every request, and 404 bursts usually mean a scanner.
+3. **HTML, browsers, and search engines.** HTML, CSS, and JavaScript build the page, and JavaScript runs on your machine. Search engines index anything public; `robots.txt` hides nothing.
+4. **Cookies and sessions.** A session cookie is a working login. `Secure`, `HttpOnly`, and `SameSite` limit how it can leak.
+
+## Hands-on: trace one page load
+
+Pick one website you use, one you do **not** need to log into for this exercise (a news site works well). Fill in this sheet as you go:
+
+```
+PAGE TRACE: ______________________
+
+1. DNS        the host resolves to ............. ______________
+2. HTTP       plain http:// answers with ....... ___  and sends you to ______________
+3. HTTPS      https:// answers with ............ ___
+              server header says ............... ______________
+4. TLS        certificate issued to ............ ______________
+              issued by ........................ ______________
+              expires .......................... ______________
+5. Browser    requests on one page load ........ ___   from ___ different domains
+6. Cookies    cookies set before you log in .... ___
+              the first one has the flags ...... Secure? ___ HttpOnly? ___ SameSite? ___
+```
+
+**Steps 1 to 3** use the terminal. Replace `www.example.com` with your site's host:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+nslookup www.example.com
+curl -sI http://www.example.com | head -n 5
+curl -sI https://www.example.com | grep -i -E "^HTTP|^server|^set-cookie"
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+nslookup www.example.com
+curl -sI http://www.example.com | head -n 5
+curl -sI https://www.example.com | grep -i -E "^HTTP|^server|^set-cookie"
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+nslookup www.example.com
+curl.exe -sI http://www.example.com | Select-Object -First 5
+curl.exe -sI https://www.example.com | Select-String -Pattern "^HTTP|^server|^set-cookie"
+```
+
+  </Fragment>
+</CodeTabs>
+
+**Step 4** uses the padlock in the address bar (Security Concepts Lesson 3). **Steps 5 and 6** use DevTools: the **Network** tab while reloading the page (Lesson 1), and the cookie list (Lesson 4).
+
+Some sites block `curl` or answer it differently from a browser. If one does, note it, which is itself a finding, and try another site.
+
+You just traced one page from name to rendered page: DNS, the redirect to HTTPS, the server's answer, the certificate that proves who it is, every request your browser made, and the cookies that would carry a login.
+
+## Where to go from here
+
+This track stopped at foundation depth. Web application security, the area of the **OWASP Top Ten**, goes much deeper: injection attacks, broken access control, and more. You now have the base it builds on.
+
+Bring questions to the **community Discord** with the Join Discord button at the top of the page.
+
+Next steps:
+
+- <TrackLink slug="programming-basics-python" /> teaches you to automate checks like the ones in this track.
+- <TrackLink slug="sql-basics" /> explains the databases behind most websites, and SQL injection.
+- <TrackLink slug="servers-and-services" /> puts you on the server side: you run a web server and read its logs.

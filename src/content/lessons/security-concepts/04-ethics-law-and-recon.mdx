@@ -1,0 +1,134 @@
+---
+title: 'Ethics, Law, and a First Taste of Recon'
+track: 'security-concepts'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Networking Fundamentals helps for the recon part (DNS and ports).'
+reflectQuestions:
+  - 'A friend asks you to "test" their company website, but they do not work in IT. Is that permission? What would real permission look like?'
+  - 'You find a bug in a website by accident. What would you do next, and what would you avoid doing?'
+  - 'Why is passive recon on your own domain a useful thing for a defender to do?'
+resources:
+  - label: 'UU No. 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik (JDIH BPK)'
+    url: 'https://peraturan.bpk.go.id/Details/37589/uu-no-11-tahun-2008'
+  - label: 'UU No. 1 Tahun 2024, second amendment to UU ITE (JDIH BPK)'
+    url: 'https://peraturan.bpk.go.id/Details/274494/uu-no-1-tahun-2024'
+  - label: 'UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (JDIH BPK)'
+    url: 'https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022'
+  - label: 'OWASP Vulnerability Disclosure Cheat Sheet'
+    url: 'https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## The one rule: permission first
+
+Security skills are **dual-use**. The same scan that helps a defender find an open door helps an attacker walk through it. What separates the two is not the tool. It is **permission**.
+
+The rule this program follows, and that every serious security job expects:
+
+**Only test, scan, or access systems you own, or have clear, written permission to test.**
+
+"My friend said it was fine" is not permission. Real permission is written, comes from someone with the authority to give it (the system's owner, not just a user), and states:
+
+- **Scope**: exactly which systems, addresses, or applications are included, and which are not.
+- **Time**: when testing may happen.
+- **Methods**: what is allowed (for example, scanning yes, attempting logins no).
+- **Contacts**: who to call if something breaks.
+
+In professional work this is called the **rules of engagement**, and it is signed before anything starts.
+
+## Responsible disclosure
+
+Sometimes you find a weakness by accident: a page that shows other people's data, a misconfigured server. The ethical path is **responsible disclosure**:
+
+1. **Stop.** Do not dig further, download data, or "prove" it by doing more.
+2. **Report** it privately to the owner: a security contact, a `security.txt` file on the site, or a bug bounty program if they have one.
+3. **Give them time** to fix it before telling anyone else.
+
+Many organizations welcome reports and some pay for them through **bug bounty** programs. Those programs are a form of written permission, but only within their stated scope.
+
+## The law (a short note, not legal advice)
+
+Unauthorized access to computer systems is a crime in almost every country, even when nothing is damaged and even "just to look".
+
+For learners in **Indonesia**, two laws are worth knowing by name:
+
+- **UU ITE** (Law No. 11 of 2008 on Electronic Information and Transactions, amended by Law No. 19 of 2016 and Law No. 1 of 2024). Among other things, it covers accessing other people's computers and electronic systems without permission.
+- **UU PDP** (Law No. 27 of 2022 on Personal Data Protection). It sets rules for how personal data must be handled and protected.
+
+The official texts are linked under Go further. This lesson does not explain what specific articles mean or what penalties apply; for questions about your own situation, ask a qualified lawyer. The practical rule above, permission first, keeps you clear of these problems.
+
+## Recon: looking before touching
+
+**Reconnaissance** (recon) is gathering information about a target before anything else. It comes in two kinds:
+
+- **Passive recon** only reads information that is already public: DNS records, websites, public registries. You never send anything unusual to the target's systems.
+- **Active recon** interacts with the target: scanning ports, probing services. That needs permission.
+
+Defenders do passive recon on **their own** organization all the time, to see what an attacker would see.
+
+## Hands-on: passive recon, on yourself and on example.com
+
+`example.com` is a domain reserved for documentation and examples, so it is fine to look up. Everything here only reads public DNS.
+
+**1. What do public records say about a domain?**
+
+`nslookup` works on macOS, Linux, and Windows:
+
+```bash
+nslookup -type=NS example.com
+nslookup -type=MX example.com
+nslookup -type=TXT example.com
+```
+
+- `NS` records name the **name servers** that answer for the domain.
+- `MX` records name the **mail servers** (Servers & Services covers mail).
+- `TXT` records hold free text, often used to prove ownership or to publish email security policies.
+
+`example.com` is a good teaching case because it deliberately sends and receives no email. Its MX record is `0 .`, a "null MX" that means "this domain accepts no mail". Its TXT record `v=spf1 -all` is an email policy (SPF) saying "no server is allowed to send mail as this domain". Try the same three lookups on your own school's or employer's domain to see what a real one looks like: it is all public.
+
+**2. What does your own machine show the network?**
+
+Run the listening-ports command from Networking Fundamentals Lesson 3 again:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+lsof -nP -iTCP -sTCP:LISTEN
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ss -tuln
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetTCPConnection -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess
+```
+
+  </Fragment>
+</CodeTabs>
+
+Anything listening on `0.0.0.0` or `::` is what another device on your network could see if it scanned you. Looking at your own machine from the inside needs no one's permission.
+
+<Callout type="warning" title="Do not scan other people's systems">
+
+Running a port scanner against a website, your school's network, your office, or a café's Wi-Fi without written permission can break the law and the network's rules, even if you mean well. Practice active techniques only on your own devices, or in labs built for it. Servers & Services sets up a lab VM you own.
+
+</Callout>
+
+### What to notice
+
+- Permission, in writing, with a clear scope, is the line between security work and an attack.
+- If you find something by accident: stop, report privately, and give the owner time.
+- In Indonesia, UU ITE and UU PDP are the two laws to know by name. Read the official texts, and ask a lawyer for specific questions.
+- Passive recon reads only public information; active recon touches the target and needs permission.

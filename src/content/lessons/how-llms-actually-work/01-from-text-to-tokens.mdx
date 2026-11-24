@@ -1,0 +1,85 @@
+---
+title: 'From Text to Tokens'
+track: 'how-llms-actually-work'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 25
+prerequisites: 'AI Fundamentals, for what a model and training are.'
+reflectQuestions:
+  - 'You paste a very long log into a chat assistant and ask about the first error. Why might it not "see" it?'
+  - 'Why might the same question cost more tokens in Indonesian than in English?'
+resources:
+  - label: 'Tokenizer (OpenAI, free page, no account needed)'
+    url: 'https://platform.openai.com/tokenizer'
+  - label: 'Large language model (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Large_language_model'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+1. **From text to tokens** (this lesson): how an LLM reads.
+2. **Embeddings**: how meaning becomes numbers.
+3. **Transformers and next-token prediction**: how it writes, and why it makes things up.
+4. **Prompt injection and jailbreaks**: the attacks specific to LLMs.
+5. **Data leakage, agents, and wrap-up**: when an LLM can see secrets and take actions.
+
+## What an LLM is
+
+A **large language model** (LLM) is a generative model (AI Fundamentals Lesson 3) trained on an enormous amount of text to do one job: **given some text, predict what comes next**. Chat assistants, AI features in email and documents, and coding assistants are all built on this idea. Lesson 3 shows how that one job produces surprisingly capable behavior.
+
+## Tokens: the pieces an LLM reads
+
+An LLM does not read letters or whole words. It reads **tokens**: chunks of text from a fixed **vocabulary**, often tens of thousands of entries long. A tokenizer splits text into tokens, and each token has a number. The model only ever sees the numbers.
+
+- Common English words are often one token each: `the`, `password`.
+- Rarer words split into several pieces: `cybersecurity` might become `cyber` + `security`.
+- Spaces and punctuation are part of tokens too.
+- Text in languages that were less common in the training data, such as Indonesian, often splits into **more** tokens for the same meaning.
+- Code, long numbers, and random strings like hashes or API keys split into many small tokens.
+
+A rough rule for English: about **4 characters per token**, or about three-quarters of a word. The exact split depends on the model's tokenizer.
+
+## The context window
+
+Every model has a **context window**: the maximum number of tokens it can consider at once, counting your input, any instructions, the conversation so far, and its own answer. Anything beyond the window is simply not seen.
+
+That matters in practice:
+
+- A very long log pasted into a chat may be cut off, and the model will answer as if the missing part never existed.
+- In long conversations, early messages can fall out of the window.
+- Services usually charge, and limit, by tokens.
+
+## Hands-on: count tokens
+
+**Optional, in your browser.** Open OpenAI's public tokenizer page, [platform.openai.com/tokenizer](https://platform.openai.com/tokenizer). It needs no account: ignore the log-in buttons. Type each line below separately, and note the token and character counts. Each token is shown in a different color.
+
+1. `I am learning cybersecurity.`
+2. `Saya sedang belajar keamanan siber.` (the same sentence in Indonesian)
+3. `Get-Process | Where-Object { $_.CPU -gt 100 }`
+4. `9fcd8ad1a84088ae6fc7d2b1e4f0a3c9` (a hash-like string)
+
+Do not paste anything private into any online tool, this one included.
+
+**On paper, if you prefer not to use the site.** Estimate the tokens for line 1 with the 4-characters rule (28 characters, so about 7 tokens). Then predict, before checking anywhere, which of the four lines will have the most tokens **per character**, and why.
+
+<details>
+<summary>What you should notice</summary>
+
+The English sentence uses few tokens for its length. The Indonesian version usually needs noticeably more, because the tokenizer has fewer whole Indonesian words in its vocabulary. The PowerShell command and especially the hash-like string break into many small tokens, because they look nothing like ordinary words. Exact numbers differ between tokenizers, which is why the page lets you pick a model.
+
+</details>
+
+<Callout type="note" title="Why defenders care about tokens">
+
+Tokens explain several practical surprises: why a model "forgot" the start of a long document, why it struggles to repeat a long hash exactly, and why the same task costs different amounts in different languages. When an AI tool gives a strange answer about a long log, ask first whether the whole log fit in its context window.
+
+</Callout>
+
+### What to notice
+
+- An LLM is trained to predict the next piece of text; everything else follows from that.
+- It reads tokens, not letters or words. Common English words are cheap; other languages, code, and random strings take more tokens.
+- The context window is a hard limit: text beyond it is not seen at all.
+- Never paste secrets into online tools, including tokenizers.

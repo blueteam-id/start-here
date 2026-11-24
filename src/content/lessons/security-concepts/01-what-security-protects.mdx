@@ -1,0 +1,87 @@
+---
+title: 'What Security Protects: CIA and AAA'
+track: 'security-concepts'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 25
+reflectQuestions:
+  - 'Ransomware encrypts a company''s files and also threatens to publish them. Which parts of CIA does that hit?'
+  - 'Why is "who did this, and when" (accounting) just as important as stopping the attack?'
+  - 'Think of one system you use every day. Which of C, I, or A would hurt you most if it failed?'
+resources:
+  - label: 'Confidentiality (NIST glossary, with links to integrity and availability)'
+    url: 'https://csrc.nist.gov/glossary/term/confidentiality'
+  - label: 'What is authentication? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/access-management/what-is-authentication/'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+The earlier tracks taught how computers, operating systems, and networks work. This track teaches how people who defend them think and talk. Five lessons:
+
+1. **What security protects** (this lesson): the CIA triad and AAA.
+2. **Threat, vulnerability, and risk**: how to decide what matters most.
+3. **Crypto basics**: hashing, encryption, and certificates, and how they differ.
+4. **Ethics, law, and a first taste of recon**: where the lines are, and looking without touching.
+5. **A first taste of forensics, and wrap-up**: building a timeline of what happened.
+
+## The CIA triad
+
+Almost every security problem damages one of three things. Together they are called the **CIA triad** (nothing to do with the agency):
+
+- **Confidentiality**: only the right people can see the information. A leaked customer database breaks confidentiality.
+- **Integrity**: the information is correct and has not been changed by someone who should not change it. A tampered invoice with a new bank account breaks integrity.
+- **Availability**: the information and systems work when people need them. A website knocked offline breaks availability.
+
+The three pull against each other. Locking a file away so tightly that nobody can open it is very confidential, and not available at all. Good security is a balance chosen for each system.
+
+## AAA: who are you, what may you do, and what did you do
+
+A second group of three words describes how systems control people:
+
+- **Authentication**: proving who you are. A password, a fingerprint, a code from an app. Lesson 1 of GitHub/GitLab asked you to turn on **two-factor authentication**, which combines two of these.
+- **Authorization**: deciding what you may do once you are in. File permissions (Linux and Windows tracks) and repository roles are authorization.
+- **Accounting**: recording what you did. Logs are accounting: the Windows Security log, `auth.log` on Linux, and Git history all answer "who did what, and when".
+
+Authentication and authorization are easy to mix up. Logging in is authentication. Being refused when you open someone else's folder is authorization.
+
+## Assets: what you are protecting
+
+An **asset** is anything worth protecting: data (customer records, source code), systems (a mail server, a laptop), accounts (an administrator login), and even reputation. Security always starts with the question "what are we protecting?", because you cannot protect everything equally.
+
+## Hands-on: classify real incidents
+
+This lesson's hands-on is a thinking exercise, the kind defenders do daily. For each short incident, decide which part of CIA was hit. Some hit more than one. Write your answers down, then open the box to compare.
+
+1. A hospital's systems are locked by ransomware, and doctors cannot open patient records for two days.
+2. An employee emails a spreadsheet of all salaries to the wrong person outside the company.
+3. An attacker changes the bank account number on a supplier's invoice before it is paid.
+4. A website is flooded with fake traffic and stops responding for an hour.
+5. A stolen laptop contains unencrypted customer data.
+6. Someone edits the server logs to delete the lines showing their login.
+
+<details>
+<summary>Compare your answers</summary>
+
+1. **Availability.** The data still exists, but nobody can use it. Modern ransomware often also steals the data first, which adds **confidentiality**.
+2. **Confidentiality.** The data went to someone who should not see it.
+3. **Integrity.** The data was changed without permission.
+4. **Availability.** This is a denial-of-service attack.
+5. **Confidentiality** (and availability of the laptop for its owner).
+6. **Integrity** of the logs, which also breaks **accounting**: the record of who did what can no longer be trusted. Remember Event ID 1102 from Windows Foundations.
+
+</details>
+
+<Callout type="tip">
+
+When you read any security news story, ask "which of C, I, or A was hit, and which asset?" It turns a confusing headline into a clear picture in seconds.
+
+</Callout>
+
+### What to notice
+
+- Confidentiality, integrity, and availability are the three things attacks damage. Most incidents hit more than one.
+- Authentication is who you are, authorization is what you may do, and accounting is the record of what you did.
+- Security starts with knowing which assets matter, because not everything can be protected equally.

@@ -1,0 +1,129 @@
+---
+title: 'Wrap-up: Map Your Own Connection'
+track: 'networking-fundamentals'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Which of the four lessons changed how you think about your own internet connection the most, and why?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+  - 'Explain your network map to a friend in three or four simple sentences, with no jargon.'
+resources:
+  - label: 'Cloudflare Learning Center (free articles on networking and security)'
+    url: 'https://www.cloudflare.com/learning/'
+  - label: 'Practical Networking (free networking lessons and videos)'
+    url: 'https://www.practicalnetworking.net/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What you now know
+
+Four lessons ago, "the network" was something that just worked. Here is what you covered since:
+
+1. **What a network is.** Hosts, interfaces, MAC and IP addresses, and the default gateway. Your device has a private address; the internet sees a public one.
+2. **IP addresses and subnets.** The prefix splits an address into network and host parts. You can work out a subnet's range by hand, and you can recognize private, loopback, and link-local addresses on sight.
+3. **Ports, TCP, and UDP.** Ports find the program, TCP is careful, UDP is quick. Listening ports are doors, and `0.0.0.0` faces the network.
+4. **How a packet gets there.** DNS turns names into addresses, ARP finds the next MAC address, NAT shares one public address, and routers pass packets hop by hop.
+
+## Hands-on: map your own connection
+
+This exercise chains the whole track into one picture: the path from your laptop to a website, with real values from your own machine. Most of it is already on your network sheet.
+
+**1. One more value: your DNS server**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+scutil --dns | grep nameserver | sort -u
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# on Ubuntu, /etc/resolv.conf often shows 127.0.0.53, a local helper;
+# resolvectl shows the real server behind it
+resolvectl dns
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object ServerAddresses
+```
+
+  </Fragment>
+</CodeTabs>
+
+**2. Fill in the map**
+
+Copy this template into a text file or onto paper, and fill in every line from your network sheet and Lessons 1 to 4. Recompute anything you are missing.
+
+```
+MY NETWORK MAP
+
+Laptop
+  IP address / prefix ........ ____________ / ___
+  MAC address ................ ____________
+  Subnet range ............... ____________  to  ____________
+
+Local network
+  Gateway (router) IP ........ ____________
+  Gateway MAC (from ARP) ..... ____________
+  DNS server ................. ____________
+
+Internet
+  Public address (NAT) ....... ____________
+  example.com resolves to .... ____________
+  Hops to example.com ........ ___
+  Port used for the website .. 443 (HTTPS, over TCP)
+```
+
+**3. Check one live connection against the map**
+
+Open `https://example.com` in your browser, then list established connections as in Lesson 3 and find the one whose remote address matches what `nslookup` gave you:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+lsof -nP -iTCP -sTCP:ESTABLISHED | grep ':443'
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ss -tn state established '( dport = :443 )'
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetTCPConnection -State Established -RemotePort 443 |
+  Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort
+```
+
+  </Fragment>
+</CodeTabs>
+
+Read that one line using the whole track: your private address and an ephemeral port on one side, the address DNS gave you and port 443 on the other. In between are your gateway (found with ARP), NAT to your public address, and the hops `traceroute` counted. If the address does not match exactly, the site may use several addresses; that is normal for big websites.
+
+You just mapped your own connection from end to end: names, addresses, subnet, gateway, NAT, hops, and ports.
+
+## Where to go from here
+
+This track stopped at foundation depth on purpose. Routing protocols, firewalls, VPNs, wireless security, and packet analysis are each worth learning, and each is a career path of its own. You now have the map they all build on.
+
+If something here made you curious, or a command did not behave as described, **bring it to the community Discord** with the Join Discord button at the top of the page. Your network map, with private details removed, is a good thing to share there.
+
+When you are ready, three tracks build directly on this one:
+
+- <TrackLink slug="security-concepts" /> adds the defensive vocabulary and the rules about what you are allowed to scan and test.
+- <TrackLink slug="how-the-web-really-works" /> follows what happens on port 443 after the connection opens.
+- <TrackLink slug="servers-and-services" /> puts you on the other side: running the services that listen on these ports.

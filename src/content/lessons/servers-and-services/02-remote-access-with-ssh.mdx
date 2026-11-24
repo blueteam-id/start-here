@@ -1,0 +1,178 @@
+---
+title: 'Remote Access with SSH'
+track: 'servers-and-services'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Lesson 1, for the lab01 VM with OpenSSH installed.'
+reflectQuestions:
+  - 'Why does turning off password login stop the brute-force attacks you counted in the Python track?'
+  - 'Your private key is on your laptop, and the laptop is stolen. What should you do on the server?'
+  - 'Why must you keep one SSH session open while testing a change to the SSH configuration?'
+resources:
+  - label: 'OpenSSH server (Ubuntu Server documentation)'
+    url: 'https://documentation.ubuntu.com/server/how-to/security/openssh-server/'
+  - label: 'sshd_config manual (OpenBSD)'
+    url: 'https://man.openbsd.org/sshd_config'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## SSH: a secure remote command line
+
+**SSH** (Secure Shell) gives you a command line on another computer, over an encrypted connection. It is how almost every Linux server in the world is managed, which is also why it is one of the most attacked services: the `auth.log` you analyzed in the Python track was SSH.
+
+SSH can check who you are in two common ways:
+
+- **Password**: easy, but anyone on the internet can try to guess it, millions of times.
+- **Key pair** (Security Concepts Lesson 3): your computer keeps a **private key**; the server keeps your **public key**. Login proves you hold the private key without ever sending it. There is nothing for an attacker to guess.
+
+The goal of this lesson: log in with a key, then turn password login off.
+
+## Hands-on: connect from your own computer
+
+Start the VM. You can leave its console window in the background from now on. On your **own computer** (not inside the VM), open a terminal. Windows 10 and 11 include an SSH client in PowerShell.
+
+Replace `you` with the username you created during install:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# VirtualBox (port forwarding from Lesson 1):
+ssh -p 2222 you@127.0.0.1
+# UTM (shared network): use the VM's address from `ip -br addr`
+ssh you@192.168.64.2
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# VirtualBox (port forwarding from Lesson 1)
+ssh -p 2222 you@127.0.0.1
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# VirtualBox (port forwarding from Lesson 1)
+ssh -p 2222 you@127.0.0.1
+```
+
+  </Fragment>
+</CodeTabs>
+
+The first time, SSH shows the server's **fingerprint** and asks whether to trust it. Type `yes`. SSH remembers it, and will warn you loudly if the server's key ever changes, which can mean someone is impersonating it. Then enter your password. The prompt now says `you@lab01`: you are on the server (check the hostname part of the prompt, Linux Essentials Lesson 2).
+
+Type `exit` to leave.
+
+## Hands-on: log in with a key
+
+**1. Create a key pair** on your own computer. Accept the default file location, and set a **passphrase**: it protects the private key if your laptop is ever stolen.
+
+```bash
+ssh-keygen -t ed25519
+```
+
+This creates two files in your `.ssh` folder: `id_ed25519` (private, never share it) and `id_ed25519.pub` (public, safe to share).
+
+**2. Copy the public key to the server.**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+ssh-copy-id -p 2222 you@127.0.0.1
+# UTM: ssh-copy-id you@192.168.64.2
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ssh-copy-id -p 2222 you@127.0.0.1
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# Windows has no ssh-copy-id; this one line does the same job
+Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub" | ssh -p 2222 you@127.0.0.1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+  </Fragment>
+</CodeTabs>
+
+It asks for your password one last time. The public key is now in `~/.ssh/authorized_keys` on the server, with permissions only you can read and write (Linux Essentials Lesson 5).
+
+**3. Log in again.** Run the same `ssh` command as before. This time it asks for your key's **passphrase**, not the server password (or nothing, if you skipped the passphrase).
+
+## Hands-on: turn off password login
+
+<Callout type="warning" title="Keep one session open while you change SSH">
+
+Stay logged in in one terminal the whole time. Test the new setting from a **second** terminal. If you make a mistake, the first session is still open to fix it. Worst case, the VM's console window and your Lesson 1 snapshot still work.
+
+</Callout>
+
+In your SSH session, create a small settings file. On Ubuntu 24.04, files in `/etc/ssh/sshd_config.d/` are read before the main settings, and the first value SSH reads for a setting wins:
+
+```bash
+sudo tee /etc/ssh/sshd_config.d/10-hardening.conf > /dev/null << 'EOF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+EOF
+```
+
+- `PasswordAuthentication no` and `KbdInteractiveAuthentication no`: no more password logins, only keys.
+- `PermitRootLogin no`: nobody can log in directly as root. Admins log in as themselves and use `sudo`, which leaves a record of who did what (accounting, Security Concepts Lesson 1).
+
+Check the configuration for mistakes, then restart SSH:
+
+```bash
+sudo sshd -t && sudo systemctl restart ssh
+```
+
+`sshd -t` prints nothing if the configuration is valid. Now, from a **second terminal on your computer**, check two things:
+
+```bash
+# 1. your key still works (VirtualBox shown; on UTM use your VM's address)
+ssh -p 2222 you@127.0.0.1
+
+# 2. a password-only login is refused
+ssh -o PubkeyAuthentication=no -p 2222 you@127.0.0.1
+```
+
+The second one should end with `Permission denied (publickey)`. Password guessing is now pointless.
+
+## Hands-on: read the real SSH log
+
+Back in your SSH session, look at what the server recorded:
+
+```bash
+sudo journalctl -u ssh --since "1 hour ago" --no-pager | tail -n 20
+sudo tail -n 20 /var/log/auth.log
+```
+
+You will see your own logins (`Accepted publickey for you ...`) and the refused password attempt. These are the same kinds of lines your Python triage tool reads. If you still have `triage.py`, you can copy it to the server and run it on `/var/log/auth.log`.
+
+<Callout type="stuck">
+
+- `Connection refused`: the VM is not running, or the port forwarding (VirtualBox) or address (UTM) is wrong.
+- `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED`: usually because you reinstalled the VM or restored a snapshot. SSH prints the command to remove the old entry (`ssh-keygen -R ...`). On a real server, stop and ask why before doing that.
+- Locked out after the change: use the VM's console window to log in, and fix or delete `/etc/ssh/sshd_config.d/10-hardening.conf`.
+
+</Callout>
+
+### What to notice
+
+- SSH gives an encrypted remote command line; it is the most common way to manage Linux servers, and one of the most attacked.
+- Key login proves you hold a private key without sending it; there is nothing for attackers to guess.
+- `PasswordAuthentication no` and `PermitRootLogin no` are the first two lines of almost every hardening guide.
+- Always test SSH changes from a second session before closing the first.

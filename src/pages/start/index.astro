@@ -3,25 +3,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProsePage from '../../components/ProsePage.astro';
 import TrackLink from '../../components/TrackLink.astro';
 import { CATALOG_TRACKS } from '../../data/catalog';
+import { TRACK_WHY, roadmapSlugs } from '../../data/roadmap';
 
-// The suggested order through the program, with one line on why each step
-// comes where it does. Status ("coming soon") comes from the catalog via
-// TrackLink, so this page never needs editing when a track goes live.
-const PATH: Array<{ slug: string; why: string }> = [
-  { slug: 'computing-basics', why: 'The map of what is inside the machine. Everything else assumes it.' },
-  { slug: 'linux-essentials', why: 'Most servers, cloud machines, and security tools run Linux. Start here if you are unsure which OS track to take first.' },
-  { slug: 'windows-foundations', why: 'Most company laptops run Windows, so most incidents start there. Take it right after Linux, or first if Windows is what you use every day.' },
-  { slug: 'git-fundamentals', why: 'Rules, configs, and tools live in Git. Its history is evidence.' },
-  { slug: 'github-gitlab-fundamentals', why: 'Collaboration, review, secrets, and CI: where code meets real permissions.' },
-  { slug: 'networking-fundamentals', why: 'How machines find and talk to each other: addresses, ports, and packets.' },
-  { slug: 'security-concepts', why: 'The shared language of the field: CIA, threat versus risk, crypto basics, and the rules of the road.' },
-  { slug: 'how-the-web-really-works', why: 'What happens between typing a URL and seeing a page, and where it goes wrong.' },
-  { slug: 'programming-basics-python', why: 'Enough Python to automate a boring check and read other people\'s scripts.' },
-  { slug: 'sql-basics', why: 'Ask questions of data, the same way you will ask questions of logs.' },
-  { slug: 'servers-and-services', why: 'Put it all together on a server you build, break, and harden yourself.' },
-  { slug: 'ai-fundamentals', why: 'What AI and machine learning really are, and where they fail. Take it whenever you like.' },
-  { slug: 'how-llms-actually-work', why: 'Tokens, embeddings, and the new attacks against AI features. After AI Fundamentals.' },
-];
+// The suggested order comes from the homepage roadmap (src/data/roadmap.ts),
+// so this page and the roadmap always agree. Status ("coming soon") comes
+// from the catalog via TrackLink, so nothing here needs editing when a track
+// goes live.
+const PATH = roadmapSlugs().map((slug) => ({ slug, why: TRACK_WHY[slug] }));
+
+const anyComingSoon = PATH.some((step) => CATALOG_TRACKS.find((t) => t.slug === step.slug)?.status !== 'live');
 
 function hours(slug: string): string {
   const track = CATALOG_TRACKS.find((t) => t.slug === slug);
@@ -66,7 +56,7 @@ function hours(slug: string): string {
     <h2>A suggested order</h2>
     <p>
       You can take any track at any time, but this order builds each skill on the one before.
-      Tracks marked "coming soon" are still being written.
+      {anyComingSoon && ' Tracks marked "coming soon" are still being written.'}
     </p>
     <ol class="start__path">
       {PATH.map((step) => (

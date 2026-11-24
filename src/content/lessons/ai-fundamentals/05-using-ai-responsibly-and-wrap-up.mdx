@@ -1,0 +1,66 @@
+---
+title: 'Using AI Responsibly at Work, and Wrap-up'
+track: 'ai-fundamentals'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+prerequisites: 'Lessons 1 to 4, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the four earlier lessons changed how you think about AI the most, and why?'
+  - 'A colleague pastes a customer''s full support ticket, with name and phone number, into a free chatbot to get a summary. What went wrong, and what could they do instead?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'NIST AI Risk Management Framework'
+    url: 'https://www.nist.gov/itl/ai-risk-management-framework'
+  - label: 'Elements of AI (free online course)'
+    url: 'https://www.elementsofai.com/'
+---
+
+import Callout from '../../../components/Callout.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## Using AI tools at work, safely
+
+AI assistants are useful for security work: explaining a strange script, summarizing a long log, drafting a report. A few rules keep them from becoming a risk:
+
+1. **Do not paste what you would not post.** Text sent to an AI service leaves your control. Depending on the service and its settings, it may be stored, reviewed by people, or used for training. Never paste passwords, API keys, private keys, customer data, personal data (UU PDP from Security Concepts applies here too), or confidential company information into a tool your organization has not approved.
+2. **Follow your organization's AI policy.** Many companies approve specific tools with business agreements that limit how data is used. Use those, and ask if you are not sure.
+3. **Verify everything that matters.** AI tools can produce confident, fluent, **wrong** answers, including invented facts, commands, and references. The next track explains why. Check commands before running them, and check facts against a source.
+4. **Keep a human in charge of decisions.** AI can suggest; a person decides whether an alert is real, whether to block an account, or what goes into a report.
+5. **Remember that attackers use AI too.** Phishing emails no longer have bad grammar. Judge messages by what they ask you to do, not by their spelling.
+
+## What you now know
+
+1. **What AI and ML are.** AI is the goal, ML learns from examples, deep learning uses neural networks, generative AI creates content. "AI-powered" alone means nothing.
+2. **How a model learns.** Features and labels, training and testing, overfitting and drift. Data quality decides model quality.
+3. **Kinds of learning.** Supervised (classification, regression), unsupervised (clustering, anomaly detection), reinforcement, and generative, and where security uses each.
+4. **Limits and failure modes.** Precision, recall, the base rate problem, bias, poisoning, and adversarial inputs.
+
+## Hands-on: assess an "AI-powered" product
+
+A vendor emails your team about a new product. Read it as a defender, using the whole track:
+
+> **SentinelMind AI** uses advanced artificial intelligence to stop 99.9% of attacks with zero false positives. Our proprietary deep learning engine continuously learns your environment and needs no configuration. Simply connect your logs, emails, and file shares, and let the AI handle the rest. Trusted by leading companies worldwide.
+
+Write down:
+
+1. **Three claims that cannot be true, or cannot be checked as written.** (Lesson 4 helps.)
+2. **Five questions you would ask the vendor before any trial.** At least one each about training data, testing, false positives, and data handling.
+3. **One risk of connecting** "your logs, emails, and file shares" to an outside AI product. (This lesson's first rule helps.)
+
+<details>
+<summary>What a good answer covers</summary>
+
+1. "99.9% of attacks" without saying which attacks or on what data; "zero false positives", which no real detector achieves on rare events (the base rate problem); "needs no configuration" with "continuously learns", which suggests anomaly detection that will be noisy at first and can drift.
+2. Questions such as: What data was the model trained on, and how similar is it to ours? What are its precision and recall on data like ours, and how many alerts a day should we expect? How was it tested, and by whom? How is it updated, and how do you handle drift? Where is our data processed and stored, who can see it, and is it used to train your models? What happens when the AI is wrong, and can we see why it raised an alert?
+3. Sending all your logs, emails, and files to a vendor means that vendor now holds very sensitive data, including personal data. Its security, its data use, and the law (UU PDP) all become your concern, and a breach at the vendor becomes your breach.
+
+</details>
+
+## Where to go from here
+
+You now have the vocabulary to read AI claims critically and to use AI tools without leaking data. Bring your answers and questions to the **community Discord** with the Join Discord button at the top of the page.
+
+The next step goes inside the models behind chat assistants, and into their specific attacks:
+
+- <TrackLink slug="how-llms-actually-work" />

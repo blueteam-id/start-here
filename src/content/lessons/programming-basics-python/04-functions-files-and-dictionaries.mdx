@@ -1,0 +1,175 @@
+---
+title: 'Functions, Files, and Dictionaries'
+track: 'programming-basics-python'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 30
+prerequisites: 'Lesson 3, for if statements, lists, and loops.'
+reflectQuestions:
+  - 'Why is it better to put the "find the IP address" logic in a function than to copy it into several places?'
+  - 'Your script counted failures per address. What would you add to tell a slow, patient attacker from a fast one?'
+resources:
+  - label: 'Defining functions (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/controlflow.html#defining-functions'
+  - label: 'Reading and writing files (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files'
+  - label: 'Dictionaries (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/datastructures.html#dictionaries'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+import LabFile from '../../../components/LabFile.astro';
+
+## Back to the practice folder
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+## Functions
+
+A **function** is a named piece of code you can reuse. You define it with `def`, give it **parameters** (inputs), and it can **return** a result:
+
+```python
+def ip_from_line(line):
+    """Return the IP address after ' from ' in an sshd log line."""
+    after_from = line.split(" from ")[1]
+    return after_from.split()[0]
+```
+
+How it works on `"... Failed password for root from 203.0.113.50 port 50100 ssh2"`:
+
+- `line.split(" from ")` cuts the text in two at `" from "`, giving a list. Item `[1]` is everything after it: `"203.0.113.50 port 50100 ssh2"`.
+- `.split()` with nothing inside cuts at spaces. Item `[0]` is the first word: `"203.0.113.50"`.
+
+The text in triple quotes is a **docstring**: a short note saying what the function does. Write one for every function; your future self will thank you.
+
+## Dictionaries: counting things
+
+A **dictionary** stores pairs of **keys** and **values**, inside curly braces. It is perfect for counting:
+
+```python
+failures = {}
+failures["203.0.113.50"] = 1
+failures["203.0.113.50"] = failures["203.0.113.50"] + 1
+failures
+```
+
+That shows `{'203.0.113.50': 2}`. To count something that may not be in the dictionary yet, use `.get(key, 0)`, which returns 0 when the key is missing:
+
+```python
+failures["192.0.2.77"] = failures.get("192.0.2.77", 0) + 1
+```
+
+## Reading a file
+
+`open()` opens a file, and a `for` loop reads it one line at a time. The `with` block closes the file automatically when it ends:
+
+```python
+with open("auth.log") as log:
+    for line in log:
+        print(line)
+```
+
+## Hands-on: count failed logins in a real log
+
+Download the sample SSH log. It is the same one from Security Concepts Lesson 3, so if you already have it, reuse it:
+
+<LabFile path="labs/programming-basics-python/auth.log" label="Sample SSH log (auth.log)" />
+
+Move it into your practice folder (it is usually in `Downloads`):
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+mv ~/Downloads/auth.log ~/programming-basics-python/
+ls -l auth.log
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+mv ~/Downloads/auth.log ~/programming-basics-python/
+ls -l auth.log
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Move-Item "$HOME\Downloads\auth.log" "$HOME\programming-basics-python\"
+Get-Item auth.log
+```
+
+  </Fragment>
+</CodeTabs>
+
+Now create `count_failures.py`:
+
+```python
+def ip_from_line(line):
+    """Return the IP address after ' from ' in an sshd log line."""
+    after_from = line.split(" from ")[1]
+    return after_from.split()[0]
+
+
+failures = {}
+
+with open("auth.log") as log:
+    for line in log:
+        if "Failed password" in line:
+            ip = ip_from_line(line)
+            failures[ip] = failures.get(ip, 0) + 1
+
+for ip, count in sorted(failures.items(), key=lambda item: item[1], reverse=True):
+    print(f"{ip}: {count}")
+```
+
+The last loop needs one more explanation. `failures.items()` gives each `(ip, count)` pair. `sorted(..., key=lambda item: item[1], reverse=True)` sorts the pairs by their count (`item[1]`), biggest first. `lambda` is a tiny one-line function; you only need to recognize it for now.
+
+Run it (`python3 count_failures.py`, or `py count_failures.py`):
+
+```text
+203.0.113.50: 30
+192.0.2.77: 8
+198.51.100.23: 1
+```
+
+Read the result like an analyst. `203.0.113.50` failed 30 times in under a minute: a fast brute force. `192.0.2.77` failed 8 times, slowly, with common usernames: a patient guesser. `198.51.100.23` failed once: probably a person mistyping a password.
+
+<Callout type="stuck">
+
+- `FileNotFoundError: ... 'auth.log'`: the log is not in the folder you ran the script from. Check with `ls` (or `Get-ChildItem`).
+- `IndexError: list index out of range`: the script found a "Failed password" line without `" from "` in it. That should not happen with this sample log; check that you downloaded the file from this page.
+
+</Callout>
+
+### What to notice
+
+- A function names a piece of logic so you can reuse it and test it on its own.
+- A dictionary maps keys to values; `.get(key, 0)` makes counting easy.
+- `with open(...)` reads a file line by line and closes it for you.
+- Thirty lines of Python turned a log into an answer: who is attacking, and how hard.

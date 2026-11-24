@@ -1,0 +1,145 @@
+---
+title: 'Wrap-up: A Mini Log-Triage Tool'
+track: 'programming-basics-python'
+phase: 'Wrap-up'
+order: 6
+estimatedMinutes: 30
+prerequisites: 'Lessons 1 to 5, this lesson combines them into one final script.'
+reflectQuestions:
+  - 'Which of the five earlier lessons changed how you think about scripts and automation the most, and why?'
+  - 'Your tool uses a fixed threshold of 5. What could go wrong with a fixed number on a busy, real server?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'The Python Tutorial (official, free)'
+    url: 'https://docs.python.org/3/tutorial/'
+  - label: 'Installing packages with pip, and virtual environments (Python Packaging User Guide)'
+    url: 'https://packaging.python.org/en/latest/tutorials/installing-packages/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What you now know
+
+1. **Why Python, and your first script.** The REPL runs one line; a script runs a file. `python3` on macOS and Linux, `py` on Windows.
+2. **Variables, types, and input.** Strings, integers, floats, and booleans behave differently; `input()` always returns text and is never to be trusted blindly.
+3. **Decisions and loops.** `if`, `elif`, `else`, lists, and `for` loops: the logic behind every detection rule.
+4. **Functions, files, and dictionaries.** Reusable logic, reading a log line by line, and counting with a dictionary.
+5. **A first TCP socket.** A server binds, listens, and accepts; a client connects. Malware uses the same pattern.
+
+## Hands-on: build the triage tool
+
+Remember the last line in Lesson 3: an **Accepted** login from an address that had just failed many times. That is the pattern of a brute force that **worked**, and it is what this tool catches. It reads `auth.log`, counts failures per address, lists every successful login, flags successes from addresses with many failures, and saves a report.
+
+Go to your practice folder, where `auth.log` from Lesson 4 still is:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+Create `triage.py`:
+
+```python
+THRESHOLD = 5
+
+
+def ip_from_line(line):
+    """Return the IP address after ' from ' in an sshd log line."""
+    return line.split(" from ")[1].split()[0]
+
+
+def user_from_accepted(line):
+    """Return the username in an 'Accepted ... for USER from ...' line."""
+    return line.split(" for ")[1].split()[0]
+
+
+failures = {}
+successes = []
+
+with open("auth.log") as log:
+    for line in log:
+        if "Failed password" in line:
+            ip = ip_from_line(line)
+            failures[ip] = failures.get(ip, 0) + 1
+        elif "Accepted" in line:
+            successes.append((line[:15], user_from_accepted(line), ip_from_line(line)))
+
+report = ["SSH TRIAGE REPORT", ""]
+report.append("Failed logins per address:")
+for ip, count in sorted(failures.items(), key=lambda item: item[1], reverse=True):
+    report.append(f"  {ip}: {count}")
+
+report.append("")
+report.append("Successful logins:")
+for time, user, ip in successes:
+    flag = ""
+    if failures.get(ip, 0) >= THRESHOLD:
+        flag = "  <-- ALERT: success after many failures"
+    report.append(f"  {time}  {user} from {ip}{flag}")
+
+text = "\n".join(report) + "\n"
+print(text)
+with open("report.txt", "w") as out:
+    out.write(text)
+print("Report saved to report.txt")
+```
+
+What is new:
+
+- `THRESHOLD` is written in capitals by convention, meaning "a setting you might change".
+- `successes` is a list of **tuples**: small fixed groups of values, here `(time, user, ip)`. `line[:15]` takes the first 15 characters of the line, which is the timestamp.
+- `"\n".join(report)` joins the report lines with line breaks, and `open("report.txt", "w")` writes them to a new file.
+
+Run it (`python3 triage.py`, or `py triage.py`):
+
+```text
+SSH TRIAGE REPORT
+
+Failed logins per address:
+  203.0.113.50: 30
+  192.0.2.77: 8
+  198.51.100.23: 1
+
+Successful logins:
+  Nov 22 01:12:40  deploy from 10.0.0.5
+  Nov 22 01:31:15  dewi from 198.51.100.23
+  Nov 22 02:10:42  backup from 203.0.113.50  <-- ALERT: success after many failures
+  Nov 22 02:47:19  deploy from 10.0.0.5
+
+Report saved to report.txt
+```
+
+Read it like an analyst. The `backup` account was broken into from `203.0.113.50`, right after 30 failed attempts. In a real incident, that line starts everything: disable or reset the account, look at what `backup` did next, and block the address. Dewi's single failure and later success, from the same address, looks like a typo.
+
+You just combined everything from the track into one useful tool: input from a file, decisions, loops, functions, a dictionary, and output to a report.
+
+## Where to go from here
+
+You now read and write small scripts. Real tools add things this track skipped on purpose, such as installing packages with `pip` and isolating them in **virtual environments**; the second Go further link explains both when you are ready.
+
+Bring your scripts and questions to the **community Discord** with the Join Discord button at the top of the page.
+
+Next steps:
+
+- <TrackLink slug="sql-basics" /> asks the same kinds of questions of a database instead of a log file.
+- <TrackLink slug="servers-and-services" /> gives you a real server whose real `auth.log` you can run this tool on.

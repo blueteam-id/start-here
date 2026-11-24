@@ -1,5 +1,9 @@
 # foundation.blueteam.id — Track 1 Implementation Plan
 
+> **Status: completed (2026-11).** This plan has been carried out and is kept
+> for reference only. Do not execute it again; see CONTRIBUTING.md for how
+> tracks are added and edited now.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship a static Astro site for foundation.blueteam.id with a working homepage, catalog (9 tracks: 1 live, 8 "coming soon"), FAQ and Contributing pages, and one fully-authored track ("How a Computer Actually Works") with a track landing page and every lesson following the hands-on / prerequisites / OS-tabbed-code / reflect / go-further pattern, with client-side progress tracking and no backend.

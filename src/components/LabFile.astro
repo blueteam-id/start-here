@@ -1,0 +1,92 @@
+---
+// A downloadable lab file inside a lesson:
+//
+//   <LabFile path="labs/sql-basics/company.db" label="Practice database" />
+//
+// `path` is relative to public/. The size and SHA-256 are computed when the
+// site is built, so they always match the file actually served. Learners can
+// check the hash themselves (Security Concepts teaches how), which is the
+// same habit as verifying any download. A missing file fails the build.
+//
+// Styles are global: components used only inside MDX lesson bodies do not get
+// their styles registered by Astro, so LessonView.astro renders a hidden
+// <LabFile /> to ship these styles with every lesson page.
+import { createHash } from 'node:crypto';
+import { readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  path?: string;
+  label?: string;
+}
+
+const { path, label } = Astro.props;
+
+let info: { href: string; name: string; size: string; sha256: string } | null = null;
+if (path) {
+  if (path.startsWith('/') || path.includes('..')) {
+    throw new Error(`LabFile: path must be relative to public/ without "..": "${path}"`);
+  }
+  const full = join(process.cwd(), 'public', path);
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(full);
+  } catch {
+    throw new Error(`LabFile: file not found in public/: "${path}"`);
+  }
+  const kb = statSync(full).size / 1024;
+  info = {
+    href: `/${path}`,
+    name: path.split('/').pop() ?? path,
+    size: kb < 1024 ? `${Math.max(1, Math.round(kb))} KB` : `${(kb / 1024).toFixed(1)} MB`,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+  };
+}
+---
+
+{info && (
+  <div class="lab-file">
+    <a class="lab-file__link" href={info.href} download={info.name}>
+      <span aria-hidden="true">⬇</span> {label ?? info.name}
+    </a>
+    <span class="lab-file__meta">{info.name} · {info.size}</span>
+    <span class="lab-file__hash">SHA-256: <code>{info.sha256}</code></span>
+  </div>
+)}
+
+<style is:global>
+  .lab-file {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .lab-file__link {
+    color: var(--blue);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .lab-file__link:hover,
+  .lab-file__link:focus-visible {
+    text-decoration: underline;
+  }
+
+  .lab-file__meta {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .lab-file__hash {
+    flex-basis: 100%;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+</style>

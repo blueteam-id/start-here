@@ -1,0 +1,125 @@
+---
+title: 'A Database Server'
+track: 'servers-and-services'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Lesson 2, for SSH access to lab01. SQL Basics, for SQL itself.'
+reflectQuestions:
+  - 'Why does MariaDB listening on 127.0.0.1 instead of 0.0.0.0 matter so much?'
+  - 'Your web application only needs to read and write rows. What could an attacker do with its database account if it also had DROP and GRANT?'
+resources:
+  - label: 'MariaDB: CREATE USER (official documentation)'
+    url: 'https://mariadb.com/kb/en/create-user/'
+  - label: 'MariaDB: GRANT (official documentation)'
+    url: 'https://mariadb.com/kb/en/grant/'
+  - label: 'MariaDB: mariadb-secure-installation (official documentation)'
+    url: 'https://mariadb.com/kb/en/mariadb-secure-installation/'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Database servers
+
+In SQL Basics, the whole database was one file, and whoever could open it could do anything. A **database server** is different: it is a service that holds the data and answers SQL over the network, with its own **accounts** and **privileges**. Websites and applications connect to it as clients.
+
+This lesson uses **MariaDB**, a widely used, MySQL-compatible database server.
+
+## Hands-on: install MariaDB
+
+Log in to `lab01` over SSH, then:
+
+```bash
+sudo apt install -y mariadb-server
+systemctl status mariadb --no-pager
+```
+
+Check **where** it listens:
+
+```bash
+sudo ss -tlnp | grep 3306
+```
+
+You should see `127.0.0.1:3306`. Ubuntu's MariaDB listens only on the server itself by default. Programs on `lab01`, like a website, can reach it; nothing on the network can. Exposed database ports are one of the most common causes of data breaches, so this default matters.
+
+## Hands-on: tighten the defaults
+
+MariaDB ships a small script that removes a few risky defaults:
+
+```bash
+sudo mariadb-secure-installation
+```
+
+It asks several questions. Answer like this:
+
+- **Enter current password for root**: just press Enter (there is none; root logs in through the system account instead).
+- **Switch to unix_socket authentication**: `n` (it already uses it).
+- **Change the root password**: `n`.
+- **Remove anonymous users**: `Y`.
+- **Disallow root login remotely**: `Y`.
+- **Remove test database and access to it**: `Y`.
+- **Reload privilege tables now**: `Y`.
+
+## Hands-on: a database and a least-privilege account
+
+Open the MariaDB prompt as the database's administrator:
+
+```bash
+sudo mariadb
+```
+
+The prompt changes to `MariaDB [(none)]>`. Create a database, a table, and an account for a web application. Pick your own long password in place of `choose-a-long-password`:
+
+```sql
+CREATE DATABASE arunika;
+USE arunika;
+CREATE TABLE notes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  body VARCHAR(200) NOT NULL
+);
+CREATE USER 'webapp'@'localhost' IDENTIFIED BY 'choose-a-long-password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON arunika.* TO 'webapp'@'localhost';
+SHOW GRANTS FOR 'webapp'@'localhost';
+EXIT;
+```
+
+What each part does:
+
+- `'webapp'@'localhost'`: the account may only connect **from the server itself**.
+- `GRANT SELECT, INSERT, UPDATE, DELETE ON arunika.*`: it may read and change rows in the `arunika` database, and nothing else. No creating or dropping tables, no other databases, no creating users.
+- `SHOW GRANTS` lists exactly what the account may do.
+
+## Hands-on: test the limits
+
+Log in as the application account:
+
+```bash
+mariadb -u webapp -p arunika
+```
+
+Enter its password. Now try what it is allowed to do, and then what it is not:
+
+```sql
+INSERT INTO notes (body) VALUES ('first note from webapp');
+SELECT * FROM notes;
+DROP TABLE notes;
+CREATE USER 'attacker'@'%' IDENTIFIED BY 'x';
+EXIT;
+```
+
+The `INSERT` and `SELECT` work. `DROP TABLE` fails with an error like `DROP command denied to user 'webapp'@'localhost'`, and `CREATE USER` is refused too. If an attacker ever takes over the website (for example through SQL injection, SQL Basics Lesson 4), this is all the damage the database account allows. That is least privilege doing its job.
+
+<Callout type="stuck">
+
+- `ERROR 1045 (28000): Access denied for user 'webapp'@'localhost'`: the password is wrong, or you typed the username differently. Log in with `sudo mariadb` and check `SELECT user, host FROM mysql.user;`.
+- `mariadb-secure-installation: command not found`: try `sudo mysql_secure_installation`, the older name of the same script.
+
+</Callout>
+
+### What to notice
+
+- A database server is a service with its own accounts and privileges, reached over the network.
+- Listening on `127.0.0.1` keeps the database off the network; only programs on the server can connect.
+- Give each application an account with only the rights it needs, and check them with `SHOW GRANTS`.
+- When something is compromised, least privilege decides how bad it gets.

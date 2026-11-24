@@ -1,3 +1,10 @@
+> **Historical document (2026-11-06).** This is the original design brief.
+> The site has moved on since: it is `start.blueteam.id`, all 13 tracks are
+> live, and the homepage uses a roadmap instead of a 3-card teaser. For the
+> current state, read the [README](../../../README.md) and
+> [CONTRIBUTING](../../../CONTRIBUTING.md). The intent, goals, and anti-goals
+> below still apply.
+
 # foundation.blueteam.id — Design Document
 
 ## Intent and why

@@ -1,0 +1,92 @@
+---
+title: 'From URL to Page'
+track: 'how-the-web-really-works'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+prerequisites: 'Networking Fundamentals, for DNS, TCP, and ports.'
+reflectQuestions:
+  - 'A news page made 150 requests to 30 different domains. Why might a security team care about that?'
+  - 'A phishing link looks like `https://login.example.com.attacker.net/`. Which part is the real host?'
+  - 'Why does every page load start with DNS, even before anything is encrypted?'
+resources:
+  - label: 'What is a URL? (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL'
+  - label: 'How browsers work (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+The web is the part of the internet most people use, and the part attackers aim at most. Five lessons:
+
+1. **From URL to page** (this lesson): the whole trip, and how to watch it.
+2. **HTTP up close**: requests, responses, status codes, and server logs.
+3. **HTML, browsers, and search engines**: what a page is made of, and how pages get found.
+4. **Cookies and sessions**: how a website remembers you, and how that gets stolen.
+5. **Wrap-up**: you trace one real page load from end to end.
+
+## Reading a URL
+
+A **URL** is the full address of something on the web. Take this one apart:
+
+```
+https://shop.example.com:443/products/shoes?color=blue#reviews
+```
+
+- `https` is the **scheme**: the protocol to use. `https` means HTTP over an encrypted connection.
+- `shop.example.com` is the **host**. The part that matters most is the end: `example.com` is the **domain**, and `shop` is a **subdomain** of it.
+- `443` is the **port** (Networking Lesson 3). It is usually left out, because 443 is the default for `https` and 80 for `http`.
+- `/products/shoes` is the **path**: which page or file on that server.
+- `?color=blue` is the **query string**: extra values sent to the server.
+- `#reviews` is the **fragment**: a spot inside the page. It is never sent to the server.
+
+<Callout type="warning" title="Read hosts from right to left">
+
+Phishing links abuse how people read. In `https://login.example.com.attacker.net/`, the real domain is `attacker.net`; everything before it is just a subdomain the attacker chose. Always find the domain at the right end of the host, just before the first `/`.
+
+</Callout>
+
+## The trip, step by step
+
+When you press Enter on a URL, roughly this happens:
+
+1. **DNS**: the browser looks up the host's IP address (Networking Lesson 4).
+2. **TCP**: it opens a connection to that address on port 443, with the three-way handshake.
+3. **TLS**: it sets up encryption and checks the site's **certificate** (Security Concepts Lesson 3).
+4. **HTTP request**: it asks for the path, for example `GET /products/shoes`.
+5. **HTTP response**: the server answers with a status code and the page's HTML (Lesson 2).
+6. **More requests**: the HTML mentions images, styles, scripts, and fonts, often from other domains. The browser fetches each one.
+7. **Rendering**: the browser builds the page you see, and runs its scripts.
+
+A single page often needs dozens or hundreds of requests. Many go to other companies: content delivery networks, analytics, ads, fonts. Every one of those is a domain your browser trusted on that site's behalf.
+
+## Hands-on: watch a page load
+
+Every browser has **developer tools** (DevTools) built in. Open them with `F12`, or `Ctrl+Shift+I` on Windows and Linux, or `Cmd+Option+I` on macOS. Then:
+
+1. Click the **Network** tab.
+2. Visit `https://example.com`.
+3. Look at the list. Each row is one request. Note the **Status**, **Type**, and **Domain** (or Name) columns.
+
+`example.com` is tiny: one or two requests. Now keep DevTools open and visit a big news or shopping site you use.
+
+Write down:
+
+- How many requests the page made (the count is at the bottom of the Network tab).
+- How many different domains appear. Some tools let you add a **Domain** column by right-clicking the column headers.
+- One domain you do not recognize. Look up what it is.
+
+<Callout type="tip">
+
+If the list is empty, DevTools was opened after the page loaded. Keep it open and reload the page.
+
+</Callout>
+
+### What to notice
+
+- A URL has a scheme, host, port, path, query, and fragment. The domain at the right end of the host is what matters for trust.
+- One page load is DNS, TCP, TLS, then many HTTP requests, often to many other domains.
+- DevTools' Network tab shows every request your browser makes. Defenders and developers both live in it.

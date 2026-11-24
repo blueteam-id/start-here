@@ -1,0 +1,149 @@
+---
+title: 'IP Addresses and Subnets'
+track: 'networking-fundamentals'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 30
+prerequisites: 'Lesson 1, for your IP address and gateway. The bytes lesson in Computing Basics helps too.'
+reflectQuestions:
+  - 'A firewall rule allows 10.20.0.0/16. Roughly how many addresses does that open up, and is that more than you expected?'
+  - 'Your laptop suddenly has an address starting with 169.254. What has probably gone wrong?'
+  - 'Why do firewall rules and alerts use ranges like /24 instead of listing every address?'
+resources:
+  - label: 'What is a subnet? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/network-layer/what-is-a-subnet/'
+  - label: 'Subnetting practice (Practical Networking, free)'
+    url: 'https://www.practicalnetworking.net/stand-alone/subnetting-mastery/'
+  - label: 'RFC 1918: Address Allocation for Private Internets'
+    url: 'https://www.rfc-editor.org/rfc/rfc1918'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## What an IPv4 address is
+
+An **IPv4 address** like `192.168.1.23` is just a 32-bit number, written in a friendlier way. It is split into four **octets** of 8 bits each, written as decimals and separated by dots.
+
+That ties back to Computing Basics: 8 bits make one byte, and one byte holds a value from 0 to 255. So each part of an IPv4 address is always between 0 and 255. `192.168.1.300` is not a valid address.
+
+## Network part and host part
+
+Every address has two parts:
+
+- The **network part** says which network the host is on. Every host on the same network shares it.
+- The **host part** says which host it is inside that network.
+
+Where the split falls is set by the **prefix length**, written after a slash. `192.168.1.23/24` means "the first 24 bits are the network part". With `/24`, the first three octets (`192.168.1`) are the network, and the last octet (`23`) is the host.
+
+The same split is often written as a **subnet mask**: `255.255.255.0` is the same as `/24`. Each `255` means "this whole octet is network part", and `0` means "this octet is host part".
+
+A **subnet** is one such network: all addresses that share the network part. Hosts in the same subnet talk to each other directly. To reach anything outside, they go through the gateway.
+
+## Counting addresses in a subnet
+
+The host part decides how many addresses fit. With `/24`, there are 8 host bits, and 8 bits give 2 to the power of 8 = **256** addresses. Two of them are reserved:
+
+- The first address is the **network address** (it names the subnet itself), for example `192.168.1.0`.
+- The last address is the **broadcast address** (it means "everyone in this subnet"), for example `192.168.1.255`.
+
+That leaves **254** addresses for hosts: `192.168.1.1` to `192.168.1.254`.
+
+The general rule: a `/n` subnet has 2 to the power of (32 minus n) addresses.
+
+| Prefix | Mask | Addresses | Usable hosts |
+| --- | --- | --- | --- |
+| /24 | 255.255.255.0 | 256 | 254 |
+| /25 | 255.255.255.128 | 128 | 126 |
+| /26 | 255.255.255.192 | 64 | 62 |
+| /27 | 255.255.255.224 | 32 | 30 |
+| /16 | 255.255.0.0 | 65,536 | 65,534 |
+
+## Worked example: 192.168.1.130/26
+
+1. A `/26` has 64 addresses, so subnets start every 64: at `.0`, `.64`, `.128`, and `.192`.
+2. `130` falls in the block that starts at `128`.
+3. So the **network address** is `192.168.1.128`.
+4. The block is 64 long, so it ends at `128 + 63 = 191`. The **broadcast address** is `192.168.1.191`.
+5. The **usable hosts** are `192.168.1.129` to `192.168.1.190`: 62 hosts.
+
+Now try three yourself, on paper. For each one, find the network address, the broadcast address, and the number of usable hosts.
+
+1. `192.168.10.200/24`
+2. `192.168.10.200/27`
+3. `10.20.30.40/16`
+
+<details>
+<summary>Check your answers</summary>
+
+1. Network `192.168.10.0`, broadcast `192.168.10.255`, 254 hosts.
+2. Blocks of 32 start at 0, 32, 64, 96, 128, 160, 192, 224. `200` is in the block at `192`. Network `192.168.10.192`, broadcast `192.168.10.223`, 30 hosts.
+3. With `/16`, the first two octets are the network. Network `10.20.0.0`, broadcast `10.20.255.255`, 65,534 hosts.
+
+</details>
+
+## Addresses worth knowing on sight
+
+- **Private ranges** (from RFC 1918): `10.0.0.0/8`, `172.16.0.0/12` (172.16 to 172.31), and `192.168.0.0/16`. These never appear on the public internet.
+- **Loopback**: `127.0.0.1`, often called `localhost`. It always means "this same computer".
+- **Link-local**: `169.254.x.x`. A computer gives itself one of these when it asked for an address (DHCP) and got no answer. Seeing it usually means "the network is not working".
+- `0.0.0.0` means "any address" or "no address yet", depending on where you see it. Lesson 3 shows one place it matters.
+
+## A short look at IPv6
+
+There are only about 4.3 billion IPv4 addresses, and the world ran out years ago. Private addresses plus sharing one public address (Lesson 4) stretched them. The long-term fix is **IPv6**.
+
+- An IPv6 address is **128 bits**, written as eight groups of hex digits separated by colons, for example `2001:db8:85a3:0:0:8a2e:370:7334`.
+- A run of zero groups can be shortened to `::` once, so `2001:db8::1` is valid.
+- Addresses starting with `fe80::` are **link-local**, like `169.254` in IPv4. Almost every device has one.
+
+Many devices already have both an IPv4 and an IPv6 address. Logs and alerts can contain either, so it is worth recognizing them. The subnet practice in this track stays with IPv4.
+
+## Hands-on: find your own subnet
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# "inet" is your address; netmask 0xffffff00 is 255.255.255.0 written in hex (/24)
+# "inet6" lines are your IPv6 addresses
+ifconfig en0 | grep inet
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# addresses are shown with their prefix, like 192.168.1.23/24
+ip -br addr
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetIPAddress -AddressFamily IPv4 | Select-Object InterfaceAlias, IPAddress, PrefixLength
+
+# your IPv6 addresses
+Get-NetIPAddress -AddressFamily IPv6 | Select-Object InterfaceAlias, IPAddress, PrefixLength
+```
+
+  </Fragment>
+</CodeTabs>
+
+<Callout type="tip" title="Reading the macOS netmask">
+
+macOS shows the mask in hexadecimal. Each `ff` is 255 and `00` is 0, so `0xffffff00` is `255.255.255.0`, which is `/24`. You met hex in Computing Basics Lesson 2.
+
+</Callout>
+
+Using your own address and prefix, work out your subnet's network address, broadcast address, and how many hosts fit. Check that your gateway from Lesson 1 is inside that subnet: it has to be, or your computer could not reach it directly.
+
+Add to your network sheet: your prefix length, your subnet's network and broadcast addresses, and any IPv6 address you found.
+
+### What to notice
+
+- The prefix (`/24`) splits an address into network and host parts. Everything with the same network part is one subnet.
+- A `/n` subnet holds 2 to the power of (32 minus n) addresses, minus two for the network and broadcast addresses.
+- `10.`, `172.16-31.`, and `192.168.` are private; `127.0.0.1` is the machine itself; `169.254.` usually means DHCP failed.
+- Firewall rules and incident scopes are written as ranges. A rule that allows `/16` instead of `/24` opens 256 times as many addresses.

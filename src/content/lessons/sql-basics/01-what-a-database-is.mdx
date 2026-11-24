@@ -1,0 +1,103 @@
+---
+title: 'What a Database Is'
+track: 'sql-basics'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Why do the `logins` and `alerts` tables store a `user_id` number instead of the user''s name?'
+  - 'A security tool says it uses "a SQL-like query language". Why is learning plain SQL still worth it?'
+resources:
+  - label: 'DB Browser for SQLite (official site and downloads)'
+    url: 'https://sqlitebrowser.org/dl/'
+  - label: 'SQLite: about SQLite'
+    url: 'https://www.sqlite.org/about.html'
+  - label: 'SQLBolt (free interactive SQL lessons)'
+    url: 'https://sqlbolt.com/'
+---
+
+import Callout from '../../../components/Callout.astro';
+import LabFile from '../../../components/LabFile.astro';
+
+## What this track covers
+
+Logs from Linux Essentials, events from Windows Foundations, and the triage tool from the Python track all had the same goal: answer questions about data. Databases are built for exactly that. Five lessons:
+
+1. **What a database is** (this lesson): tables, rows, keys, and your practice database.
+2. **Asking questions**: `SELECT` and `WHERE`.
+3. **Counting and combining**: `GROUP BY` and `JOIN`.
+4. **Changing data, and basic administration**: `INSERT`, `UPDATE`, `DELETE`, backups, accounts, and SQL injection.
+5. **Wrap-up**: investigate a suspicious night using only SQL.
+
+## Tables, rows, and columns
+
+A **relational database** stores data in **tables**. A table looks like a spreadsheet:
+
+- Each **column** has a name and a type, for example `username` (text) or `success` (a number).
+- Each **row** is one record, for example one user or one login.
+
+Unlike a spreadsheet, a database is strict. Every row in a table has the same columns, and each column only accepts its type of value. That strictness is what makes it fast and reliable to search millions of rows.
+
+## Keys: how tables connect
+
+- A **primary key** is a column that is unique for every row, usually `id`. User 11 is always the same user.
+- A **foreign key** is a column that points to another table's primary key. A row in `logins` has `user_id = 11`, which means "this login belongs to user 11 in the `users` table".
+
+Storing the number instead of the name means the name lives in one place only. Lesson 3 shows how to bring the tables back together with `JOIN`.
+
+**SQL** (Structured Query Language, often said "sequel") is the language for asking questions of these tables. Almost every database speaks it, with small differences. This track uses **SQLite**: a whole database in one ordinary file, with no server to run.
+
+## The practice database
+
+The practice database belongs to a fictional company, **Arunika Labs**. It has four tables:
+
+| Table | What each row is |
+| --- | --- |
+| `users` | An employee or service account: username, name, department, admin or not, active or not |
+| `devices` | A laptop or server, and who owns it |
+| `logins` | One login attempt: when, which user, from which device and address, and whether it succeeded |
+| `alerts` | One alert from the company's security tools |
+
+Everything in it is fictional, and the addresses come from ranges reserved for documentation.
+
+## Hands-on: set up and open the database
+
+**1. Install DB Browser for SQLite.** It is free and works on Windows, macOS, and Linux. Download it from the official site, [sqlitebrowser.org/dl](https://sqlitebrowser.org/dl/), and install it like any other app. On Linux, the page lists the package for your distribution.
+
+**2. Download the practice database:**
+
+<LabFile path="labs/sql-basics/company.db" label="Practice database (company.db)" />
+
+The same database is also available as plain SQL text, if you want to read how it was built:
+
+<LabFile path="labs/sql-basics/company.sql" label="Practice database as SQL (company.sql)" />
+
+**3. Make a practice folder and keep a spare copy.** Create a folder called `sql-basics` in your home folder, move `company.db` into it, and copy it as `company-original.db`. If you ever break the practice copy, delete it and copy the original again.
+
+**4. Open it.** Start DB Browser for SQLite, choose **Open Database**, and pick `company.db` (not the original).
+
+**5. Look around.**
+
+- The **Database Structure** tab lists the four tables. Expand one to see its columns and types.
+- The **Browse Data** tab shows the rows. Pick `users` in the table menu, then `logins`.
+
+**6. Run your first query.** Open the **Execute SQL** tab, type the query below, and run it with the ▶ button (or `Ctrl+Return`, `Cmd+Return` on macOS):
+
+```sql
+SELECT * FROM users;
+```
+
+You see all 12 users. `SELECT` means "give me", `*` means "every column", and `FROM users` names the table. The `;` ends the statement.
+
+<Callout type="tip">
+
+SQL keywords like `SELECT` and `FROM` work in any case, but writing them in capitals is a common habit that makes queries easier to read. Table and column names are written as they are in the database.
+
+</Callout>
+
+### What to notice
+
+- A database stores data in tables of rows and columns, with strict types.
+- A primary key identifies one row; a foreign key points to a row in another table.
+- SQLite keeps a whole database in one file, which makes it perfect for practice.
+- Keep an untouched copy of any data you practice on, so mistakes cost nothing.

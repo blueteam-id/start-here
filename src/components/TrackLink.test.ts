@@ -1,6 +1,28 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import TrackLink from './TrackLink.astro';
+
+// Every real track is live now, so the coming-soon case uses a made-up
+// track added to the catalog for this test only.
+vi.mock('../data/catalog', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../data/catalog')>();
+  return {
+    ...actual,
+    CATALOG_TRACKS: [
+      ...actual.CATALOG_TRACKS,
+      {
+        slug: 'future-track',
+        title: 'Future Track',
+        category: 'AI Fundamentals',
+        status: 'coming-soon' as const,
+        summary: 'Not written yet.',
+        estimatedMinutes: 60,
+        lessonCount: 3,
+        icon: '🔮',
+      },
+    ],
+  };
+});
 
 test('a live track renders as a link to its landing page', async () => {
   const container = await AstroContainer.create();
@@ -12,8 +34,8 @@ test('a live track renders as a link to its landing page', async () => {
 
 test('a coming-soon track renders its name without a link', async () => {
   const container = await AstroContainer.create();
-  const html = await container.renderToString(TrackLink, { props: { slug: 'networking-fundamentals' } });
-  expect(html).toContain('Networking Fundamentals');
+  const html = await container.renderToString(TrackLink, { props: { slug: 'future-track' } });
+  expect(html).toContain('Future Track');
   expect(html).toContain('(coming soon)');
   expect(html).not.toContain('href=');
 });

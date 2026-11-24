@@ -1,0 +1,170 @@
+---
+title: 'What a Network Is, and Yours in Particular'
+track: 'networking-fundamentals'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 20
+reflectQuestions:
+  - 'Your laptop has a private address and your home has one public address. What does a website you visit actually see?'
+  - 'An alert says "connection from 10.0.0.23". What would you need to find out first?'
+  - 'Why might a MAC address be more useful than an IP address when you look for one device on a home network?'
+resources:
+  - label: 'What is a LAN? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/network-layer/what-is-a-lan/'
+  - label: 'What is my IP address? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/'
+  - label: 'MAC address (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/MAC_address'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+A **network** is two or more computers that can send data to each other. The internet is a network of networks. This track builds the picture in five lessons:
+
+1. **What a network is** (this lesson): the parts, and your own network.
+2. **IP addresses and subnets**: how addresses work, and how to tell which ones belong together.
+3. **Ports, TCP, and UDP**: how data reaches the right program on a machine.
+4. **How a packet gets there**: names, routes, and the trip across the internet.
+5. **Wrap-up**: you map your own connection, end to end.
+
+<Callout type="windows" title="Windows users: use PowerShell for this track">
+
+Run the Windows commands in PowerShell, not in WSL. WSL runs behind its own small virtual network, so it would show you that network instead of your real one.
+
+</Callout>
+
+## The parts of a network
+
+A few words come up in every lesson, so start with them:
+
+- A **host** is any device on a network: your laptop, your phone, a server, a smart TV.
+- A **network interface** (or **NIC**) is the part of a host that connects it: the Wi-Fi chip, or the Ethernet port. One laptop often has several.
+- A **MAC address** is a hardware address built into each interface, like `a4:83:e7:12:34:56`. It is used to deliver data **inside** one local network.
+- An **IP address** is the address used to find a host **across** networks, like `192.168.1.23`.
+- A **LAN** (local area network) is a small network in one place: your home, an office floor.
+- A **router** connects your LAN to other networks. To your devices it is the **default gateway**: the place to send anything that is not on the local network.
+
+Your home router does several jobs at once. It hands out IP addresses to your devices (a service called **DHCP**), it connects your LAN to your internet provider, and it usually also provides Wi-Fi.
+
+## Private and public addresses
+
+Look at the IP address of your laptop and it will almost certainly start with `192.168.`, `10.`, or `172.16` to `172.31`. Those are **private addresses**. They are reused in millions of homes and offices, and they only mean something inside one local network.
+
+Your internet provider gives your home **one public address**. Every device at home shares it when talking to the internet. Lesson 4 explains how the router makes that work.
+
+This matters for security work every day. An alert that says "connection from `10.0.0.23`" points to one machine inside your own network. An alert with a public address points somewhere on the internet. The first question is always which one you are looking at.
+
+## Hands-on: find your own network details
+
+Every command here only reads information. Write the answers down: this is your **network sheet**, and you will add to it in every lesson.
+
+**1. Your IP address and MAC address**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# your IP address on the main interface (en0 is usually Wi-Fi)
+ipconfig getifaddr en0
+
+# the full details of en0; "ether" is the MAC address, "inet" the IP address
+ifconfig en0
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# one line per interface: name, state, and IP addresses
+ip -br addr
+
+# one line per interface: name, state, and MAC address
+ip -br link
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# IP address, default gateway, and DNS server for each connected adapter
+Get-NetIPConfiguration
+
+# each adapter's MAC address
+Get-NetAdapter | Select-Object Name, Status, MacAddress
+```
+
+  </Fragment>
+</CodeTabs>
+
+You may see several interfaces. Ignore `lo` or "Loopback" (that is the computer talking to itself) and anything virtual or disconnected. The one that matters has an address like `192.168.x.x` and, on Windows, a default gateway.
+
+**2. Your default gateway**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+route -n get default | grep gateway
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# "default via 192.168.1.1" means your gateway is 192.168.1.1
+ip route show default
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Select-Object NextHop, InterfaceAlias
+```
+
+  </Fragment>
+</CodeTabs>
+
+The gateway is usually your router, often ending in `.1` or `.254`.
+
+**3. Your public address**
+
+This one asks an outside website, `ifconfig.me`, which address it sees you coming from. Every website you visit sees the same address, so asking reveals nothing new.
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -s https://ifconfig.me; echo
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -s https://ifconfig.me; echo
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# curl.exe, not curl: in Windows PowerShell, "curl" means a different command
+curl.exe -s https://ifconfig.me
+```
+
+  </Fragment>
+</CodeTabs>
+
+Compare it with the address from step 1. They are different: your laptop has a private address, and the internet sees the public one.
+
+Add to your network sheet: your IP address, your MAC address, your gateway, and your public address.
+
+### What to notice
+
+- Your device has a **private** address inside your network, and the internet sees a **public** one. Which one an alert shows changes the whole investigation.
+- The **default gateway** is where your computer sends everything that is not local. On a home network, that is your router.
+- A MAC address works inside one local network; an IP address works across networks. Lesson 4 shows how the two meet.

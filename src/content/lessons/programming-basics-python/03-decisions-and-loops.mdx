@@ -1,0 +1,152 @@
+---
+title: 'Decisions and Loops'
+track: 'programming-basics-python'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 30
+prerequisites: 'Lesson 2, for variables, types, and f-strings.'
+reflectQuestions:
+  - 'A detection rule says "alert if more than 5 failed logins". Write that rule as one Python `if` line.'
+  - 'Why is a loop over a list of log lines the same idea as `grep`?'
+resources:
+  - label: 'More control flow tools (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/controlflow.html'
+  - label: 'Lists (official tutorial)'
+    url: 'https://docs.python.org/3/tutorial/introduction.html#lists'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Back to the practice folder
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+cd ~/programming-basics-python
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Set-Location "$HOME\programming-basics-python"
+```
+
+  </Fragment>
+</CodeTabs>
+
+## Decisions: if, elif, else
+
+An `if` runs code only when a condition is `True`:
+
+```python
+failed = 7
+
+if failed > 5:
+    print("ALERT: possible brute force")
+elif failed > 0:
+    print("A few failed logins, probably typos")
+else:
+    print("No failed logins")
+```
+
+Three things to notice:
+
+- The condition ends with a colon `:`.
+- The lines that belong to the `if` are **indented** (four spaces is the convention). Python uses indentation, not brackets, to know what belongs together.
+- `elif` means "else if": checked only when the conditions above were false.
+
+Comparisons you will use constantly: `==` (equal), `!=` (not equal), `>`, `<`, `>=`, `<=`. Note `==` for comparing, and a single `=` for assigning a value.
+
+For text, `in` asks "does this appear inside that?":
+
+```python
+line = "Failed password for root from 203.0.113.50 port 50100 ssh2"
+"Failed password" in line
+"Accepted" in line
+```
+
+The first gives `True`, the second `False`. That is the same question `grep` asks.
+
+## Lists
+
+A **list** holds several values in order, inside square brackets:
+
+```python
+ports = [22, 80, 443]
+users = ["andi", "dewi", "rina"]
+len(users)
+users[0]
+```
+
+`len()` counts items, and `users[0]` is the **first** item: counting starts at 0.
+
+## Loops: do something for each item
+
+A `for` loop runs the same code once for each item in a list:
+
+```python
+for user in users:
+    print(f"Checking account: {user}")
+```
+
+## Hands-on: flag suspicious log lines
+
+Create `flag_lines.py`. It loops over a few log lines and flags the failures, just like `grep "Failed password"` did in Linux Essentials, but now you control what happens to each match:
+
+```python
+log_lines = [
+    "Nov 22 01:12:40 web01 sshd[2202]: Accepted publickey for deploy from 10.0.0.5 port 50210 ssh2",
+    "Nov 22 02:10:00 web01 sshd[2215]: Failed password for root from 203.0.113.50 port 50100 ssh2",
+    "Nov 22 02:10:01 web01 sshd[2216]: Failed password for invalid user admin from 203.0.113.50 port 50101 ssh2",
+    "Nov 22 02:10:02 web01 sshd[2217]: Failed password for root from 203.0.113.50 port 50102 ssh2",
+    "Nov 22 02:10:42 web01 sshd[2246]: Accepted password for backup from 203.0.113.50 port 50131 ssh2",
+]
+
+failed = 0
+
+for line in log_lines:
+    if "Failed password" in line:
+        failed = failed + 1
+        print(f"FLAG: {line}")
+
+print(f"{failed} failed logins found")
+
+if failed >= 3:
+    print("ALERT: possible brute force")
+```
+
+Run it (`python3 flag_lines.py`, or `py flag_lines.py`):
+
+```text
+FLAG: Nov 22 02:10:00 web01 sshd[2215]: Failed password for root from 203.0.113.50 port 50100 ssh2
+FLAG: Nov 22 02:10:01 web01 sshd[2216]: Failed password for invalid user admin from 203.0.113.50 port 50101 ssh2
+FLAG: Nov 22 02:10:02 web01 sshd[2217]: Failed password for root from 203.0.113.50 port 50102 ssh2
+3 failed logins found
+ALERT: possible brute force
+```
+
+Look at the last log line: an **Accepted** login from the same address that just failed three times. Your script does not notice it yet. By the end of the track, it will.
+
+<Callout type="stuck">
+
+- `IndentationError: expected an indented block`: the lines under `for` or `if` need four spaces in front.
+- `SyntaxError` pointing at a list line: every line in the list ends with a comma, and the list ends with `]`.
+
+</Callout>
+
+### What to notice
+
+- `if` / `elif` / `else` make decisions; indentation decides which lines belong to which block.
+- `==` compares, `=` assigns. `in` checks whether text appears inside other text.
+- A list holds items in order, counted from 0; a `for` loop handles each item in turn.
+- Looping over log lines and checking each one is the logic behind every detection rule.

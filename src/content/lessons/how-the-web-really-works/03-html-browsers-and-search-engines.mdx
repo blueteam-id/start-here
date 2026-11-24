@@ -1,0 +1,159 @@
+---
+title: 'HTML, Browsers, and Search Engines'
+track: 'how-the-web-really-works'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 20
+prerequisites: 'Lesson 2, for requests and responses.'
+reflectQuestions:
+  - 'A company lists `/backup/` in its robots.txt. Why is that a bad way to hide it?'
+  - 'Why is code running in your browser (JavaScript) something attackers care about?'
+  - 'How could a defender use search engines to find things their own company exposed by mistake?'
+resources:
+  - label: 'HTML basics (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Your_first_website/Creating_the_content'
+  - label: 'Introduction to robots.txt (Google Search Central)'
+    url: 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
+  - label: 'How search works (Google Search Central)'
+    url: 'https://developers.google.com/search/docs/fundamentals/how-search-works'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Three languages in every page
+
+A web page is built from three kinds of files:
+
+- **HTML** describes the **content and structure**: headings, paragraphs, links, images, forms.
+- **CSS** describes the **look**: colors, fonts, layout.
+- **JavaScript** is **code** that runs in your browser: menus, live updates, form checks.
+
+The server sends them, and your browser puts them together. That last point matters for security: JavaScript from a website runs **on your machine**, inside your browser. Browsers keep each site's code fenced off from other sites, but a malicious or compromised script still runs with everything that one site can see, including what you type into it.
+
+## Hands-on: build and inspect a tiny page
+
+Create a practice folder and a 10-line web page:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+mkdir -p ~/how-the-web-really-works && cd ~/how-the-web-really-works
+cat > hello.html << 'EOF'
+<!doctype html>
+<html>
+  <head><title>My first page</title></head>
+  <body>
+    <h1>Hello, web</h1>
+    <p>This page lives on my own computer.</p>
+    <a href="https://example.com">A link to example.com</a>
+  </body>
+</html>
+EOF
+open hello.html
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+mkdir -p ~/how-the-web-really-works && cd ~/how-the-web-really-works
+cat > hello.html << 'EOF'
+<!doctype html>
+<html>
+  <head><title>My first page</title></head>
+  <body>
+    <h1>Hello, web</h1>
+    <p>This page lives on my own computer.</p>
+    <a href="https://example.com">A link to example.com</a>
+  </body>
+</html>
+EOF
+# opens the file in your default browser (inside WSL, use: explorer.exe hello.html)
+xdg-open hello.html
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+New-Item -ItemType Directory -Path "$HOME\how-the-web-really-works" -Force
+Set-Location "$HOME\how-the-web-really-works"
+@'
+<!doctype html>
+<html>
+  <head><title>My first page</title></head>
+  <body>
+    <h1>Hello, web</h1>
+    <p>This page lives on my own computer.</p>
+    <a href="https://example.com">A link to example.com</a>
+  </body>
+</html>
+'@ | Set-Content -Path hello.html
+Invoke-Item hello.html
+```
+
+  </Fragment>
+</CodeTabs>
+
+Your browser opens the page from a `file://` address: no server, no network. Now, on that page:
+
+1. Right-click and choose **View Page Source**. You see exactly the HTML you wrote.
+2. Open DevTools (`F12`), go to the **Console** tab, type `document.title` and press Enter. JavaScript read the page's title.
+3. Type `document.querySelector('h1').textContent = 'Changed by JavaScript'` and press Enter. The heading changes. Reload the page and it is back: the change only happened in your browser, not in the file.
+
+That last step is the key idea: whatever runs in your browser can change what you see and read what is on the page.
+
+## Search engines: crawl, index, answer
+
+A **search engine** works in three steps:
+
+1. **Crawl**: programs called **crawlers** (or bots) follow links from page to page and download what they find.
+2. **Index**: the engine stores what each page contains, so it can look it up fast.
+3. **Answer**: when you search, it ranks matching pages from its index.
+
+Anything a crawler can reach by following public links can end up in search results. That includes things that were never meant to be public: a forgotten test page, a document uploaded to a public folder, a login page for an internal tool.
+
+## robots.txt is a request, not a lock
+
+A site can publish `/robots.txt` to ask crawlers not to visit certain paths. Look at one:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -s https://en.wikipedia.org/robots.txt | head -n 30
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -s https://en.wikipedia.org/robots.txt | head -n 30
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -s https://en.wikipedia.org/robots.txt | Select-Object -First 30
+```
+
+  </Fragment>
+</CodeTabs>
+
+Each `User-agent:` line names a crawler, and `Disallow:` lines list paths it is asked to skip. Polite crawlers obey. Attackers' tools do not, and some read `robots.txt` first, because it can point straight at the paths a site wanted to hide.
+
+<Callout type="warning" title="Search operators: only on your own organization">
+
+Search engines support operators such as `site:example.com` (only this site) and `filetype:pdf` (only this file type). Defenders use them to find what their **own** organization exposed by mistake. Using them to dig for other people's exposed data takes you into the territory Security Concepts Lesson 4 warns about.
+
+</Callout>
+
+### What to notice
+
+- HTML is content, CSS is looks, JavaScript is code that runs in your browser.
+- Whatever runs in your browser can read and change the page, which is why malicious scripts are dangerous.
+- Search engines index anything reachable by public links, including mistakes.
+- `robots.txt` asks politely; it hides nothing, and can even advertise what a site wanted hidden.

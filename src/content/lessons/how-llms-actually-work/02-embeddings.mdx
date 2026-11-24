@@ -1,0 +1,80 @@
+---
+title: 'Embeddings: Meaning as Numbers'
+track: 'how-llms-actually-work'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for tokens.'
+reflectQuestions:
+  - 'Why does semantic search find "my account was locked" when you search for "cannot log in"?'
+  - 'A company''s AI search over internal documents returns HR salary files to an intern. Which control failed?'
+resources:
+  - label: 'Word embedding (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Word_embedding'
+  - label: 'OWASP Top 10 for LLM Applications 2025 (see LLM08: Vector and Embedding Weaknesses)'
+    url: 'https://genai.owasp.org/llm-top-10/'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## From token numbers to meaning
+
+A token's number (Lesson 1) is just an ID: token 4 is not "closer" to token 5 in meaning. To work with meaning, a model turns each token, and longer pieces of text, into an **embedding**: a list of numbers, often hundreds or thousands long, called a **vector**.
+
+The model learns these numbers during training so that **similar meanings end up close together**. Think of each number as a position along one direction, and the whole list as a point in a space with very many directions.
+
+- "password", "passphrase", and "PIN" end up near each other.
+- "password" and "banana" end up far apart.
+- Some directions even capture relationships. A famous early example: the step from "man" to "woman" is roughly the same as the step from "king" to "queen".
+
+## Similarity
+
+How close two embeddings are can be measured with simple maths. The most common measure is **cosine similarity**: it compares the directions of two vectors and gives a number up to 1, where values near 1 mean "very similar". You do not need the formula; the idea is enough: **close in space means close in meaning**.
+
+## Semantic search and RAG
+
+Embeddings power **semantic search**: search by meaning, not exact words.
+
+1. Every document (or every paragraph) is turned into an embedding and stored in a **vector database**.
+2. A question is turned into an embedding too.
+3. The search returns the stored pieces closest to the question.
+
+A search for "cannot log in" can then find a ticket titled "my account was locked", with no shared words.
+
+**RAG** (retrieval-augmented generation) builds on this. Before an LLM answers, the system searches your documents, pastes the most relevant pieces into the prompt, and asks the model to answer using them. This is how "chat with your company documents" features work, and it reduces made-up answers (Lesson 3) because the model has real text to work from.
+
+## The security angle
+
+RAG systems create new risks, listed by OWASP as **Vector and Embedding Weaknesses**:
+
+- **Permission leaks.** If the vector database holds every document, the search can return text the person asking was never allowed to read. Retrieval must respect the same access rights as the original files (least privilege, again).
+- **Poisoned documents.** Anyone who can add a document to the collection can influence what the model says. Lesson 4 shows how hidden instructions inside retrieved documents become an attack.
+- **Embeddings are not anonymous.** Embeddings are derived from the original text, and research has shown that text can sometimes be partly reconstructed from them. Treat a vector database with the same care as the documents it came from.
+
+## Hands-on: a meaning map on paper
+
+Draw a square on paper. The horizontal direction means "about computers" (left: not at all, right: very). The vertical direction means "about danger" (bottom: harmless, top: dangerous). Place each word as a dot where you think it belongs:
+
+`firewall`, `malware`, `keyboard`, `ransomware`, `holiday`, `phishing`, `spreadsheet`, `wildfire`, `password`, `kitten`
+
+Then answer:
+
+1. Which three words are closest together? What do they share?
+2. Which word is close to `ransomware` on one direction but far on the other?
+3. A search for "computer threats" would land in which corner? Which words would it return first?
+
+<details>
+<summary>What you should notice</summary>
+
+`malware`, `ransomware`, and `phishing` cluster near the top right: about computers, and dangerous. `wildfire` is as dangerous but not about computers, so it sits top left, far from `ransomware` on the computer direction. `keyboard` and `spreadsheet` sit bottom right; `holiday` and `kitten` bottom left. A "computer threats" search lands top right and returns the malware cluster first.
+
+Real embeddings do the same, with hundreds of learned directions instead of your two hand-picked ones, and nobody chooses what each direction means.
+
+</details>
+
+### What to notice
+
+- An embedding is a list of numbers placing text in a "meaning space"; similar meanings sit close together.
+- Semantic search finds text by meaning; RAG feeds the closest pieces to an LLM before it answers.
+- RAG must respect document permissions, or AI search becomes a data leak.
+- Anyone who can add documents to the collection can influence the answers.

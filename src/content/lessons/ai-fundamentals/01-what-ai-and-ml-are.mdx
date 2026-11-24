@@ -1,0 +1,87 @@
+---
+title: 'What AI and Machine Learning Actually Are'
+track: 'ai-fundamentals'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 25
+reflectQuestions:
+  - 'A spam filter with 200 hand-written rules is called "AI" in its marketing. Is that wrong? What would you ask the vendor?'
+  - 'Why can a learned model surprise its own makers, while a rule-based system usually cannot?'
+resources:
+  - label: 'Elements of AI (free online course, University of Helsinki)'
+    url: 'https://www.elementsofai.com/'
+  - label: 'Machine Learning Crash Course (Google, free)'
+    url: 'https://developers.google.com/machine-learning/crash-course'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+1. **What AI and machine learning are** (this lesson): the words, without the hype.
+2. **How a model learns**: data, features, labels, training, and testing.
+3. **Kinds of learning, and where security uses them.**
+4. **Limits and failure modes**: false alarms, bias, and attacks on models.
+5. **Using AI responsibly at work, and wrap-up.**
+
+## Four words, from widest to narrowest
+
+- **Artificial intelligence (AI)** is the widest term: computer systems doing tasks that normally need human judgment, such as recognizing images, understanding language, or deciding what is suspicious. It says nothing about **how** they do it.
+- **Machine learning (ML)** is one way to build AI: instead of writing the rules by hand, you show the computer many examples and let it **learn** the patterns.
+- **Deep learning** is a kind of machine learning that uses large **neural networks**, layers of simple maths units loosely inspired by brain cells. It powers modern image and speech recognition.
+- **Generative AI** is deep learning that **produces** new content: text, images, code, audio. Chat assistants are built on **large language models** (LLMs), the subject of the next track.
+
+Each is a part of the one before it: generative AI is deep learning, deep learning is machine learning, and machine learning is one way to do AI.
+
+## Rules versus learning
+
+The key difference between "classic" software and machine learning is who writes the logic:
+
+- **Rule-based**: a person writes the rules. "If the email contains 'you won' and a link, mark it as spam." Easy to explain; misses anything the rule writer did not think of.
+- **Learned**: a person collects thousands of emails labeled spam or not spam, and a learning algorithm finds the patterns. Catches patterns no person would have written down; harder to explain why it decided something.
+
+Many real products mix both. And many products called "AI" are mostly rules, which is not a bad thing, just worth knowing.
+
+## A model is a function
+
+A **model** is the result of learning: a function that takes an input and gives an output, like the functions in the Python track. A spam model takes an email and returns "spam" or "not spam", usually with a **confidence** score between 0 and 1. The model does not "understand" email the way you do. It has learned which patterns tended to come with which label in the examples it saw.
+
+## Hands-on: sort the claims
+
+Here are eight claims, the kind you see in product pages and news. For each, decide whether it describes **rule-based** logic, **machine learning**, **generative AI**, or is **too vague to tell**. Write your answers down, then compare.
+
+1. "Blocks any login from a country the user has never logged in from."
+2. "Trained on 10 million labeled malware samples to classify new files."
+3. "Writes a summary of each incident in plain English."
+4. "Uses AI to keep you safe."
+5. "Learns each user's normal behavior and alerts on unusual activity."
+6. "Flags passwords shorter than 12 characters."
+7. "Generates realistic phishing emails for staff training."
+8. "Next-generation intelligent protection powered by advanced algorithms."
+
+<details>
+<summary>Compare your answers</summary>
+
+1. **Rule-based.** A fixed condition anyone could write down.
+2. **Machine learning** (a classifier trained on labeled examples; Lesson 3 names this "supervised learning").
+3. **Generative AI.** It produces new text.
+4. **Too vague to tell.** This could be anything.
+5. **Machine learning** (it learns a baseline from data; Lesson 3 calls this anomaly detection).
+6. **Rule-based.**
+7. **Generative AI.**
+8. **Too vague to tell.** Many words, no information.
+
+</details>
+
+<Callout type="tip" title="The question that cuts through hype">
+
+When a product says "AI", ask: **"What data was it trained on, and what does it output?"** A vendor who cannot answer clearly is telling you something too.
+
+</Callout>
+
+### What to notice
+
+- AI is the goal; machine learning is learning from examples; deep learning uses neural networks; generative AI creates content.
+- Rule-based systems are explainable but limited; learned systems find patterns nobody wrote down, but are harder to explain.
+- A model is a learned function with a confidence score, not understanding.
+- "AI-powered" alone tells you nothing. Ask about the data and the output.

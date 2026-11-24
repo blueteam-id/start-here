@@ -1,0 +1,207 @@
+---
+title: 'HTTP Up Close'
+track: 'how-the-web-really-works'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for the parts of a URL.'
+reflectQuestions:
+  - 'A web server log shows hundreds of 404s in one minute from one address, for paths like `/.env` and `/wp-login.php`. What is probably happening?'
+  - 'Why is a 401 or 403 response not the same as "nothing happened"?'
+  - 'Why does a site answer a plain `http://` request with a 301 instead of the page?'
+resources:
+  - label: 'An overview of HTTP (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview'
+  - label: 'HTTP response status codes (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status'
+  - label: 'curl documentation: the manual'
+    url: 'https://curl.se/docs/manual.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Requests and responses
+
+**HTTP** (Hypertext Transfer Protocol) is a simple conversation: the browser sends a **request**, the server sends back a **response**. Then, unless something keeps them connected, they forget each other (Lesson 4 is about how websites remember you anyway).
+
+A request says:
+
+- the **method**: what you want to do,
+- the **path**: which page or resource,
+- **headers**: extra information, such as which browser you use or which cookies you have,
+- sometimes a **body**: data you send, like a filled-in form.
+
+The common methods:
+
+| Method | Meaning |
+| --- | --- |
+| `GET` | Give me this page or file. |
+| `POST` | Here is some data (a login form, a comment). |
+| `HEAD` | Only give me the headers, not the content. |
+| `PUT` / `DELETE` | Replace or remove something (mostly used by APIs). |
+
+A response says:
+
+- a **status code**: how it went,
+- **headers**: such as the content type, caching rules, and cookies to set,
+- the **body**: the page, image, or data itself.
+
+## Status codes
+
+The first digit tells you the kind of answer:
+
+| Code | Meaning | Common examples |
+| --- | --- | --- |
+| 2xx | Success | `200 OK` |
+| 3xx | Go somewhere else | `301 Moved Permanently`, `302 Found` |
+| 4xx | You (the client) made a mistake | `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `429 Too Many Requests` |
+| 5xx | The server failed | `500 Internal Server Error`, `502 Bad Gateway`, `503 Service Unavailable` |
+
+`401` means "you are not logged in", `403` means "you are logged in, but not allowed". Lesson 1 of Security Concepts called those authentication and authorization.
+
+## HTTPS
+
+**HTTPS** is HTTP inside a TLS-encrypted connection. Anyone in between, such as the café's Wi-Fi or your provider, can see which **host** you connect to (from DNS and the TLS setup), but not the path, the headers, the cookies, or the content. Sites that still accept plain `http://` usually answer with a `301` that sends you to the `https://` address.
+
+## Hands-on: talk HTTP with curl
+
+`curl` sends HTTP requests from the terminal. On Windows, type `curl.exe`, not `curl`: in Windows PowerShell, `curl` is a different command.
+
+**1. Only the headers**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -I https://example.com
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -I https://example.com
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -I https://example.com
+```
+
+  </Fragment>
+</CodeTabs>
+
+`-I` sends a `HEAD` request. The first line shows the HTTP version and status, such as `HTTP/2 200`. Below it are the response headers. Look for `content-type` (what kind of data) and `server` (often a web server or a content delivery network).
+
+**2. A redirect**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -I http://github.com
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -I http://github.com
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -I http://github.com
+```
+
+  </Fragment>
+</CodeTabs>
+
+You should see `301 Moved Permanently` and a `Location:` header pointing to `https://github.com/`. That is the site sending you to the encrypted version.
+
+**3. The whole conversation**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -v https://example.com -o /dev/null
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -v https://example.com -o /dev/null
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -v https://example.com -o NUL
+```
+
+  </Fragment>
+</CodeTabs>
+
+`-v` (verbose) shows every step, and `-o` throws the page body away so it does not fill your screen. Lines starting with `*` are curl's notes: the IP address it connected to, and the TLS setup with the certificate. Lines with `>` are your **request**; lines with `<` are the **response**.
+
+**4. A 404**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://example.com/this-page-does-not-exist
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://example.com/this-page-does-not-exist
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -s -o NUL -w "%{http_code}\n" https://example.com/this-page-does-not-exist
+```
+
+  </Fragment>
+</CodeTabs>
+
+`-w` prints only the status code. It should be `404`.
+
+## Reading a web server log
+
+Every request also lands in the server's **access log**, one line each. These lines are in the common "combined" format:
+
+```
+203.0.113.50 - - [22/Nov/2026:02:11:05 +0700] "GET /.env HTTP/1.1" 404 153 "-" "python-requests/2.31"
+203.0.113.50 - - [22/Nov/2026:02:11:05 +0700] "GET /wp-login.php HTTP/1.1" 404 153 "-" "python-requests/2.31"
+203.0.113.50 - - [22/Nov/2026:02:11:06 +0700] "GET /admin/ HTTP/1.1" 404 153 "-" "python-requests/2.31"
+198.51.100.23 - - [22/Nov/2026:02:11:09 +0700] "GET /tracks/ HTTP/1.1" 200 5120 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+```
+
+From left to right: the client's address, the time, the request line (method, path, version), the status code, the size, the referring page, and the **user agent** (what the client says it is).
+
+<Callout type="note" title="What these lines tell a defender">
+
+The first three lines are one address asking for files that do not exist on this site, a second apart, with a scripting tool's user agent. `/.env` often holds secrets on badly deployed sites, and `/wp-login.php` is WordPress's login page. This is an automated **scanner** looking for easy targets. Bursts of 404s for common sensitive paths are one of the most common patterns in any web log.
+
+</Callout>
+
+### What to notice
+
+- An HTTP request is a method, a path, headers, and sometimes a body; a response is a status code, headers, and a body.
+- 2xx success, 3xx redirect, 4xx client error, 5xx server error. 401 is "not logged in", 403 is "not allowed".
+- HTTPS hides the path, headers, and content, but not which host you are visiting.
+- Web server logs record every request. Bursts of 404s for sensitive paths usually mean a scanner.

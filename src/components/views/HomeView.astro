@@ -1,9 +1,9 @@
 ---
+import Roadmap from '../Roadmap.astro';
 import { CATALOG_TRACKS } from '../../data/catalog';
-import TrackCard from '../TrackCard.astro';
-import DiscordBand from '../DiscordBand.astro';
 
-const liveTracks = CATALOG_TRACKS.filter((track) => track.status === 'live');
+const trackCount = CATALOG_TRACKS.filter((track) => track.status === 'live').length;
+import DiscordBand from '../DiscordBand.astro';
 
 const pillars = [
   {
@@ -14,7 +14,7 @@ const pillars = [
   {
     icon: '🧭',
     title: 'Pick your own path',
-    body: 'Tracks are independent. Start wherever matches what you want to learn next.',
+    body: 'Follow the roadmap step by step, or jump straight to the track you need.',
   },
   {
     icon: '🤝',
@@ -36,8 +36,9 @@ const pillars = [
         <span class="hero__badge">100% free, no sign-up, community-run</span>
         <h1 class="hero__headline">Learn the foundations of blue team security, for free.</h1>
         <p class="hero__sub">
-          A set of guided tracks covering how computers, operating systems, networks and the web
-          actually work, the groundwork every defender needs before anything else.
+          {trackCount} guided tracks, from how a computer works to operating systems, networks,
+          the web, code, data, security concepts, and AI: the groundwork every defender needs
+          before anything else.
         </p>
         <div class="hero__ctas">
           <a class="hero__cta hero__cta--primary" href="/tracks/">Browse tracks</a>
@@ -68,17 +69,7 @@ const pillars = [
     </div>
   </section>
 
-  <section class="tracks-teaser">
-    <div class="tracks-teaser__head">
-      <h2 class="tracks-teaser__heading">Start learning</h2>
-      <a class="tracks-teaser__see-all" href="/tracks/">See all tracks</a>
-    </div>
-    <div class="tracks-teaser__grid">
-      {liveTracks.map((track) => (
-        <TrackCard track={track} />
-      ))}
-    </div>
-  </section>
+  <Roadmap />
 
   <section class="home__discord">
     <DiscordBand
@@ -331,38 +322,10 @@ const pillars = [
     color: var(--text-dim);
   }
 
-  .tracks-teaser__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
 
-  .tracks-teaser__heading {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--text);
-  }
 
-  .tracks-teaser__see-all {
-    color: var(--blue);
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-  }
 
-  .tracks-teaser__see-all:hover,
-  .tracks-teaser__see-all:focus-visible {
-    text-decoration: underline;
-  }
 
-  .tracks-teaser__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: 1.25rem;
-  }
 
   @media (max-width: 720px) {
     .pillars__grid {

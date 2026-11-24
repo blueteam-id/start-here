@@ -1,0 +1,114 @@
+---
+title: 'Cookies and Sessions'
+track: 'how-the-web-really-works'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lessons 2 and 3, for headers and JavaScript in the browser.'
+reflectQuestions:
+  - 'Why can a stolen session cookie get an attacker into an account even when the victim uses two-factor authentication?'
+  - 'Why does the HttpOnly flag help, even if a site has a malicious script running on it?'
+  - 'Why should "Log out" end the session on the server, not just delete the cookie in your browser?'
+resources:
+  - label: 'Using HTTP cookies (MDN Web Docs)'
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies'
+  - label: 'Session Management Cheat Sheet (OWASP)'
+    url: 'https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## HTTP forgets; cookies remember
+
+HTTP is **stateless**: each request stands alone, and the server does not remember the one before. That is a problem for anything with a login. You do not want to type your password on every click.
+
+**Cookies** solve it. A server sends a `Set-Cookie` header in a response; the browser stores the cookie and sends it back with every later request to that site.
+
+## Sessions
+
+When you log in, the server typically:
+
+1. checks your password (and second factor),
+2. creates a **session** on its side, with a long random **session ID**,
+3. sends that ID to your browser in a cookie.
+
+From then on, the cookie **is** your login. Any request carrying that session ID is treated as you, until the session ends.
+
+That has a big consequence: **steal the cookie, and you skip the login entirely**, including two-factor authentication. This is called **session hijacking**. Modern phishing kits often act as a go-between to the real login page: the victim logs in for real, with two-factor authentication, and the kit captures the session cookie that comes back.
+
+## Cookie flags
+
+The `Set-Cookie` header can carry flags that limit how a cookie may be used:
+
+| Flag | What it does |
+| --- | --- |
+| `Secure` | Only sent over HTTPS, never over plain HTTP. |
+| `HttpOnly` | JavaScript on the page cannot read it. A malicious script cannot steal it directly. |
+| `SameSite` | Limits sending the cookie on requests that come from other sites (`Strict`, `Lax`, or `None`). |
+| `Expires` / `Max-Age` | When it disappears. Without one, it is deleted when the browser closes. |
+
+A good session cookie has `Secure`, `HttpOnly`, and a sensible `SameSite` value.
+
+## Hands-on: see cookies being set
+
+`curl -I` shows the `Set-Cookie` headers a site sends, before any login:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+curl -sI https://www.google.com | grep -i set-cookie
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+curl -sI https://www.google.com | grep -i set-cookie
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+curl.exe -sI https://www.google.com | Select-String -Pattern "set-cookie"
+```
+
+  </Fragment>
+</CodeTabs>
+
+For each line, look for the flags at the end: `Secure`, `HttpOnly`, `SameSite=...`, and an `expires=` date. The exact cookies change over time; what matters is reading the flags.
+
+## Hands-on: cookies in your own browser
+
+Open a site you are logged into, open DevTools (`F12`), and find the cookie list:
+
+- **Chrome and Edge**: **Application** tab, then **Cookies** in the left column.
+- **Firefox**: **Storage** tab, then **Cookies**.
+- **Safari**: **Storage** tab, then **Cookies** (turn on the Develop menu in Safari's settings first).
+
+Look at the columns for `HttpOnly`, `Secure`, and `SameSite`. Then go to the **Console** tab and type:
+
+```javascript
+document.cookie
+```
+
+You only see cookies **without** `HttpOnly`. The `HttpOnly` ones, usually including the important session cookie, are hidden from JavaScript. That is the flag doing its job.
+
+<Callout type="warning" title="Treat cookies like passwords">
+
+Never paste cookie values anywhere, never share screenshots of the cookie list, and be suspicious of anyone, or any "helpful" browser extension, that asks you to copy them. A session cookie is a working login.
+
+</Callout>
+
+## Logging out
+
+Pressing **Log out** should end the session **on the server**, so the old cookie stops working even if someone copied it. Closing the tab usually does not. On shared or public computers, always log out properly.
+
+### What to notice
+
+- HTTP forgets every request; cookies carry a session ID that makes the server remember you.
+- A session cookie is a working login. Stealing it bypasses the password and two-factor authentication.
+- `Secure`, `HttpOnly`, and `SameSite` limit how cookies can leak or be misused.
+- `document.cookie` cannot see `HttpOnly` cookies, which protects them from malicious scripts.

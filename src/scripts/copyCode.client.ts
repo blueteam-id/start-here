@@ -1,11 +1,12 @@
 // Adds a "Copy" button to every command code block inside `root` (the
 // rendered lesson body). Plain vanilla DOM APIs only, no framework runtime.
 //
-// Only blocks Shiki tagged with a shell language get a button; untagged
+// Only blocks tagged with a shell, Python, SQL, or JavaScript language get a
+// button (things a learner types or pastes); untagged
 // blocks are sample output (a permission string, conflict markers), which
 // nobody needs to paste back into a terminal.
 
-const COPYABLE_LANGUAGES = new Set(['bash', 'sh', 'shell', 'zsh', 'powershell', 'ps1', 'pwsh']);
+const COPYABLE_LANGUAGES = new Set(['bash', 'sh', 'shell', 'zsh', 'powershell', 'ps1', 'pwsh', 'python', 'sql', 'javascript']);
 const RESET_AFTER_MS = 2000;
 
 export type CopyFn = (text: string) => Promise<void>;

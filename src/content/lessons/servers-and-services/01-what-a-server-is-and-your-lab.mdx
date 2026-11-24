@@ -1,0 +1,125 @@
+---
+title: 'What a Server Is, and Building Your Lab'
+track: 'servers-and-services'
+phase: 'Orientation'
+order: 1
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Computing Basics (virtualization), Linux Essentials, and Networking Fundamentals. Check that your CPU supports virtualization (Computing Basics Lesson 4).'
+reflectQuestions:
+  - 'Why is a snapshot taken right after installing worth more than one taken after a week of experiments?'
+  - 'Why is it safer to practice with sudo inside a VM than on your own laptop?'
+resources:
+  - label: 'Ubuntu Server: get Ubuntu Server (official)'
+    url: 'https://ubuntu.com/download/server'
+  - label: 'VirtualBox downloads (official)'
+    url: 'https://www.virtualbox.org/wiki/Downloads'
+  - label: 'UTM for macOS (official)'
+    url: 'https://mac.getutm.app/'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## What this track covers
+
+1. **What a server is, and building your lab** (this lesson).
+2. **Remote access with SSH**: logging in from your own computer, safely.
+3. **A web server**: nginx, a page of your own, and its logs.
+4. **A database server**: MariaDB, bound to localhost, with a least-privilege account.
+5. **DNS, mail, and where logs go**: how these services work, inspected from your server.
+6. **First hardening steps, and wrap-up**: updates, a firewall, and a final check.
+
+## What a server is
+
+A **server** is not a special kind of computer. It is any computer whose job is to **serve**: to wait for requests and answer them. A **client** is whatever sends the requests, such as your browser.
+
+The programs that wait for requests are called **services** (or, on Linux, **daemons**). Each one listens on a port (Networking Lesson 3): SSH on 22, a web server on 80 and 443, a database on 3306. On Linux, a tool called **systemd** starts services at boot, restarts them, and records their output. You control it with `systemctl`.
+
+Servers are where attacks are aimed and where logs are kept, so defenders need to know how they are built from the inside.
+
+## Why a VM, and the sudo rule
+
+This track installs and changes system software, which needs administrator rights (`sudo`). Earlier tracks never used `sudo` on your own computer, and that rule still holds. Inside the lab VM, you use it freely: the VM is your own disposable server, and a snapshot lets you undo anything.
+
+## Hands-on: build the lab server
+
+### 1. Pick your tools
+
+- **Windows, Linux, or an Intel Mac**: install **VirtualBox** from [virtualbox.org](https://www.virtualbox.org/wiki/Downloads).
+- **Apple Silicon Mac (M1 or later)**: install **UTM** from [mac.getutm.app](https://mac.getutm.app/).
+
+Then download **Ubuntu Server 24.04 LTS** from [ubuntu.com/download/server](https://ubuntu.com/download/server). On an Apple Silicon Mac, download the **ARM** version instead: the VM must match your processor (Computing Basics Lesson 1). LTS means "long-term support": it gets security updates for years.
+
+### 2. Create the VM
+
+Give it **2 CPUs, 2 GB of RAM, and a 20 GB disk**. Check your spec sheet from Computing Basics: if you have 8 GB of RAM or less, 2 GB for the VM is still fine.
+
+**VirtualBox**: click **New**, name it `lab01`, choose the Ubuntu Server ISO, and set the CPUs, memory, and disk. If it offers an "unattended installation", turn it off (often a "Skip unattended installation" box), so you see each step yourself. Then open **Settings → Network**: leave **Adapter 1** on **NAT**, open **Port Forwarding**, and add two rules:
+
+| Name | Protocol | Host port | Guest port |
+| --- | --- | --- | --- |
+| ssh | TCP | 2222 | 22 |
+| web | TCP | 8080 | 80 |
+
+These let your own computer reach the VM's SSH and web server, while the VM stays invisible to the rest of your network.
+
+**UTM**: click **+**, choose **Virtualize**, then **Linux**, pick the Ubuntu Server ISO, and set the CPUs, memory, and disk. Keep the network on **Shared Network**: the VM gets an address that only your Mac can reach.
+
+### 3. Install Ubuntu Server
+
+Start the VM and follow the installer. The defaults are fine for almost every screen:
+
+- language and keyboard: yours,
+- network: the default (it gets an address automatically),
+- storage: **use an entire disk**. This is the VM's virtual disk, not your real one,
+- your name, a server name of `lab01`, a username, and a password you will remember,
+- **Install OpenSSH server**: **tick it** (Lesson 2 uses it),
+- extra software ("featured server snaps"): select nothing.
+
+When it finishes, choose **Reboot**. If it asks you to remove the installation medium, press Enter. In UTM, you may need to stop the VM, clear the CD/DVD drive in its settings, and start it again.
+
+### 4. First login and updates
+
+Log in at the VM's console with your username and password. You are on a Linux server with no graphical desktop: everything from Linux Essentials applies. Then update everything:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+`sudo` asks for your password the first time. `apt update` fetches the latest package lists, and `apt upgrade` installs the updates (Linux Essentials Lesson 6). Then look around:
+
+```bash
+hostnamectl
+ip -br addr
+systemctl status ssh.socket
+```
+
+`hostnamectl` shows the server name and OS. `ip -br addr` shows its address: on VirtualBox NAT it is usually `10.0.2.15`; on UTM, note the `192.168.x.x` address, because you need it in Lesson 2. On Ubuntu 24.04, SSH starts when someone connects, so its **socket** is what waits: you should see `active (listening)`. Press `q` to leave the status view.
+
+### 5. Take a snapshot
+
+Shut the VM down cleanly:
+
+```bash
+sudo poweroff
+```
+
+- **VirtualBox**: select the VM, open **Snapshots** (in the VM's menu or the toolbar), and **Take** a snapshot named `fresh-install`.
+- **UTM**: right-click the VM and choose **Clone**, and keep the copy as your untouched `fresh-install` version.
+
+If anything in this track goes wrong, restore that snapshot (or clone the copy again) and you are back to a clean server in a minute.
+
+<Callout type="stuck">
+
+- **VirtualBox says VT-x/AMD-V is not available**: virtualization is switched off in your computer's firmware, or another hypervisor is using it. Computing Basics Lesson 4 explains how to check. Bring your laptop model to the Discord.
+- **UTM VM does not boot**: you probably downloaded the regular (x86_64) ISO. Download the ARM version.
+- **Forgot the password**: the quickest fix is to delete the VM and install again. It takes about 15 minutes.
+
+</Callout>
+
+### What to notice
+
+- A server is any computer whose job is to answer requests; services listen on ports and are managed by systemd.
+- The lab VM is yours. `sudo` is fine inside it, and only inside it.
+- Port forwarding (VirtualBox) or a shared network (UTM) lets you reach the VM while keeping it private.
+- A snapshot right after install is your undo button for the whole track.

@@ -1,0 +1,120 @@
+---
+title: 'DNS, Mail, and Where Logs Go'
+track: 'servers-and-services'
+phase: 'Core Concepts'
+order: 5
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Lessons 2 and 3. Networking Fundamentals Lesson 4 for DNS.'
+reflectQuestions:
+  - 'A domain has no DMARC record at all. How could an attacker use that in a phishing campaign?'
+  - 'An attacker who gets root on a server can delete its logs. Why does sending logs to another machine help?'
+resources:
+  - label: 'What is a DNS server? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/dns/what-is-a-dns-server/'
+  - label: 'What are DMARC, DKIM, and SPF? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/email-security/dmarc-dkim-spf/'
+  - label: 'journalctl manual (freedesktop.org)'
+    url: 'https://www.freedesktop.org/software/systemd/man/latest/journalctl.html'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+This lesson covers two kinds of servers you will meet constantly but will not install here, DNS and mail, and then where all of a server's logs go.
+
+## DNS servers: two different jobs
+
+Networking Fundamentals showed DNS from the client's side. On the server side there are two very different roles:
+
+- A **recursive resolver** answers questions for clients. Your router, your internet provider, and public services like `1.1.1.1` are resolvers. They ask around the internet for you and remember answers for a while.
+- An **authoritative server** holds the official records for a domain and answers only for that domain. The `NS` records you looked up in Security Concepts name a domain's authoritative servers.
+
+A misconfigured resolver open to the whole internet can be abused to flood other networks with traffic, and anyone who can change a domain's authoritative records can send its visitors anywhere. Both are why DNS servers are carefully protected.
+
+## Mail servers in one page
+
+Email uses a few protocols:
+
+- **SMTP** moves mail **between** servers (port 25) and from your mail app to your provider (port 587).
+- **IMAP** lets your mail app **read** mail stored on the server (port 993, encrypted).
+
+To find where mail for a domain should go, a sending server looks up the domain's **MX** records. Because SMTP itself does not check who a sender is, three DNS records help receivers spot forged mail:
+
+- **SPF**: which servers may send mail for this domain.
+- **DKIM**: a signature on each message, checked with a public key published in DNS.
+- **DMARC**: what receivers should do when SPF or DKIM fail (do nothing, quarantine, or reject), and where to send reports.
+
+A domain without these is easy to fake in phishing emails. Running a real mail server is a specialist job; defenders mostly need to read these records.
+
+## Hands-on: inspect DNS and mail records from your server
+
+Log in to `lab01` over SSH. `dig` is a more detailed version of `nslookup`. If it is missing, install it with `sudo apt install -y bind9-dnsutils`.
+
+**1. Which resolver does lab01 use?**
+
+```bash
+resolvectl status | grep -A 2 "DNS Servers"
+```
+
+**2. Ask DNS directly.**
+
+```bash
+dig example.com
+dig +short NS example.com
+```
+
+The full `dig` output shows the question, the answer with its **TTL** (how many seconds a resolver may remember it), and which server answered. `+short` prints just the answer.
+
+**3. Read a real domain's mail setup.** Gmail is a good example:
+
+```bash
+dig +short MX gmail.com
+dig +short TXT gmail.com | grep spf
+dig +short TXT _dmarc.gmail.com
+```
+
+- The MX answers are mail servers with a **priority** number; lower is tried first.
+- The SPF record starts with `v=spf1`.
+- The DMARC record starts with `v=DMARC1` and has a `p=` policy: `none`, `quarantine`, or `reject`.
+
+Try the same three lookups for your school's or employer's domain. Does it publish SPF and DMARC? Which policy?
+
+## Where a server's logs go
+
+On Ubuntu, two systems collect logs:
+
+- **journald** (part of systemd) collects output from every service in a structured journal. You read it with `journalctl`.
+- **rsyslog** writes classic text files in `/var/log/`, such as `auth.log` and `syslog`.
+
+Services may also keep their own logs, like nginx's `/var/log/nginx/access.log` from Lesson 3.
+
+## Hands-on: read the journal
+
+```bash
+# everything nginx reported today
+sudo journalctl -u nginx --since today --no-pager
+
+# SSH activity in the last hour
+sudo journalctl -u ssh --since "1 hour ago" --no-pager
+
+# only errors (and worse) since the last boot
+sudo journalctl -p err -b --no-pager
+
+# the text log files
+ls -l /var/log/
+```
+
+`-u` picks one service, `--since` sets a time range, `-p err` keeps only errors and worse, and `-b` means "since the last boot". `--no-pager` prints everything at once instead of opening it in a pager.
+
+<Callout type="note" title="Why defenders want logs sent elsewhere">
+
+Logs that stay on a server have a weakness: an attacker who becomes root can delete or edit them, the same idea as Windows Event ID 1102. Companies therefore send logs to a separate log server or a **SIEM** (security information and event management system) as they are written. Even if the server is fully taken over, the copies elsewhere still tell the story. On Ubuntu, rsyslog can forward logs to another machine with a one-line setting; setting up the receiving side is beyond this track.
+
+</Callout>
+
+### What to notice
+
+- Recursive resolvers answer clients; authoritative servers hold a domain's official records.
+- SMTP moves mail, IMAP reads it; MX records say where a domain's mail goes.
+- SPF, DKIM, and DMARC make forged mail detectable. Reading them is a defender's job.
+- journald and rsyslog collect logs; sending them off the server keeps them out of an attacker's reach.

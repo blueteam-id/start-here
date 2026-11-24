@@ -1,0 +1,461 @@
+---
+// Homepage roadmap: every track as a step-by-step path, so a first-time
+// visitor sees where to start, what comes next, and everything on offer.
+// Stages and their order live in src/data/roadmap.ts; titles, times, and
+// lesson counts come from the catalog. A small script adds the learner's own
+// progress (done, in progress, and a "Next" marker) from their browser.
+import { CATALOG_TRACKS, type CatalogTrack } from '../data/catalog';
+import { ANYTIME_LANE, ROADMAP, type RoadmapStage } from '../data/roadmap';
+
+function track(slug: string): CatalogTrack {
+  const found = CATALOG_TRACKS.find((t) => t.slug === slug);
+  if (!found) throw new Error(`Roadmap: unknown track slug "${slug}"`);
+  return found;
+}
+
+function hours(minutes: number): string {
+  return `${Math.round((minutes / 60) * 2) / 2}h`;
+}
+
+const ORDER_LABEL: Record<RoadmapStage['order'], string> = {
+  one: '',
+  sequence: 'in this order',
+  any: 'any order',
+};
+
+const allSlugs = [...ROADMAP.flatMap((s) => s.slugs), ...ANYTIME_LANE.slugs];
+const totalHours = Math.round(allSlugs.reduce((sum, slug) => sum + track(slug).estimatedMinutes, 0) / 60);
+const firstSlug = ROADMAP[0].slugs[0];
+---
+
+<section class="roadmap" data-roadmap aria-labelledby="roadmap-heading">
+  <div class="roadmap__head">
+    <div>
+      <h2 class="roadmap__heading" id="roadmap-heading">Your roadmap</h2>
+      <p class="roadmap__intro">
+        {allSlugs.length} free tracks, about {totalHours} hours in all. Start at step 1 and follow
+        the path, or jump to whatever you need. Every step is a full track you can open.
+      </p>
+    </div>
+    <a class="roadmap__guide" href="/start/">How to use the roadmap</a>
+  </div>
+
+  <div class="roadmap__layout">
+    <ol class="roadmap__path">
+      {ROADMAP.map((stage, index) => (
+        <li class="roadmap__stage">
+          <span class="roadmap__marker" aria-hidden="true">{index + 1}</span>
+          <div class="roadmap__stage-body">
+            <div class="roadmap__stage-title-row">
+              <h3 class="roadmap__stage-title">
+                <span class="visually-hidden">Step {index + 1}: </span>{stage.title}
+              </h3>
+              {ORDER_LABEL[stage.order] && <span class="roadmap__order">{ORDER_LABEL[stage.order]}</span>}
+            </div>
+            <p class="roadmap__note">{stage.note}</p>
+            <div class={`roadmap__nodes roadmap__nodes--${stage.order}`}>
+              {stage.slugs.map((slug, i) => {
+                const t = track(slug);
+                return (
+                  <Fragment>
+                    {i > 0 && stage.order === 'sequence' && (
+                      <span class="roadmap__joint" aria-hidden="true">→</span>
+                    )}
+                    <a
+                      class="roadmap__node"
+                      href={`/tracks/${slug}/`}
+                      data-roadmap-node={slug}
+                      data-lesson-count={t.lessonCount}
+                      data-main-path
+                    >
+                      <span class="roadmap__icon" aria-hidden="true">{t.icon}</span>
+                      <span class="roadmap__node-text">
+                        <span class="roadmap__node-title">{t.title}</span>
+                        <span class="roadmap__node-meta">
+                          {hours(t.estimatedMinutes)} · {t.lessonCount} lessons
+                          {t.needsVM && <span class="roadmap__vm"> · needs a VM</span>}
+                        </span>
+                        <span class="roadmap__progress" data-track-progress={slug} data-lesson-count={t.lessonCount} hidden></span>
+                      </span>
+                      {slug === firstSlug && <span class="roadmap__tag roadmap__tag--start">Start here</span>}
+                      <span class="roadmap__tag roadmap__tag--next">Next</span>
+                    </a>
+                  </Fragment>
+                );
+              })}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <aside class="roadmap__lane" aria-labelledby="roadmap-lane-heading">
+      <h3 class="roadmap__lane-title" id="roadmap-lane-heading">{ANYTIME_LANE.title}</h3>
+      <p class="roadmap__note">{ANYTIME_LANE.note}</p>
+      <div class="roadmap__lane-nodes">
+        {ANYTIME_LANE.slugs.map((slug, i) => {
+          const t = track(slug);
+          return (
+            <Fragment>
+              {i > 0 && <span class="roadmap__joint roadmap__joint--down" aria-hidden="true">↓</span>}
+              <a class="roadmap__node" href={`/tracks/${slug}/`} data-roadmap-node={slug} data-lesson-count={t.lessonCount}>
+                <span class="roadmap__icon" aria-hidden="true">{t.icon}</span>
+                <span class="roadmap__node-text">
+                  <span class="roadmap__node-title">{t.title}</span>
+                  <span class="roadmap__node-meta">{hours(t.estimatedMinutes)} · {t.lessonCount} lessons</span>
+                  <span class="roadmap__progress" data-track-progress={slug} data-lesson-count={t.lessonCount} hidden></span>
+                </span>
+              </a>
+            </Fragment>
+          );
+        })}
+      </div>
+    </aside>
+  </div>
+
+  <div class="roadmap__foot">
+    <a class="roadmap__all" href="/tracks/">Browse all tracks</a>
+  </div>
+</section>
+
+<script>
+  import { renderRoadmapProgress } from '../scripts/trackProgress.client';
+
+  document.querySelectorAll<HTMLElement>('[data-roadmap]').forEach((root) => renderRoadmapProgress(root));
+</script>
+
+<style>
+  .roadmap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .roadmap__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+  }
+
+  .roadmap__heading {
+    margin: 0 0 0.4rem;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  .roadmap__intro {
+    margin: 0;
+    max-width: 40rem;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .roadmap__guide,
+  .roadmap__all {
+    color: var(--blue);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .roadmap__guide:hover,
+  .roadmap__all:hover {
+    text-decoration: underline;
+  }
+
+  .roadmap__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* The main path: numbered markers on a vertical line. */
+  .roadmap__path {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  /* Line from each marker down to the next one; none after the last step. */
+  .roadmap__stage:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(1rem - 1px);
+    top: 2rem;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(var(--blue), var(--border));
+  }
+
+  .roadmap__stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .roadmap__stage:last-child {
+    padding-bottom: 0;
+  }
+
+  .roadmap__marker {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 2px solid var(--blue);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .roadmap__stage-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.6rem;
+    margin-top: 0.25rem;
+  }
+
+  .roadmap__stage-title,
+  .roadmap__lane-title {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .roadmap__order {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+  }
+
+  .roadmap__note {
+    margin: 0.25rem 0 0.75rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .roadmap__nodes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  /* "Any order" steps: an even grid, no joints (the label says it). */
+  .roadmap__nodes--any {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+
+  .roadmap__nodes--any .roadmap__node {
+    max-width: none;
+  }
+
+  .roadmap__joint {
+    align-self: center;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+
+  /* A track on the map. */
+  .roadmap__node {
+    position: relative;
+    flex: 1 1 13rem;
+    max-width: 22rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    padding: 0.7rem 0.85rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .roadmap__node:hover,
+  .roadmap__node:focus-visible {
+    border-color: var(--blue);
+    transform: translateY(-1px);
+  }
+
+  .roadmap__icon {
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .roadmap__node-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .roadmap__node-title {
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.3;
+  }
+
+  .roadmap__node-meta {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+
+  .roadmap__vm {
+    color: var(--yellow);
+  }
+
+  .roadmap__progress {
+    color: var(--blue);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .roadmap__tag {
+    position: absolute;
+    top: -0.6rem;
+    right: 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .roadmap__tag--start {
+    background: var(--yellow);
+    color: var(--bg);
+  }
+
+  .roadmap__tag--next {
+    display: none;
+    background: var(--blue);
+    color: var(--bg);
+  }
+
+  /* Once the learner has started, "Next" replaces "Start here". */
+  .roadmap:has([data-next]) .roadmap__tag--start {
+    display: none;
+  }
+
+  .roadmap__node[data-next] .roadmap__tag--next {
+    display: inline-block;
+  }
+
+  .roadmap__node[data-next] {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgb(79 142 247 / 0.18);
+  }
+
+  .roadmap__node[data-state='done'] {
+    border-color: rgb(56 217 150 / 0.45);
+  }
+
+  .roadmap__node[data-state='done'] .roadmap__progress {
+    color: var(--green);
+  }
+
+  /* The AI lane: a separate track beside the main path. */
+  .roadmap__lane {
+    position: sticky;
+    top: 5.5rem;
+    background: var(--bg-elev);
+    border: 1px dashed var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  .roadmap__lane-nodes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .roadmap__lane .roadmap__node {
+    max-width: none;
+    flex: none;
+  }
+
+  .roadmap__joint--down {
+    align-self: center;
+  }
+
+  .roadmap__foot {
+    display: flex;
+    justify-content: center;
+  }
+
+  .roadmap__all {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.55rem 1.2rem;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 860px) {
+    .roadmap__layout {
+      grid-template-columns: 1fr;
+    }
+
+    .roadmap__lane {
+      position: static;
+    }
+  }
+
+  @media (max-width: 560px) {
+    /* Phone: tracks in a stage stack, and joints point down. */
+    .roadmap__nodes {
+      flex-direction: column;
+    }
+
+    .roadmap__nodes--any {
+      grid-template-columns: 1fr;
+    }
+
+    .roadmap__node {
+      max-width: none;
+      flex: none;
+    }
+
+    .roadmap__joint {
+      align-self: flex-start;
+      margin-left: 1.25rem;
+      line-height: 1;
+    }
+
+    .roadmap__nodes--sequence .roadmap__joint {
+      transform: rotate(90deg);
+    }
+  }
+</style>

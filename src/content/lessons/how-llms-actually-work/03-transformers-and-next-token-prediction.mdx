@@ -1,0 +1,94 @@
+---
+title: 'Transformers and Next-Token Prediction'
+track: 'how-llms-actually-work'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lessons 1 and 2, for tokens and embeddings.'
+reflectQuestions:
+  - 'An AI assistant gives you a PowerShell command to "check for malware". What would you do before running it?'
+  - 'Why does a model sound just as confident when it is wrong as when it is right?'
+resources:
+  - label: 'Attention Is All You Need (the original transformer paper, 2017)'
+    url: 'https://arxiv.org/abs/1706.03762'
+  - label: 'Hallucination (artificial intelligence) (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## One job: predict the next token
+
+An LLM does one thing, over and over: given the tokens so far, it calculates a **probability** for every token in its vocabulary being the **next** one. Then it picks one, adds it to the text, and repeats. A whole answer is written one token at a time.
+
+For the text `The attacker stole the`, the model might give:
+
+| Next token | Probability |
+| --- | --- |
+| `password` | 31% |
+| `data` | 24% |
+| `credentials` | 18% |
+| `laptop` | 6% |
+| ...thousands of others | the rest |
+
+## Transformers and attention
+
+Most modern LLMs use a design called the **transformer**, introduced in 2017. Its key idea is **attention**: when working out the next token, every token can look at every earlier token and decide how much each one matters.
+
+In `The server that the admin patched last week crashed again`, attention lets the model connect `crashed` back to `server`, not to `admin` or `week`, even though they are far apart. Stacking many layers of attention lets the model track grammar, facts mentioned earlier, and the overall topic.
+
+## Training and inference
+
+- **Training** happens once, at huge cost: the model reads vast amounts of text and adjusts billions of numbers (its **parameters**) to get better at predicting the next token. Many chat models then get extra training on examples of helpful, safe answers.
+- **Inference** is using the trained model: your prompt goes in, tokens come out. The model does **not** learn from your conversation during inference. Any "memory" comes from the conversation being in the context window, or from features the service adds.
+
+What the model "knows" is frozen at its **training cutoff**. It does not know about later events unless the service gives it search results or documents (RAG, Lesson 2).
+
+## Temperature: how adventurous the choice is
+
+The model does not always pick the most likely token. **Temperature** controls how much randomness goes into the choice:
+
+- **Low temperature**: almost always the top choice. Predictable and repetitive.
+- **High temperature**: lower-ranked tokens get picked more often. More varied, and more likely to drift off.
+
+That is why the same question can get different answers each time.
+
+## Why models make things up
+
+The model is trained to produce **likely-sounding** text, not **true** text. When it lacks the facts, the most likely-sounding continuation is often a confident, fluent, invented one. This is called **hallucination**:
+
+- invented CVE numbers, command options, or library names,
+- references to articles that do not exist,
+- a wrong answer stated in exactly the same confident tone as a right one.
+
+Hallucination is not a bug that will simply be fixed; it follows from how next-token prediction works. Good tools reduce it, for example with RAG, but never remove it.
+
+<Callout type="warning" title="An attack built on hallucination">
+
+Coding assistants sometimes suggest software packages that do not exist. Security researchers have shown that this can be abused: in one test, a researcher registered a package name that AI tools kept inventing, left it harmless, and saw it downloaded thousands of times. An attacker could do the same with malware inside. The risk is sometimes called **slopsquatting**. Always check that a suggested package, command, or link is real before using it.
+
+</Callout>
+
+## Hands-on: predict like a model
+
+On paper, for each line write the **three** tokens you think most likely come next, and give each a rough probability that adds up to less than 100% (the rest is "everything else"):
+
+1. `To list files in a Linux directory, run`
+2. `The capital of Indonesia is`
+3. `The CVE number for the bug in Arunika Labs' internal HR portal is`
+
+Then answer: for which line would a model's top choice be reliable, and for which would any confident answer be invented?
+
+<details>
+<summary>What you should notice</summary>
+
+Line 1: `ls` is overwhelmingly likely, and correct. Line 2: likely candidates are the city names a model saw most in its training text, and the right one depends on its training data and cutoff; this is exactly the kind of fact to check against a current source. Line 3: Arunika Labs is fictional (from SQL Basics) and has no CVE. A model has no fact to find, but next-token prediction will still produce something CVE-shaped, like `CVE-2023-` followed by plausible digits. That is a hallucination, and it would sound exactly as confident as line 1.
+
+</details>
+
+### What to notice
+
+- An LLM writes one token at a time, choosing from a probability for every possible next token.
+- Transformers use attention, so each token can draw on any earlier token in the context.
+- The model learned during training; it does not learn from your chat, and it knows nothing after its cutoff unless given documents.
+- It produces likely text, not true text. Verify facts, commands, packages, and references before using them.

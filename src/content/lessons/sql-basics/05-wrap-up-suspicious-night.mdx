@@ -1,0 +1,102 @@
+---
+title: 'Wrap-up: Investigate a Suspicious Night'
+track: 'sql-basics'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+prerequisites: 'Lessons 1 to 4, this lesson combines all of them into one investigation.'
+reflectQuestions:
+  - 'Which of the four earlier lessons changed how you think about data the most, and why?'
+  - 'The real Rina logged in at 08:44 from her own laptop. Why does that matter for the story?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'SQLite: SQL as understood by SQLite'
+    url: 'https://www.sqlite.org/lang.html'
+  - label: 'SQLBolt (free interactive SQL lessons, all levels)'
+    url: 'https://sqlbolt.com/'
+---
+
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What you now know
+
+1. **What a database is.** Tables, rows, and columns; primary and foreign keys; SQLite keeps it all in one file.
+2. **SELECT and WHERE.** Pick columns, filter rows, sort, limit, match patterns, compare times, and test for `NULL`.
+3. **GROUP BY and JOIN.** Count per group, filter groups with `HAVING`, and bring tables together, keeping missing matches with `LEFT JOIN`.
+4. **Changing data and administration.** `INSERT`, `UPDATE`, `DELETE`, transactions, backups, least privilege, and SQL injection.
+
+## Hands-on: investigate the night of 22 November
+
+At 08:30 on 22 November, Arunika Labs' security team sees several high alerts from the night. You are asked to work out what happened, using only SQL on `company.db`. Open it in DB Browser's **Execute SQL** tab. Answer each question in writing before moving on; the queries are there if you get stuck.
+
+**1. What did the alerts say?** List every alert in time order, with the user and device names.
+
+```sql
+SELECT a.ts, a.severity, a.rule, u.username, d.hostname, a.details
+FROM alerts AS a
+LEFT JOIN users AS u ON u.id = a.user_id
+LEFT JOIN devices AS d ON d.id = a.device_id
+ORDER BY a.ts;
+```
+
+**2. Where did the trouble start?** Which outside address failed many times, and against how many accounts? (Lesson 3.)
+
+```sql
+SELECT source_ip, COUNT(*) AS failures, COUNT(DISTINCT user_id) AS accounts
+FROM logins
+WHERE success = 0
+GROUP BY source_ip
+HAVING COUNT(*) >= 5;
+```
+
+**3. Did it work?** Which account logged in successfully from that address, and when?
+
+```sql
+SELECT l.ts, u.username, l.source_ip
+FROM logins AS l
+JOIN users AS u ON u.id = l.user_id
+WHERE l.source_ip = '203.0.113.50' AND l.success = 1;
+```
+
+**4. What else do we know about that account?** All of its logins, with devices:
+
+```sql
+SELECT l.ts, d.hostname, l.source_ip, l.success
+FROM logins AS l
+LEFT JOIN devices AS d ON d.id = l.device_id
+WHERE l.user_id = (SELECT id FROM users WHERE username = 'rina')
+ORDER BY l.ts;
+```
+
+The `(SELECT id FROM users WHERE username = 'rina')` part is a **subquery**: a query inside a query, which finds Rina's `id` so you do not have to look it up.
+
+**5. Is the account still a risk right now?** Is it an administrator?
+
+```sql
+SELECT username, department, is_admin, active FROM users WHERE username = 'rina';
+```
+
+Note that `is_admin` is still `0` in the `users` table, while alert 4 says she was added to the administrators group. The company's tools disagree. That gap is itself a finding: the `users` table is not the source of truth for real permissions, and someone must check the actual admin group.
+
+**Write the timeline.** Put it in your own words, in time order. It should cover:
+
+- a **password spray** from `203.0.113.50` against ten accounts, starting at `01:50`,
+- a **successful login as `rina`** at `02:07:39`, remote, from that address,
+- `rina` **added to the administrators group** at `02:15`,
+- **4.2 GB copied** from the `FS01` finance share at `02:21`,
+- the **real Rina logging in from her own laptop** at `08:44`, from the office.
+
+Then answer: what are the first three things you would do? (A good answer includes disabling or resetting Rina's account and ending its sessions, removing it from the admin group, and blocking `203.0.113.50`, then working out what was in the 4.2 GB.)
+
+You just ran an investigation entirely in SQL: from alerts, to the source, to the compromised account, to what the attacker did, written up as a timeline. The same questions, in the same order, apply to real security data.
+
+## Where to go from here
+
+Real security tools often use their own query languages, but they are built on the same ideas: filter, count, group, and join. SQL is the foundation for all of them.
+
+Bring your timeline and questions to the **community Discord** with the Join Discord button at the top of the page.
+
+Next steps:
+
+- <TrackLink slug="servers-and-services" /> runs a real database server (MariaDB) with its own accounts and privileges.
+- <TrackLink slug="programming-basics-python" /> shows how a program talks to a database safely, with parameterized queries.

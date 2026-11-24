@@ -1,0 +1,117 @@
+---
+title: 'A Web Server'
+track: 'servers-and-services'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Lesson 2, for SSH access to lab01. How the Web Really Works helps for HTTP and status codes.'
+reflectQuestions:
+  - 'Why does hiding the exact nginx version in the Server header help, even though it is not real protection on its own?'
+  - 'Your access log shows a request for `/.env` that got a 404. Should you worry? What would change if it got a 200?'
+resources:
+  - label: 'nginx: Beginner''s Guide (official)'
+    url: 'https://nginx.org/en/docs/beginners_guide.html'
+  - label: 'nginx: Configuring logging (official)'
+    url: 'https://nginx.org/en/docs/http/ngx_http_log_module.html'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Web servers
+
+A **web server** is the service that answers HTTP requests (How the Web Really Works, Lesson 2). It reads a request, finds the file or asks an application for the answer, sends back a response, and writes a line to its **access log**. This lesson uses **nginx** (say "engine-x"), one of the most common web servers in the world.
+
+## Hands-on: install nginx
+
+Log in to `lab01` over SSH (Lesson 2), then:
+
+```bash
+sudo apt install -y nginx
+systemctl status nginx --no-pager
+```
+
+The status should say `active (running)`. nginx starts at once and listens on port 80. Ask it for a page from the server itself:
+
+```bash
+curl -I http://localhost
+```
+
+You should see `HTTP/1.1 200 OK` and a `Server: nginx/...` header with a version number.
+
+Now open it from your own computer's browser:
+
+- **VirtualBox**: `http://127.0.0.1:8080` (port forwarding from Lesson 1 sends it to port 80 in the VM).
+- **UTM**: `http://` followed by your VM's address, for example `http://192.168.64.2`.
+
+You should see "Welcome to nginx!".
+
+## Hands-on: serve your own page
+
+nginx serves files from its **document root**, `/var/www/html`. Replace the welcome page with your own:
+
+```bash
+sudo tee /var/www/html/index.html > /dev/null << 'EOF'
+<!doctype html>
+<html>
+  <head><title>lab01</title></head>
+  <body>
+    <h1>Hello from lab01</h1>
+    <p>Served by nginx on my own lab server.</p>
+  </body>
+</html>
+EOF
+```
+
+Reload the page in your browser. That is your own page, served by your own web server.
+
+## Hands-on: watch the access log
+
+nginx writes two logs in `/var/log/nginx/`: `access.log` (every request) and `error.log` (problems). Follow the access log live (Linux Essentials Lesson 4):
+
+```bash
+sudo tail -f /var/log/nginx/access.log
+```
+
+Now, in your browser, reload your page, then visit a page that does not exist, such as `/.env` or `/admin`. Each request appears in the log as you make it, in the combined format you read in How the Web Really Works:
+
+```text
+10.0.2.2 - - [24/Nov/2026:09:15:02 +0000] "GET /.env HTTP/1.1" 404 162 "-" "Mozilla/5.0 (...)"
+```
+
+On VirtualBox, the client address is `10.0.2.2`: that is the NAT gateway standing in for your computer. Press `Ctrl+C` to stop following.
+
+<Callout type="note" title="A public server gets these within minutes">
+
+A web server on the internet starts receiving requests for `/.env`, `/wp-login.php`, and other sensitive paths almost as soon as it is online. Automated scanners try every address. A `404` means the scan found nothing; a `200` for a sensitive path would mean a real exposure.
+
+</Callout>
+
+## Hands-on: stop advertising the version
+
+The `Server` header tells every visitor exactly which nginx version runs here. That helps attackers match the server against known vulnerabilities (Security Concepts Lesson 2). Ubuntu's nginx configuration already contains the setting to hide it, commented out. Turn it on:
+
+```bash
+sudo sed -i 's/# server_tokens off;/server_tokens off;/' /etc/nginx/nginx.conf
+grep server_tokens /etc/nginx/nginx.conf
+sudo nginx -t && sudo systemctl reload nginx
+curl -I http://localhost
+```
+
+`grep` should now show `server_tokens off;` without the `#`. `nginx -t` checks the configuration before `reload` applies it. The `Server` header now says only `nginx`, with no version.
+
+This is not real protection: patching is. But it stops handing out free information.
+
+<Callout type="stuck">
+
+- `nginx -t` reports an error: run `grep -n server_tokens /etc/nginx/nginx.conf` and check the line looks exactly like `server_tokens off;`.
+- The browser cannot connect: check `systemctl status nginx`, and the port forwarding rule for 8080 (VirtualBox) or the VM's address (UTM).
+
+</Callout>
+
+### What to notice
+
+- A web server answers HTTP requests and logs every one; nginx serves files from `/var/www/html` by default.
+- `sudo tail -f /var/log/nginx/access.log` shows requests live, in the same format attackers' scans leave behind.
+- Test a configuration with `nginx -t` before reloading, the same habit as `sshd -t`.
+- Hiding the version number gives attackers less information, but only patching fixes vulnerabilities.

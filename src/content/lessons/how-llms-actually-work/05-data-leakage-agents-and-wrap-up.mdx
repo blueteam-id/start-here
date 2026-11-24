@@ -1,0 +1,87 @@
+---
+title: 'Data Leakage, Agents, and Wrap-up'
+track: 'how-llms-actually-work'
+phase: 'Wrap-up'
+order: 5
+estimatedMinutes: 20
+prerequisites: 'Lessons 1 to 4, this lesson combines all of them into one final exercise.'
+reflectQuestions:
+  - 'Which of the four earlier lessons changed how you think about AI features the most, and why?'
+  - 'Why is an AI agent that can send emails more dangerous than a chatbot that can only answer?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'OWASP LLM06:2025 Excessive Agency'
+    url: 'https://genai.owasp.org/llmrisk/llm062025-excessive-agency/'
+  - label: 'OWASP Top 10 for LLM Applications 2025'
+    url: 'https://genai.owasp.org/llm-top-10/'
+---
+
+import Callout from '../../../components/Callout.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## Data leakage
+
+LLM features can leak information in several ways. OWASP groups them under **Sensitive Information Disclosure** (LLM02) and **System Prompt Leakage** (LLM07):
+
+- **Through the prompt.** Anything users paste in leaves their control (AI Fundamentals Lesson 5). Secrets in prompts can end up in logs or, depending on the service, in future training data.
+- **Through retrieval.** A RAG system that ignores permissions hands people documents they should not see (Lesson 2).
+- **Through the system prompt.** Developers sometimes put secrets, internal rules, or even passwords in the system prompt. Prompt injection (Lesson 4) can often make the model reveal it. A system prompt is not a safe place for secrets.
+- **Through training data.** Models can sometimes repeat pieces of their training text word for word, so sensitive data used in training can come back out.
+
+## Agents: LLMs that take actions
+
+An **AI agent** is an LLM connected to **tools**: it can search the web, read files, query databases, send emails, run code, or call other services. The model reads a task, decides which tool to use, reads the result, and continues, often over many steps.
+
+Agents are useful, and they change the risk completely. A chatbot that is tricked can only **say** something wrong. An agent that is tricked can **do** something wrong: forward confidential files, delete records, or send emails as you. Combine that with indirect prompt injection (Lesson 4), and any email, web page, or document the agent reads becomes a possible way to give it orders.
+
+OWASP calls giving an LLM more power than it needs **Excessive Agency** (LLM06). The defenses will sound familiar from every earlier track:
+
+- **Least privilege**: give the agent only the tools and permissions its job needs. A summarizer does not need "send email".
+- **Human approval** for anything sensitive or irreversible: sending, deleting, paying, changing access.
+- **Separate identities**: the agent acts with its own limited account, so its actions are logged and can be cut off.
+- **Logging and monitoring** (accounting): record what the agent did and why.
+
+## What you now know
+
+1. **Tokens.** LLMs read tokens; the context window limits what they can see; other languages, code, and random strings cost more tokens.
+2. **Embeddings.** Meaning becomes vectors; semantic search and RAG find text by meaning, and must respect permissions.
+3. **Next-token prediction.** Transformers use attention to predict one token at a time; models produce likely text, not true text, so they hallucinate.
+4. **Prompt injection and jailbreaks.** Instructions and data share one channel; indirect injection hides in content; defenses are layers, not one fix.
+
+## Hands-on: threat-model an AI help-desk agent
+
+Arunika Labs (the company from SQL Basics) plans to launch **HelpBot**, an AI agent for its IT help desk. The plan:
+
+- Employees chat with HelpBot to get help with IT problems.
+- HelpBot can **read** all help-desk tickets, including attachments.
+- HelpBot can **search** the internal wiki, which includes some HR and finance pages.
+- HelpBot can **send emails** from `helpdesk@arunika.example` to anyone.
+- HelpBot can **reset any employee's password** and email them a temporary one.
+
+You are asked for a quick security review. On paper, write:
+
+1. **Assets**: three things worth protecting here (Security Concepts Lesson 1).
+2. **Entry points for injection**: at least three places where an attacker's text could reach HelpBot.
+3. **The worst realistic outcome** if HelpBot were successfully injected. Be specific.
+4. **Five changes** you would require before launch, using this track's defenses.
+
+<details>
+<summary>What a good review covers</summary>
+
+1. Assets: employee accounts and passwords; confidential HR and finance information in the wiki; the help-desk email address and its trust (people believe mail from it); ticket contents, which can include personal data.
+2. Entry points: the chat itself (direct injection); the text of any ticket, since anyone can file one; ticket attachments; wiki pages anyone can edit; incoming emails if they become tickets.
+3. Worst case: an attacker files a ticket containing hidden instructions. When HelpBot reads it, it resets a finance manager's password, emails the temporary password to an outside address, and sends convincing phishing to all staff from the real help-desk address. Or it pastes HR salary pages into its answers.
+4. Changes: remove free email sending, or allow only replies to the requester's own company address; require a human to approve every password reset, and send temporary passwords only to the account owner through a separate verified channel; limit wiki search to pages the asking employee may already read; treat ticket and attachment text as untrusted data, and never act on instructions found inside it; give HelpBot its own limited account and log every tool call; keep secrets out of the system prompt.
+
+</details>
+
+## Where to go from here
+
+AI security is moving fast, and much of it is still being worked out. The foundations from this program will not go out of date: least privilege, untrusted input, human approval for sensitive actions, logs, and permission before testing.
+
+Bring your threat model and questions to the **community Discord** with the Join Discord button at the top of the page.
+
+If you skipped any earlier track, these two connect most directly to this one:
+
+- <TrackLink slug="security-concepts" /> for threat, vulnerability, risk, and the rules of engagement.
+- <TrackLink slug="sql-basics" /> for SQL injection, the older cousin of prompt injection.

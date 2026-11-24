@@ -1,5 +1,9 @@
 # foundation.blueteam.id — Track 2 (Linux Essentials) Implementation Plan
 
+> **Status: completed (2026-11).** This plan has been carried out and is kept
+> for reference only. Do not execute it again; see CONTRIBUTING.md for how
+> tracks are added and edited now.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the second live track, "Linux Essentials" (catalog slug `linux-essentials`), as 7 fully-authored lessons following the same pattern as Track 1 (Computing Basics): track landing page, attribution, hands-on steps, reflect-on-your-own questions, go-further resources, client-side progress tracking. Flip it from "coming soon" to live in the catalog and homepage teaser.

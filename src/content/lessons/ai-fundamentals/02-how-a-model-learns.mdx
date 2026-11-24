@@ -1,0 +1,93 @@
+---
+title: 'How a Model Learns'
+track: 'ai-fundamentals'
+phase: 'Core Concepts'
+order: 2
+estimatedMinutes: 25
+prerequisites: 'Lesson 1, for the difference between rules and learning.'
+reflectQuestions:
+  - 'Why must a model be tested on examples it never saw during training?'
+  - 'A phishing detector was trained on emails from 2020. Why might it miss phishing emails written today?'
+resources:
+  - label: 'Machine Learning Crash Course: training and test sets (Google, free)'
+    url: 'https://developers.google.com/machine-learning/crash-course'
+  - label: 'Overfitting (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/Overfitting'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+## Data, features, and labels
+
+Learning starts with **examples**. For a spam filter, each example is one email. To learn from it, a model needs:
+
+- **Features**: measurable things about each example. For an email: does it contain a link? How many exclamation marks? Is the sender new? Does it mention money?
+- A **label**: the right answer for that example, such as "spam" or "not spam", usually decided by people.
+
+A **dataset** is many examples with their features and labels. The quality of the dataset decides almost everything: a model can only learn patterns that are in its data.
+
+## Training and testing
+
+**Training** is the learning step: an algorithm looks at the training examples and adjusts the model until its answers match the labels as well as possible.
+
+Then comes the important part: **testing**. You keep some labeled examples **aside**, never shown during training, and check how the model does on them. That tells you how well it **generalizes**: how it will do on new emails it has never seen, which is the whole point.
+
+Testing on the training examples would be like grading a student with the exact questions they practiced. It proves memory, not understanding.
+
+## Overfitting
+
+A model can learn its training examples **too** well, including their accidents. If every spam email in the training data happened to arrive on a Tuesday, an overfitted model may decide "Tuesday means spam". It scores perfectly on its training data and badly on new data. This is called **overfitting**, and checking on held-out test data is how you catch it.
+
+## Drift
+
+The world changes after training. Attackers change their wording, new services appear, and people's behavior shifts. A model trained on last year's data slowly gets worse. This is called **drift**, and it is why security models must be monitored and retrained, not set once and forgotten.
+
+## Hands-on: build a spam filter on paper
+
+You are the learning algorithm. Here are eight **training** emails, already labeled:
+
+| # | Email subject and first line | Label |
+| --- | --- | --- |
+| 1 | "URGENT: verify your account now!!! Click here" | spam |
+| 2 | "Team lunch moved to Thursday" | not spam |
+| 3 | "You won a prize! Claim your reward today" | spam |
+| 4 | "Invoice for October attached, please review" | not spam |
+| 5 | "Your password expires, click to keep access!!" | spam |
+| 6 | "Notes from yesterday's meeting" | not spam |
+| 7 | "Congratulations, you are selected! Act now" | spam |
+| 8 | "Can you review my pull request?" | not spam |
+
+**1. Find features.** Write down three simple rules that separate spam from not spam in these eight, for example "contains `!!`".
+
+**2. Test on new emails.** Now apply **only your rules** to these four **test** emails, which your "model" has never seen. Decide spam or not spam for each:
+
+| # | Email | Real label |
+| --- | --- | --- |
+| A | "Reminder: your parcel is waiting, confirm delivery details" | spam |
+| B | "URGENT: server room door left open!!" | not spam |
+| C | "Your account was selected for a security review, sign in here" | spam |
+| D | "Quarterly report draft, feedback welcome" | not spam |
+
+**3. Score yourself.** How many of the four did your rules get right?
+
+<details>
+<summary>What usually happens</summary>
+
+Rules like "contains `!!`", "contains urgent", or "contains click" work perfectly on the training emails. On the test emails, they usually **miss A and C** (calm, believable phishing with none of those words) and **wrongly flag B** (a real, urgent message from a colleague).
+
+That is overfitting in miniature: the rules learned the surface habits of eight examples, not the real idea of "someone trying to trick you". Real models need far more, and far more varied, examples, and still make exactly these kinds of mistakes. Lesson 4 is about measuring them.
+
+</details>
+
+<Callout type="note" title="Attackers read this too">
+
+Attackers know detectors learn from past examples, so they deliberately write phishing that looks like ordinary work email, like test emails A and C. Detection is a moving target, which is why drift matters.
+
+</Callout>
+
+### What to notice
+
+- A model learns from examples: features describe each one, and labels give the right answer.
+- Test on examples kept aside from training; scoring on training data only proves memory.
+- Overfitting is learning accidents in the training data; drift is the world moving on after training.
+- A model can only learn what its data contains. Data quality decides model quality.

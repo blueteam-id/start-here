@@ -1,0 +1,115 @@
+---
+title: 'First Hardening Steps, and Wrap-up'
+track: 'servers-and-services'
+phase: 'Wrap-up'
+order: 6
+estimatedMinutes: 30
+needsVM: true
+prerequisites: 'Lessons 1 to 5, this lesson combines all of them into one final check.'
+reflectQuestions:
+  - 'Which of the five earlier lessons changed how you think about servers the most, and why?'
+  - 'Why must you allow SSH in the firewall before you turn the firewall on?'
+  - 'Write down one question this track raised that it did not answer. That is a good first post in the Discord.'
+resources:
+  - label: 'Firewalls: ufw (Ubuntu Server documentation)'
+    url: 'https://documentation.ubuntu.com/server/how-to/security/firewalls/'
+  - label: 'Automatic updates (Ubuntu Server documentation)'
+    url: 'https://documentation.ubuntu.com/server/how-to/software/automatic-updates/'
+  - label: 'CIS Benchmarks (free hardening guides, registration required)'
+    url: 'https://www.cisecurity.org/cis-benchmarks'
+---
+
+import Callout from '../../../components/Callout.astro';
+import TrackLink from '../../../components/TrackLink.astro';
+
+## What hardening means
+
+**Hardening** is reducing a system's **attack surface**: fewer doors, each one locked, and a record of who comes through. The first steps on almost any server are the same:
+
+1. **Keep it updated**, because most attacks use known, already-fixed vulnerabilities.
+2. **Only run what you need**, because every service is a door.
+3. **Allow only the traffic you expect**, with a firewall.
+4. **Give every account the least privilege** it needs.
+5. **Keep logs**, ideally somewhere else too (Lesson 5).
+
+## What you now know
+
+1. **What a server is, and your lab.** Services listen on ports and are run by systemd; the lab VM is yours, snapshot included.
+2. **SSH.** Keys instead of passwords, no direct root login, and test changes from a second session.
+3. **A web server.** nginx serves `/var/www/html`, logs every request, and no longer shows its version.
+4. **A database server.** MariaDB listens on `127.0.0.1`, and the `webapp` account can only read and write rows.
+5. **DNS, mail, and logs.** Resolvers versus authoritative servers, SPF, DKIM, and DMARC, and reading the journal.
+
+## Hands-on: harden lab01 and check it
+
+Log in to `lab01` over SSH.
+
+**1. Updates.** Install anything new, and confirm automatic security updates are on (Ubuntu Server enables them by default):
+
+```bash
+sudo apt update && sudo apt upgrade -y
+systemctl status unattended-upgrades --no-pager
+```
+
+**2. Only what you need.** List running services, and read each name. Anything you cannot explain is worth looking up:
+
+```bash
+systemctl list-units --type=service --state=running --no-pager
+```
+
+**3. A firewall.** Ubuntu includes **ufw** ("uncomplicated firewall"). Allow SSH **first**, then the web server, and only then turn it on:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx HTTP'
+sudo ufw enable
+sudo ufw status verbose
+```
+
+<Callout type="warning" title="SSH first, always">
+
+On a real server reached only over SSH, enabling a firewall without allowing SSH locks you out for good. Here, the VM's console window would still let you in, but build the habit now: allow SSH before `ufw enable`.
+
+</Callout>
+
+The status shows the default policy, **deny incoming** and **allow outgoing**, plus your two rules. The database needs no rule: it only listens on `127.0.0.1` anyway.
+
+**4. Accounts.** Who can use `sudo`?
+
+```bash
+getent group sudo
+```
+
+It should list only you. On a real server, every name here is someone who can do anything.
+
+**5. The final check: what is listening?**
+
+```bash
+sudo ss -tulpn
+```
+
+Read each line, as in Networking Fundamentals Lesson 3. You should be able to explain every one:
+
+| Address and port | Service | Why it is OK |
+| --- | --- | --- |
+| `0.0.0.0:22` and `[::]:22` | SSH | Keys only, no root login, allowed by the firewall |
+| `0.0.0.0:80` and `[::]:80` | nginx | Your web page, allowed by the firewall |
+| `127.0.0.1:3306` | MariaDB | Only reachable from the server itself |
+| `127.0.0.53:53` (and `127.0.0.54:53`) | systemd-resolved | The server's own local DNS helper |
+
+On some systems you may also see a small DHCP client on UDP port 68: it keeps the VM's network address. If you see anything else, find out what it is before moving on.
+
+**6. Snapshot the result.** Shut down with `sudo poweroff` and take a second snapshot (or clone) named `hardened`.
+
+You just did a first-pass hardening of a real Linux server: patched it, checked its services, put a firewall in front, confirmed who has admin rights, and verified every open port. On a real system, this is the same checklist, followed by much more.
+
+## Where to go from here
+
+Hardening goes much deeper: HTTPS certificates, intrusion detection, central logging, and configuration benchmarks like the **CIS Benchmarks**. Your `lab01` is a safe place to keep practicing: break it, then restore a snapshot.
+
+Bring questions, and screenshots with private details removed, to the **community Discord** with the Join Discord button at the top of the page.
+
+Next steps:
+
+- <TrackLink slug="security-concepts" /> for the defensive vocabulary and rules of engagement, if you have not taken it yet.
+- <TrackLink slug="ai-fundamentals" /> for the AI-powered tools that now sit on top of many of these logs.

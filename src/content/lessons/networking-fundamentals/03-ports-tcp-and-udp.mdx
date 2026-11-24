@@ -1,0 +1,160 @@
+---
+title: 'Ports, TCP, and UDP'
+track: 'networking-fundamentals'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 25
+prerequisites: 'Lesson 2, so you know what 127.0.0.1 means.'
+reflectQuestions:
+  - 'A program on your laptop listens on 0.0.0.0:3389. Who could try to connect to it?'
+  - 'Why would a video call use UDP instead of TCP?'
+  - 'You find a listening port you do not recognize. What would you check before deciding it is a problem?'
+resources:
+  - label: 'What is a computer port? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/'
+  - label: 'What is TCP/IP? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/ddos/glossary/tcp-ip/'
+  - label: 'List of TCP and UDP port numbers (Wikipedia)'
+    url: 'https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## Ports: the right program on the right machine
+
+An IP address gets data to the right **machine**. But one machine runs many programs that use the network at once: a browser, a chat app, a background updater. A **port** is a number from 0 to 65535 that gets the data to the right **program** on that machine.
+
+Together, an address and a port name one endpoint, written like `192.168.1.23:443`.
+
+Servers wait on fixed, well-known ports, so clients know where to find them:
+
+| Port | Service | What it is for |
+| --- | --- | --- |
+| 22 | SSH | Remote command line on Linux and other servers |
+| 53 | DNS | Turning names into addresses (Lesson 4) |
+| 80 | HTTP | Websites, unencrypted |
+| 443 | HTTPS | Websites, encrypted |
+| 445 | SMB | Windows file sharing |
+| 3389 | RDP | Windows Remote Desktop |
+| 3306 | MySQL | A common database |
+
+When your browser connects to a website, the website listens on 443. Your side uses a random high port, such as 51234, picked just for that connection. That is called an **ephemeral port**.
+
+## TCP and UDP
+
+Data travels in **packets**, small pieces of a few kilobytes at most. Two protocols carry most of them.
+
+**TCP** (Transmission Control Protocol) is careful:
+
+- It sets up a **connection** before sending data, with a **three-way handshake**: the client sends `SYN` ("can we talk?"), the server answers `SYN-ACK` ("yes, can you hear me?"), and the client sends `ACK` ("yes").
+- It numbers every packet, resends anything lost, and puts everything back in order.
+- Web pages, email, SSH, and file transfers use TCP, because every byte must arrive.
+
+**UDP** (User Datagram Protocol) is fast and simple:
+
+- No connection and no handshake: it just sends.
+- Nothing is resent. A lost packet is simply gone.
+- Video calls, online games, and most DNS lookups use UDP, because speed matters more than a perfect copy. A video call would rather skip one lost frame than pause to resend it.
+
+## Listening and established
+
+A port on your machine can be in two states that matter most:
+
+- **Listening**: a program is waiting for others to connect to it. Every listening port is a door into your machine.
+- **Established**: a connection is open and data can flow, for example your browser talking to a website.
+
+Where a program listens matters as much as the port:
+
+- `127.0.0.1` (or `::1`): only programs on **this same machine** can connect. That is fairly safe.
+- `0.0.0.0` (or `::`, or `*`): **any network** this machine is on can connect. That door faces outward.
+
+This is why defenders care. An unexpected listening port is a classic sign of a **backdoor**, and services like RDP (3389) or SMB (445) left open to the internet are among the most attacked doors there are.
+
+## Hands-on: the doors on your own machine
+
+Every command here only reads. Nothing is opened or closed.
+
+**1. What is listening?**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# listening TCP ports, with the program that owns each one
+# (without admin rights, you only see your own programs; that is fine)
+lsof -nP -iTCP -sTCP:LISTEN
+
+# every listening TCP port, without program names
+netstat -an -p tcp | grep LISTEN
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# -t TCP, -u UDP, -l listening only, -n show numbers instead of names
+ss -tuln
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetTCPConnection -State Listen |
+  Sort-Object LocalPort |
+  Select-Object LocalAddress, LocalPort,
+    @{Name='Process'; Expression={(Get-Process -Id $_.OwningProcess).ProcessName}}
+```
+
+  </Fragment>
+</CodeTabs>
+
+For each line, read two things: the **port**, and the **address** in front of it. Is it `127.0.0.1` (this machine only) or `0.0.0.0`, `::`, or `*` (any network)? On a normal laptop, most listeners are system services or apps you installed, such as a sync client or a music app.
+
+**2. Watch a connection appear**
+
+Open any website in your browser, then run:
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+lsof -nP -iTCP -sTCP:ESTABLISHED | head -n 15
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ss -tn state established | head -n 15
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+Get-NetTCPConnection -State Established |
+  Select-Object -First 15 LocalPort, RemoteAddress, RemotePort,
+    @{Name='Process'; Expression={(Get-Process -Id $_.OwningProcess).ProcessName}}
+```
+
+  </Fragment>
+</CodeTabs>
+
+Look for lines where the remote port is `443`. That is your browser's encrypted connection to a website. Your side of each one uses a high ephemeral port.
+
+<Callout type="tip" title="Optional: open a door yourself">
+
+If you have Python 3, you can start a tiny web server and watch it appear in the list from step 1. It listens on `127.0.0.1` only, so nothing outside your machine can reach it. Run `python3 -m http.server 8000 --bind 127.0.0.1` (on Windows, `py -m http.server 8000 --bind 127.0.0.1`), run step 1 again in a second window, and find port 8000. Press `Ctrl+C` to stop it.
+
+</Callout>
+
+Add to your network sheet: how many TCP ports are listening on your machine, and one you could not explain yet. Bring that one to the Discord if a search does not answer it.
+
+### What to notice
+
+- An IP address finds the machine; a port finds the program. `address:port` names one endpoint.
+- TCP is reliable and ordered, with a handshake. UDP is fast and has no promises.
+- A listening port is a door. Listening on `0.0.0.0` faces the network; `127.0.0.1` faces only this machine.
+- An unexpected listener, or RDP and SMB reachable from outside, are among the first things a defender checks.

@@ -11,6 +11,18 @@
 
 ## Remaining tracks at a glance
 
+> **Status 2026-11-24: all eight tracks are written and live (v1.0).**
+> Owner decisions: Security Concepts names UU ITE and UU PDP with links to
+> the official texts (JDIH BPK), marked not legal advice; SQL uses DB
+> Browser for SQLite with a downloadable practice database; Servers &
+> Services installs Ubuntu Server 24.04 in VirtualBox or UTM, keeps DNS and
+> mail at concept-plus-inspection level, and uses MariaDB; Python uses the
+> standard library only; How the Web Really Works has 5 lessons (110 min);
+> AI exercises are on paper. External practice sites are optional only and
+> limited to ones verified to need no account (the OpenAI tokenizer page).
+> Lakera's Gandalf was left out: its address now redirects to a different
+> challenge, and no-login play could not be confirmed.
+
 Eight tracks are still `coming-soon` in `src/data/catalog.ts`, 41 lessons in
 total if the catalog's lesson counts are kept.
 
@@ -88,6 +100,10 @@ Each track follows the existing content standard:
 ---
 
 ## Track 1: Networking Fundamentals
+
+> **Status 2026-11-23: written and live (v1.0).** Owner decisions: Wireshark
+> as an optional step only, no scanning beyond your own machine, a short
+> IPv6 intro. Windows learners use PowerShell (not WSL) for this track.
 
 - **Category:** Networking & Web. **5 lessons, 120 min.** Hands-on on the
   learner's own machine with built-in tools (`<CodeTabs>` for

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { expect, test } from 'vitest';
-import { renderCardProgress, renderTrackLanding } from './trackProgress.client';
+import { renderCardProgress, renderRoadmapProgress, renderTrackLanding } from './trackProgress.client';
 
 function storeWith(trackSlug: string, progress: Record<string, boolean>) {
   const data: Record<string, string> = { [`fbt:progress:${trackSlug}`]: JSON.stringify(progress) };
@@ -73,4 +73,46 @@ test('landing page offers a review once every lesson is done', () => {
   renderTrackLanding(root, storeWith('git-fundamentals', { '01-a': true, '02-b': true, '03-c': true }));
   expect(root.querySelector('[data-track-start]')!.textContent).toBe('Review from the start');
   expect(root.querySelector('[data-track-summary]')!.textContent).toBe('You completed all 3 lessons.');
+});
+
+function roadmap(): HTMLElement {
+  const root = document.createElement('div');
+  root.innerHTML = `
+    <a data-roadmap-node="computing-basics" data-lesson-count="2" data-main-path><span data-track-progress="computing-basics" data-lesson-count="2" hidden></span></a>
+    <a data-roadmap-node="linux-essentials" data-lesson-count="3" data-main-path><span data-track-progress="linux-essentials" data-lesson-count="3" hidden></span></a>
+    <a data-roadmap-node="ai-fundamentals" data-lesson-count="2"><span data-track-progress="ai-fundamentals" data-lesson-count="2" hidden></span></a>
+  `;
+  return root;
+}
+
+function multiStore(data: Record<string, Record<string, boolean>>) {
+  const raw: Record<string, string> = {};
+  for (const [track, progress] of Object.entries(data)) raw[`fbt:progress:${track}`] = JSON.stringify(progress);
+  return { getItem: (k: string) => raw[k] ?? null, setItem: (k: string, v: string) => { raw[k] = v; } };
+}
+
+const node = (root: HTMLElement, slug: string) => root.querySelector<HTMLElement>(`[data-roadmap-node="${slug}"]`)!;
+
+test('roadmap: a first-time visitor gets no states and no "next" marker', () => {
+  const root = roadmap();
+  renderRoadmapProgress(root, multiStore({}));
+  expect(root.querySelector('[data-state]')).toBeNull();
+  expect(root.querySelector('[data-next]')).toBeNull();
+});
+
+test('roadmap: finished tracks are done, and the next main-path track is marked', () => {
+  const root = roadmap();
+  renderRoadmapProgress(root, multiStore({ 'computing-basics': { a: true, b: true }, 'linux-essentials': { a: true } }));
+  expect(node(root, 'computing-basics').getAttribute('data-state')).toBe('done');
+  expect(node(root, 'linux-essentials').getAttribute('data-state')).toBe('progress');
+  expect(node(root, 'linux-essentials').hasAttribute('data-next')).toBe(true);
+  expect(node(root, 'computing-basics').hasAttribute('data-next')).toBe(false);
+});
+
+test('roadmap: the AI lane is never marked as "next"', () => {
+  const root = roadmap();
+  renderRoadmapProgress(root, multiStore({ 'ai-fundamentals': { a: true } }));
+  expect(node(root, 'ai-fundamentals').getAttribute('data-state')).toBe('progress');
+  expect(node(root, 'ai-fundamentals').hasAttribute('data-next')).toBe(false);
+  expect(node(root, 'computing-basics').hasAttribute('data-next')).toBe(true);
 });

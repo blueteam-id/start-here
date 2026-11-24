@@ -24,6 +24,7 @@ import { reportEmailUrl, reportIssueUrl } from '../../lib/report';
 // into the page's HTML. A hidden, empty render here is the workaround.
 import CodeTabs from '../CodeTabs.astro';
 import Callout from '../Callout.astro';
+import LabFile from '../LabFile.astro';
 
 interface Props {
   track: TrackEntry;
@@ -119,7 +120,7 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
 
     <article class="lesson-view__content" data-lesson-content>
       {ContentIsAstroFactory ? <Content /> : <Fragment set:html={Content()} />}
-      <div style="display:none" aria-hidden="true"><CodeTabs /><Callout /></div>
+      <div style="display:none" aria-hidden="true"><CodeTabs /><Callout /><LabFile /></div>
     </article>
 
     <div class="lesson-view__discord-nudge" role="note" data-pagefind-ignore>
@@ -403,6 +404,73 @@ const ContentIsAstroFactory = typeof Content === 'function' && (Content as any).
   .code-block__copy:focus-visible {
     color: var(--text);
     opacity: 1;
+  }
+
+  /* Links inside lesson text: the browser default blue is unreadable on the
+     dark background. */
+  .lesson-view__content a {
+    color: var(--blue);
+    text-underline-offset: 2px;
+  }
+
+  .lesson-view__content a:hover,
+  .lesson-view__content a:focus-visible {
+    color: var(--text);
+  }
+
+  /* Tables in lesson bodies: readable columns, scroll sideways on phones. */
+  .lesson-view__content table {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  .lesson-view__content th,
+  .lesson-view__content td {
+    padding: 0.45rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  /* Short labels in the first column stay on one line; longer text wraps. */
+  .lesson-view__content th,
+  .lesson-view__content td:first-child {
+    white-space: nowrap;
+  }
+
+  .lesson-view__content td {
+    min-width: 6rem;
+  }
+
+  .lesson-view__content th {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-bottom-color: var(--text-dim);
+  }
+
+  /* <details> answer boxes, e.g. "Check your answers". */
+  .lesson-view__content details {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.6rem 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .lesson-view__content summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--blue);
+  }
+
+  .lesson-view__content details[open] summary {
+    margin-bottom: 0.5rem;
   }
 
   /* Lesson code blocks get breathing room; Shiki's default has none. */

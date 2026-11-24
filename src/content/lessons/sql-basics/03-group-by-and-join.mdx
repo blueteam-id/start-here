@@ -1,0 +1,125 @@
+---
+title: 'Counting and Combining: GROUP BY and JOIN'
+track: 'sql-basics'
+phase: 'Core Concepts'
+order: 3
+estimatedMinutes: 30
+prerequisites: 'Lesson 2, for SELECT, WHERE, and ORDER BY.'
+reflectQuestions:
+  - 'Brute force tries many passwords on one account; password spraying tries one password on many accounts. Which column tells them apart in the query from this lesson?'
+  - 'Why do some logins disappear when you use JOIN with devices, but come back with LEFT JOIN?'
+resources:
+  - label: 'SQLite: aggregate functions'
+    url: 'https://www.sqlite.org/lang_aggfunc.html'
+  - label: 'SQLBolt: multi-table queries with JOINs (free, interactive)'
+    url: 'https://sqlbolt.com/lesson/select_queries_with_joins'
+---
+
+import Callout from '../../../components/Callout.astro';
+
+Keep `company.db` open in DB Browser's **Execute SQL** tab.
+
+## Counting with COUNT
+
+`COUNT(*)` counts rows instead of listing them:
+
+```sql
+SELECT COUNT(*) FROM logins WHERE success = 0;
+```
+
+That gives `13`: thirteen failed logins in the whole table.
+
+## Grouping with GROUP BY
+
+`GROUP BY` splits rows into groups and counts each group separately. Failed logins per source address:
+
+```sql
+SELECT source_ip, COUNT(*) AS failures
+FROM logins
+WHERE success = 0
+GROUP BY source_ip
+ORDER BY failures DESC;
+```
+
+```text
+source_ip     failures
+203.0.113.50  11
+10.10.1.25    1
+10.10.1.24    1
+```
+
+`AS failures` gives the count a readable name, which you can also sort by. The two office addresses with one failure each are typos (you saw them in Lesson 2); the outside address is not.
+
+## Filtering groups with HAVING
+
+`WHERE` filters rows **before** grouping; `HAVING` filters the groups **after**. Keep only addresses with 5 or more failures, and also count how many **different accounts** each one tried:
+
+```sql
+SELECT source_ip,
+       COUNT(*) AS failures,
+       COUNT(DISTINCT user_id) AS accounts
+FROM logins
+WHERE success = 0
+GROUP BY source_ip
+HAVING COUNT(*) >= 5;
+```
+
+```text
+source_ip     failures  accounts
+203.0.113.50  11        10
+```
+
+Eleven failures spread over **ten different accounts**. That is not someone guessing one account's password (**brute force**). It is one password tried against many accounts: **password spraying**. Sprayers stay under per-account lockout limits, which is why counting accounts per address catches what per-account alerts miss.
+
+## Combining tables with JOIN
+
+Lesson 2 ended with "user 11". `JOIN` brings in the matching row from another table, using the keys from Lesson 1:
+
+```sql
+SELECT l.ts, u.username, l.source_ip, l.success
+FROM logins AS l
+JOIN users AS u ON u.id = l.user_id
+WHERE l.source_ip = '203.0.113.50'
+ORDER BY l.ts;
+```
+
+`logins AS l` and `users AS u` give the tables short nicknames. `ON u.id = l.user_id` says how rows match: a login's `user_id` equals a user's `id`. The last rows:
+
+```text
+ts                   username  source_ip     success
+2026-11-22 01:58:08  andi      203.0.113.50  0
+2026-11-22 01:59:09  fajar     203.0.113.50  0
+2026-11-22 02:07:14  rina      203.0.113.50  0
+2026-11-22 02:07:39  rina      203.0.113.50  1
+```
+
+After the spray, the attacker focused on `rina`, failed once more, and then **succeeded**.
+
+## When a match is missing: LEFT JOIN
+
+A plain `JOIN` drops rows that have no match. Remote logins have no device, so joining `logins` to `devices` with `JOIN` would silently hide them. `LEFT JOIN` keeps every row from the left table and leaves the missing columns empty:
+
+```sql
+SELECT l.ts, u.username, d.hostname, l.source_ip
+FROM logins AS l
+JOIN users AS u ON u.id = l.user_id
+LEFT JOIN devices AS d ON d.id = l.device_id
+WHERE l.success = 1 AND l.ts LIKE '2026-11-21%'
+ORDER BY l.ts;
+```
+
+Rows with an empty `hostname` are remote VPN logins, such as Indah's at `10:15:44`. In an investigation, quietly dropping rows is dangerous: the missing ones are often the interesting ones.
+
+<Callout type="stuck">
+
+- `ambiguous column name: id`: two joined tables both have `id`. Write `u.id` or `l.id` to say which one.
+- Far too many rows: a `JOIN` without the right `ON` condition matches every row with every row. Check the `ON` line.
+
+</Callout>
+
+### What to notice
+
+- `COUNT`, `GROUP BY`, and `HAVING` turn rows into answers: how many, per what, above which limit.
+- Counting distinct accounts per address separates password spraying from brute force.
+- `JOIN` brings related rows together through keys; `LEFT JOIN` keeps rows that have no match.
+- In investigations, a query that silently drops rows can hide exactly what you are looking for.

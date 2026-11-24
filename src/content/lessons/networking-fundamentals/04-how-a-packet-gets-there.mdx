@@ -1,0 +1,151 @@
+---
+title: 'How a Packet Gets There: DNS, Routing, ARP, and NAT'
+track: 'networking-fundamentals'
+phase: 'Core Concepts'
+order: 4
+estimatedMinutes: 25
+prerequisites: 'Lessons 1 to 3: your address, subnet, gateway, and ports.'
+reflectQuestions:
+  - 'Why are DNS logs so useful when investigating malware on a company laptop?'
+  - 'Your gateway''s MAC address in `arp -a` suddenly changed, but your router did not. What could that mean?'
+  - 'A website''s log shows thousands of requests from one public address. Why might that still be many different people?'
+resources:
+  - label: 'What is DNS? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/dns/what-is-dns/'
+  - label: 'What is routing? (Cloudflare Learning Center)'
+    url: 'https://www.cloudflare.com/learning/network-layer/what-is-routing/'
+  - label: 'Wireshark User''s Guide (free)'
+    url: 'https://www.wireshark.org/docs/wsug_html_chunked/'
+---
+
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+
+## The whole trip in one story
+
+You type `example.com` into your browser and press Enter. Before the page appears, roughly this happens:
+
+1. **DNS**: your computer asks a DNS server, "what is the IP address of `example.com`?" and gets an answer.
+2. **Local or not?** Your computer compares that address with its own subnet (Lesson 2). It is not local, so the packet must go to the **default gateway**.
+3. **ARP**: to hand the packet to the gateway on the local network, your computer needs the gateway's **MAC address**. ARP finds it.
+4. **NAT**: your router swaps your private address for your home's public address, and remembers the swap.
+5. **Routing**: routers across the internet pass the packet along, hop by hop, toward the destination.
+6. The server answers on port 443 (Lesson 3), and the reply travels back the same way. Your router undoes the NAT swap and delivers it to your laptop.
+
+The rest of this lesson takes those steps one at a time, and you will see each one on your own machine.
+
+## DNS: names to addresses
+
+People remember names; networks use addresses. **DNS** (Domain Name System) is the internet's phone book. Your computer asks a **DNS resolver**, usually your router or your provider's server, and the resolver finds the answer and remembers it for a while.
+
+DNS is gold for defenders. Almost every program, malware included, looks up a name before it connects anywhere. A list of names a laptop looked up is often the fastest way to spot it talking to somewhere it should not.
+
+## Routing: hop by hop
+
+No single machine knows the whole internet. Each **router** only knows which neighbor is one step closer to the destination. Your packet is passed along a chain of routers: each pass is a **hop**.
+
+Every packet carries a **TTL** (time to live), a number that drops by one at each hop. If it reaches zero, the packet is thrown away. That stops lost packets from circling forever, and it is also how `traceroute` works: it sends packets with TTL 1, 2, 3, and so on, and each router that throws one away reports back.
+
+## ARP: from IP address to MAC address
+
+Inside your local network, data is delivered by MAC address (Lesson 1). **ARP** (Address Resolution Protocol) asks the whole local network: "who has `192.168.1.1`? Tell me your MAC address." The owner answers, and your computer remembers the pair in its **ARP table**.
+
+ARP trusts any answer. An attacker on the same network can reply "I am `192.168.1.1`" with their own MAC address, and traffic meant for the router goes to them instead. This is called **ARP spoofing**. A gateway whose MAC address changes for no reason is worth a closer look.
+
+## NAT: sharing one public address
+
+Lesson 1 showed that your home has one public address shared by every device. **NAT** (Network Address Translation) makes that work. When a packet leaves, the router replaces the private source address with the public one and notes which device and port it came from. When the reply arrives, the router reverses the swap.
+
+For defenders, NAT means a website's logs see the router's public address, not the device behind it. One public address in a log can be a whole office or a whole café.
+
+## Hands-on: follow your own packets
+
+**1. Ask DNS**
+
+`nslookup` works the same on macOS, Linux, and Windows:
+
+```bash
+nslookup example.com
+```
+
+The first lines name the DNS server that answered. The lines after `Name:` give the addresses for `example.com`, often both IPv4 and IPv6.
+
+**2. Count the hops**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+# -n shows addresses instead of looking up router names (faster)
+traceroute -n example.com
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+# tracepath is installed on most distributions; traceroute may not be
+tracepath -n example.com
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+# -d shows addresses instead of looking up router names (faster)
+tracert -d example.com
+```
+
+  </Fragment>
+</CodeTabs>
+
+The first hop is your gateway from Lesson 1. Then come your provider's routers, then the internet. Lines of `* * *` or "no reply" are routers that choose not to answer. That is normal. It can take a minute to finish; press `Ctrl+C` to stop early.
+
+**3. Read your ARP table**
+
+<CodeTabs>
+  <Fragment slot="macos">
+
+```bash
+arp -a
+```
+
+  </Fragment>
+  <Fragment slot="linux">
+
+```bash
+ip neigh
+```
+
+  </Fragment>
+  <Fragment slot="windows">
+
+```powershell
+arp -a
+```
+
+  </Fragment>
+</CodeTabs>
+
+Find your gateway's address in the list, and note its MAC address. The other entries are devices your computer talked to recently on the local network.
+
+**4. Spot the NAT**
+
+Look at your network sheet. Your private address (Lesson 1) and your public address are different, and nothing on your laptop is configured with the public one. Your router is doing NAT.
+
+<Callout type="tip" title="Optional: see a DNS lookup in Wireshark">
+
+**Wireshark** is a free tool that shows every packet your computer sends and receives. Install it from [wireshark.org](https://www.wireshark.org/download.html) (on Windows it also installs Npcap, which needs admin rights). Start a capture on your Wi-Fi or Ethernet interface, type `dns` in the filter bar, run `nslookup example.com`, and stop the capture. You will see the question and the answer as two packets.
+
+Only capture on your own network and your own device. Capturing other people's traffic without permission is a serious matter, even on a shared office or café network.
+
+</Callout>
+
+Add to your network sheet: the DNS server that answered, the addresses of `example.com`, how many hops it took, and your gateway's MAC address.
+
+### What to notice
+
+- A single page load uses DNS, a routing decision, ARP, NAT, and many router hops before the first byte of the page arrives.
+- DNS lookups reveal where a machine is trying to go, which is why defenders collect them.
+- ARP trusts any answer, which makes ARP spoofing possible on a shared local network.
+- Behind NAT, one public address can stand for many people. Keep that in mind before blaming "one IP".

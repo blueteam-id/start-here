@@ -19,8 +19,10 @@ const liveCount = CATALOG_TRACKS.filter((track) => track.status === 'live').leng
   <div class="catalog__intro">
     <h1 class="catalog__heading">All Tracks</h1>
     <p class="catalog__subheading">
-      {trackCount} tracks, {categoryCount} categories. {liveCount} live so far; the rest are
-      coming soon.
+      {trackCount} tracks, {categoryCount} categories.
+      {liveCount < trackCount
+        ? ` ${liveCount} live so far; the rest are coming soon.`
+        : ' All of them are live.'}
     </p>
   </div>
 

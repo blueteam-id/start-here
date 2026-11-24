@@ -40,14 +40,24 @@ src/
 ├── content/
 │   ├── tracks/<slug>/index.md       # one per track, see schema below
 │   └── lessons/<slug>/NN-title.mdx  # one per lesson, see schema below
-├── data/catalog.ts                  # the public track catalog shown on the site
+├── data/
+│   ├── catalog.ts                   # the public track catalog shown on the site
+│   ├── roadmap.ts                   # homepage roadmap and Start here order
+│   └── glossary.ts                  # glossary terms
 ├── components/                      # Astro components and their colocated tests
 └── pages/                           # routes
+public/labs/<track>/                 # downloadable lab files
+scripts/labs/build_labs.py           # regenerates the lab files
 ```
+
+The [README](README.md) has the full folder map.
 
 ## Adding or editing a track
 
-A track needs two things, kept in sync:
+A track needs these things, kept in sync. Tests fail if the catalog entry,
+the content entry, the roadmap, and the actual lessons disagree, so most
+forgotten steps show up before review (glossary terms are the exception:
+nothing checks that you added them).
 
 1. **A catalog entry** in [`src/data/catalog.ts`](src/data/catalog.ts):
    `slug`, `title`, `category` (must be one of `CATALOG_CATEGORIES`),
@@ -61,8 +71,20 @@ A track needs two things, kept in sync:
    public release; bump it on meaningful content revisions and mention the
    change in a GitHub release).
 
+3. **A place on the roadmap** in [`src/data/roadmap.ts`](src/data/roadmap.ts):
+   add the slug to a stage in `ROADMAP` (or to `ANYTIME_LANE`), and a
+   one-line reason in `TRACK_WHY`. That places it on the homepage roadmap
+   and the Start here page.
+4. **Glossary terms** in [`src/data/glossary.ts`](src/data/glossary.ts) for
+   the key terms the track teaches, in alphabetical order, pointing at the
+   track.
+5. **A track test**, like the ones in
+   [`src/content/newTracks.test.ts`](src/content/newTracks.test.ts): live,
+   attributed, the right number of lessons in order, and one wrap-up.
+
 A track only shows as live on the homepage and catalog once both the catalog
-entry and the content entry agree it is `'live'`.
+entry and the content entry agree it is `'live'`. While a track is
+`'coming-soon'`, its card and any `<TrackLink>` to it show it as coming soon.
 
 ## Adding or editing a lesson
 
@@ -93,6 +115,11 @@ Two mechanical rules on top of the schema:
 - **Expected output:** when you show what the learner should see (not
   something to type), use a ` ```text ` fence. It gets a "You should see"
   label and no copy button.
+- **Lab files:** downloadable practice files live in `public/labs/<track>/`
+  and are shown with `<LabFile path="labs/<track>/<file>" label="..." />`
+  (see `src/components/LabFile.astro`), which prints the size and SHA-256.
+  Generated lab data comes from `scripts/labs/build_labs.py`: edit that and
+  rerun `python3 scripts/labs/build_labs.py` rather than editing the files.
 - **Catalog and track entry stay in sync:** a test
   (`src/content/catalogSync.test.ts`) fails if `catalog.ts` and a track's
   `index.md` disagree, or if `lessonCount` / `estimatedMinutes` do not match
@@ -180,13 +207,16 @@ npm install        # install dependencies
 npm run dev         # start the dev server at localhost:4321
 npm test            # run the test suite (vitest)
 npm run verify       # build the static site + audit the output
+npm run preview      # serve the built site; site search only works here
 ```
 
 Before opening a pull request:
 
 - `npm test` passes.
-- `npm run verify` passes (build + audit, which catches broken links and
-  a few structural issues in the built HTML).
+- `npm run verify` passes (the build fails on broken lesson frontmatter or
+  an unknown `<TrackLink>` slug, and the audit checks every built page for a
+  viewport tag and for em dashes). It does not check external links: open
+  any new resource links yourself.
 - If you added or changed a track or lesson, the schemas above are
   satisfied: a mismatched or missing frontmatter field will fail the
   content collection build.
